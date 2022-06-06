@@ -1,11 +1,108 @@
 Package: ddh
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Title: Utility Functions and Data Sets for datadrivenhypothesis
+Version: 0.0.1
+Authors@R: c(
+    person(given = "Matthew",
+           family = "Hirschey",
+           role = c("aut", "cre"),
+           email = "matthew@hirschey.org",
+           comment = c(ORCID = "0000-0003-4541-5376")),
+    person(given = "Akshay",
+           family = "Bareja",
+           role = c("aut", "ctb"),
+           email = "akshay.bareja@duke.edu",
+           comment = c(ORCID = "0000")),
+    person(given = "Pol",
+           family = "Castellano Escuder",
+           role = c("aut", "ctb"),
+           email = "pol.castellano.escuder@duke.edu",
+           comment = c(ORCID = "0000")))
+Maintainer: Matthew Hirschey <matthew@hirschey.org>
+Description: This package contains functions for data analysis and graphing, data sets, and  supporting materials for the ddh web app
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+Depends: 
+    R (>= 3.1)
+Imports:
+    BiocManager,
+    Cairo,
+    caret,
+    colorspace,
+    corrr,
+    cowplot,
+    dbscan,
+    doParallel,
+    DT,
+    enrichR,
+    furrr,
+    future,
+    ggdist,
+    gghighlight,
+    ggpubr,
+    ggraph,
+    ggrepel,
+    ggtext,
+    glue,
+    grDevices,
+    gt,
+    here,
+    hexbin,
+    httr,
+    htmltools,
+    igraph,
+    janitor,
+    jsonlite,
+    knitr,
+    lexicon,
+    lubridate,
+    magick,
+    mgcv,
+    moderndive,
+    optparse,
+    patchwork,
+    pander,
+    plotly,
+    promises,
+    quarto,
+    rayvertex,
+    readxl,
+    remotes,
+    rentrez,
+    reticulate,
+    rlang,
+    RISmed,
+    rmarkdown,
+    rtweet,
+    rvest,
+    scales,
+    shinycssloaders,
+    shinyjs,
+    shinyWidgets,
+    showtext,
+    stopwords,
+    sysfonts,
+    tidygraph,
+    tidyselect,
+    tidytext,
+    tidyverse,
+    uwot,
+    vctrs,
+    viridis,
+    visNetwork,
+    vroom,
+    webchem,
+    widyr,
+    XML,
+    ggplot2,
+    dplyr,
+    magrittr
+Suggests: 
+    testthat (>= 3.0.0),
+    spelling 
+VignetteBuilder: knitr
+URL: https://github.com/matthewhirschey/ddh
+RoxygenNote: 6.1.1
+Language: en-US
+Config/testthat/edition: 3
