@@ -1,1 +1,5 @@
 exportPattern("^[[:alpha:]]+")
+importFrom("grDevices", "colorRamp", "rgb")
+importFrom("graphics", "text")
+importFrom("stats", "end", "filter", "median", "quantile", "reorder", "start")
+importFrom("utils", "data")
