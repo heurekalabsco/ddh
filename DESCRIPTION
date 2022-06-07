@@ -34,12 +34,14 @@ Imports:
     cowplot,
     dbscan,
     doParallel,
+    dplyr,
     DT,
     enrichR,
     furrr,
     future,
     ggdist,
     gghighlight,
+    ggplot2,
     ggpubr,
     ggraph,
     ggrepel,
@@ -58,6 +60,7 @@ Imports:
     lexicon,
     lubridate,
     magick,
+    magrittr,
     mgcv,
     moderndive,
     optparse,
@@ -94,13 +97,18 @@ Imports:
     vroom,
     webchem,
     widyr,
-    XML,
-    ggplot2,
-    dplyr,
-    magrittr
+    XML
 Suggests: 
-    testthat (>= 3.0.0),
-    spelling 
+    spelling,
+    testthat (>= 3.0.0)
+Remotes: 
+    github::jespermaag/gganatogram,
+    github::matthewhirschey/tidybiology,
+    github::tylermorganwall/raymolecule, 
+    bioc::4.0/AnnotationDbi, 
+    bioc::4.0/biomaRt, 
+    bioc::4.0/impute, 
+    bioc::4.0/org.Hs.eg.db
 VignetteBuilder: knitr
 URL: https://github.com/matthewhirschey/ddh
 RoxygenNote: 6.1.1
