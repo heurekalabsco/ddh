@@ -1,7 +1,7 @@
 Package: ddh
 Type: Package
 Title: Utility Functions and Data Sets for datadrivenhypothesis
-Version: 0.0.1
+Version: 0.0.99
 Authors@R: c(
     person(given = "Matthew",
            family = "Hirschey",
@@ -19,7 +19,7 @@ Authors@R: c(
            email = "pol.castellano.escuder@duke.edu",
            comment = c(ORCID = "0000-0001-6466-877X")))
 Maintainer: Matthew Hirschey <matthew@hirschey.org>
-Description: This package contains functions for data analysis and graphing, data sets, and  supporting materials for the ddh web app
+Description: This package contains functions for data analysis and graphing, data sets, and supporting materials for the ddh web app
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
