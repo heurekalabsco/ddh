@@ -6,7 +6,7 @@
 [![Codecov test coverage](https://codecov.io/gh/matthewhirschey/ddh/branch/main/graph/badge.svg)](https://app.codecov.io/gh/matthewhirschey/ddh?branch=main)
 <!-- badges: end -->
 
-package containing raw functions to support the ddh app
+This package contains functions for data analysis and graphing, data sets, and supporting materials for the [ddh web app](https://www.datadrivenhypothesis.com).
 
 ## Code of Conduct
 
