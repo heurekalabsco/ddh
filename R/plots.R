@@ -1,347 +1,4 @@
-#HELPER --------------------------------------------------------------------
-#' Bomb Plot
-#'
-#' \code{make_bomb_plot} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a bomb plot plot
-#'
-#' @return If no error, then returns a bomb plot plot. If an error is thrown, then will return a bomb plot.
-#'
-#' @export
-#' @examples
-#' make_bomb_plot()
-#' \dontrun{
-#' make_bomb_plot()
-#' }
-make_bomb_plot <- function(){
-  #fill background
-  background <- data.frame(
-    x = rep(1:72),
-    y = rep(1:72, each = 72)
-  )
 
-  #set circle w/randomness (strictly controlled)
-  x_center <- round(sample(x = 28:32,
-                           size = 1), digits = 0) #30
-  y_center <- round(sample(x = 28:32,
-                           size = 1), digits = 0) #30
-  radius <- round(sample(x = 18:22,
-                         size = 1), digits = 0) #20
-
-  #drop out those points outside of circle
-  # https://www.redblobgames.com/grids/circle-drawing/
-  circle <- data.frame(
-    x = rep((x_center-radius):(radius+x_center)),
-    y = rep((y_center-radius):(radius+y_center), each = length(rep((x_center-radius):(radius+x_center))))
-  )
-
-  circle <-
-    circle %>%
-    mutate(distance_to_center = sqrt((x-x_center)^2 + (y-y_center)^2),
-           include = if_else(distance_to_center < radius, TRUE, FALSE))
-
-  #add bomb top
-  #target 1/3 of bomb width; target 1/6 for height
-  bomb_top_width <- (radius*2)/4
-  bomb_top_height <- bomb_top_width/3
-  bomb_top <- data.frame(
-    x = rep((x_center-(bomb_top_width)/2):(x_center+(bomb_top_width)/2)),
-    y = rep((y_center+radius):(y_center+radius+bomb_top_height), each = length(rep((x_center-(bomb_top_width)/2):(x_center+(bomb_top_width)/2))))
-  )
-
-  #add white streak
-  streak_arc <- radius*.75
-  white_streak <- data.frame(
-    y = c(rep((y_center+1):(y_center+streak_arc)),rep((y_center-1):(y_center-streak_arc)))
-  )
-
-  white_streak <-
-    white_streak %>%
-    mutate(x = round(30 - (sqrt((streak_arc^2) - (y_center-y)^2)), digits = 0))
-
-  #drop 2/3
-  samples_to_keep <- nrow(white_streak)/3
-
-  #build fuse
-  cube <- sample(1:2, size = 1) #2
-  lin <- sample(1:10, size = 1) #3
-  whole <- 1 #2
-
-  fuse_fun <- function(x,
-                       cube_var=2,
-                       lin_var=3,
-                       whole_var=2){
-    y = cube_var*(x^3) - lin_var*(x) + whole_var #- 3*(x)^2
-    return(y)
-  }
-
-  fuse <-
-    data.frame(
-      x = seq(from = -1,
-              to = 2.5,
-              length.out = radius))
-
-  fuse <-
-    fuse %>%
-    mutate(y = fuse_fun(x,
-                        cube_var = cube,
-                        lin_var = lin,
-                        whole_var = whole))
-
-  # fuse <-
-  #   fuse %>%
-  #   mutate(y1 = fuse_fun(x),
-  #          y2 = fuse_fun(x, whole_var = 20),
-  #          y3 = fuse_fun(x, whole_var = 2),
-  #          y4 = fuse_fun(x, whole_var = 0.1))
-  #
-  # ggplot() +
-  #   geom_line(data = fuse, aes (x, y1), color = "blue") +
-  #   geom_line(data = fuse, aes (x, y2), color = "red") +
-  #   geom_line(data = fuse, aes (x, y3), color = "green") +
-  #   geom_line(data = fuse, aes (x, y4), color = "pink")
-
-  fuse <-
-    fuse %>%
-    mutate(x_final = rep(x_center:(x_center+radius-1)), #x_original
-           y_final = round((y_center + radius + bomb_top_height + y), digits = 0)) %>%
-    filter(x_final < 66,
-           y_final < 66)
-
-  #add first point to fuse
-  fuse_start <- #add 2 vertical blocks to start fuse
-    data.frame(
-      x_final = x_center,
-      y_final = round(y_center + radius + bomb_top_height + 1, digits = 0))
-
-  #find last point in fuse
-  x_fuse_bind <-
-    fuse %>%
-    slice_max(x_final) %>%
-    pull(x_final)
-
-  y_fuse_bind <-
-    fuse %>%
-    slice_max(x_final) %>%
-    pull(y_final)
-
-  fuse_end <- #add 3 horizontal blocks to fuse
-    data.frame(
-      x_final = c(x_fuse_bind, x_fuse_bind + 1, x_fuse_bind + 2),
-      y_final = c(y_fuse_bind, y_fuse_bind, y_fuse_bind))
-
-  #bind rows
-  fuse <-
-    fuse %>%
-    bind_rows(fuse_start) %>%
-    bind_rows(fuse_end)
-
-  #spark
-  #find last point in fuse
-  x_fuse <-
-    fuse %>%
-    slice_max(x_final) %>%
-    pull(x_final)
-
-  y_fuse <-
-    fuse %>%
-    slice_max(x_final) %>%
-    pull(y_final)
-
-  #find points around a circle of set size
-  spark_radius <- round(radius/3, digits=0)
-
-  spark <- data.frame(
-    x = rep((x_fuse-spark_radius):(spark_radius+x_fuse)),
-    y = rep((y_fuse-spark_radius):(spark_radius+y_fuse), each = length(rep((x_fuse-spark_radius):(spark_radius+x_fuse))))
-  )
-
-  spark <-
-    spark %>%
-    mutate(distance_to_center = sqrt((x-x_fuse)^2 + (y-y_fuse)^2),
-           include = if_else(distance_to_center < spark_radius, TRUE, FALSE)) %>%
-    filter(x < 72,
-           y < 72)
-
-  spark_diameter <- spark_radius * 2
-  spark_thirds <- round(spark_diameter/3, digits = 0)
-
-  #select random x positions
-  x_left_pos = round(sample(x = (x_fuse-spark_radius):(x_fuse-spark_radius+spark_thirds),
-                            size = 1), digits=0)
-  x_middle_pos = round(sample(x = (x_fuse-spark_thirds/2):(x_fuse+spark_thirds/2),
-                              size = 1), digits=0)
-  x_right_pos = round(sample(x = (x_fuse+spark_radius-spark_thirds):(x_fuse+spark_radius),
-                             size = 1), digits=0)
-  x_left_neg = round(sample(x = (x_fuse-spark_radius):(x_fuse-spark_radius+spark_thirds),
-                            size = 1), digits=0)
-  x_middle_neg = round(sample(x = (x_fuse-spark_thirds/2):(x_fuse+spark_thirds/2),
-                              size = 1), digits=0)
-  x_right_neg = round(sample(x = (x_fuse+spark_radius-spark_thirds):(x_fuse+spark_radius),
-                             size = 1), digits=0)
-
-  #calculate y positions
-  sparky <- function(x,
-                     x_origin = x_fuse,
-                     y_origin = y_fuse,
-                     pos = TRUE){
-    if(pos == TRUE){
-      y_offset = sqrt((spark_radius^2 - (abs(x_origin - x))^2))
-      y = round(y_origin + y_offset, digits = 0)
-    } else {
-      y_offset = sqrt((spark_radius^2 - (abs(x_origin - x))^2))
-      y = round(y_origin - y_offset, digits = 0)
-    }
-    return(y)
-  }
-
-  y_left_pos = round(sparky(x_left_pos), digits=0)
-  y_middle_pos = round(sparky(x_middle_pos), digits=0)
-  y_right_pos = round(sparky(x_right_pos), digits=0)
-  y_left_neg = round(sparky(x_left_neg, pos = FALSE), digits=0)
-  y_middle_neg = round(sparky(x_middle_neg, pos = FALSE), digits=0)
-  y_right_neg = round(sparky(x_right_neg, pos = FALSE), digits=0)
-
-  #for testing
-  spark_points <- data.frame(
-    x = c(x_left_pos, x_middle_pos, x_right_pos, x_left_neg, x_middle_neg, x_right_neg),
-    y = c(y_left_pos, y_middle_pos, y_right_pos, y_left_neg, y_middle_neg, y_right_neg)
-  )
-
-  spark_line_maker <- function(x_origin = x_fuse,
-                               y_origin = y_fuse,
-                               x_var,
-                               y_var){
-    #add slope finding fun
-    slope_finder <- function(x1 = x_origin,
-                             x2 = x_var,
-                             y1 = y_origin,
-                             y2 = y_var){
-      m = (y2-y1)/(x2-x1)
-      return(m)
-    }
-    #get slope
-    slope <- slope_finder()
-
-    #make first df
-    spark_frame <-
-      data.frame(
-        y = rep(y_origin:y_var)
-      )
-    final_frame <-
-      spark_frame %>%
-      mutate(x = round((y-y_origin)/slope, digits = 0)+x_origin)
-    return(final_frame)
-  }
-
-  sparkline1 <- spark_line_maker(x_var = x_left_pos, y_var = y_left_pos)
-  sparkline2 <- spark_line_maker(x_var = x_middle_pos, y_var = y_middle_pos)
-  sparkline3 <- spark_line_maker(x_var = x_right_pos, y_var = y_right_pos)
-  sparkline4 <- spark_line_maker(x_var = x_left_neg, y_var = y_left_neg)
-  sparkline5 <- spark_line_maker(x_var = x_middle_neg, y_var = y_middle_neg)
-  sparkline6 <- spark_line_maker(x_var = x_right_neg, y_var = y_right_neg)
-
-  spark_lines <-
-    sparkline1 %>%
-    bind_rows(sparkline2) %>%
-    bind_rows(sparkline3) %>%
-    bind_rows(sparkline4) %>%
-    bind_rows(sparkline5) %>%
-    bind_rows(sparkline6)
-
-  #drop some
-  spark_lines <-
-    spark_lines %>%
-    mutate(distance_to_center = sqrt((x-x_fuse)^2 + (y-y_fuse)^2),
-           include = if_else(distance_to_center < spark_radius/3, FALSE, TRUE))
-
-  #build plot with layers
-  plot_complete <-
-    ggplot() +
-    geom_tile(data = background, aes(x, y), fill = "white", color = "white") +
-    geom_tile(data = circle %>% filter(include == TRUE), aes(x, y), fill = "black", color = "black") +
-    geom_tile(data = bomb_top, aes(x, y), fill = "black", color = "black") +
-    geom_tile(data = white_streak %>% sample_n(size = samples_to_keep), aes(x, y), fill = "white", color = "white") +
-    geom_tile(data = fuse, aes(x_final, y_final), fill = "black", color = "black") +
-    #geom_tile(data = spark %>% filter(include == TRUE), aes(x, y), fill = "blue", alpha = 0.5) +
-    #geom_tile(data = spark_points, aes(x, y), fill = "blue") +
-    geom_tile(data = spark_lines %>% filter(include == TRUE), aes(x, y), fill = "black", color = "black") +
-    coord_cartesian(xlim = c(0,72), ylim = c(0,72)) +
-    theme_void() +
-    NULL
-  return(plot_complete)
-}
-
-#make_bomb_plot()
-
-#fonts
-#library(extrafont)
-#extrafont::loadfonts()
-#font_add_google("Roboto Mono", "Roboto Mono") #needed for make_sequence
-
-
-plot_size_finder <- function(function_name){ #this function sets the output size to pre-render a plot
-  #switch statement for majority of plots, ignore for cards only, and COMMENT out intentionally excluded
-  type <-
-    switch(function_name,
-           make_ideogram = "portrait",
-           make_proteinsize = "landscape",
-           #make_sequence = "square",
-           #make_protein_domain_plot = "landscape",
-           make_radial = "square",
-           #make_umap_plot = "landscape",
-           #make_cluster_enrich_plot = "square",
-           make_structure = "portrait",
-           make_pubmed =  "landscape",
-           make_cellanatogram =  "landscape",
-           make_female_anatogram = "portrait",
-           make_male_anatogram = "portrait",
-           make_tissue = "landscape",
-           make_celldeps = "landscape",
-           make_cellbins = "landscape",
-           make_lineage = "portrait",
-           make_sublineage = "portrait",
-           make_correlation = "landscape",
-           make_cellexpression = "landscape",
-           make_cellgeneprotein = "landscape",
-           make_expdep = "landscape",
-           stop("no such plot")
-
-    )
-
-  if(type == "portrait"){
-    #Size: 1080 x 1920 px
-    #Aspect Ratio: 9:16
-    # plot_size = list(plot_width = 1080,
-    #                  plot_height = 1920)
-    # plot_size = list(plot_width = 480,
-    #                  plot_height = 720)
-    plot_size = list(plot_width = 300,
-                     plot_height = 450)
-  } else if(type == "landscape") {
-    #Size: 1920 x 1080 px
-    #Aspect ratio: 16:9
-    # plot_size = list(plot_width = 1920,
-    #                  plot_height = 1080)
-    # plot_size = list(plot_width = 720,
-    #                  plot_height = 480)
-    plot_size = list(plot_width = 750,
-                     plot_height = 400)
-  } else if(type == "square"){
-    #Aspect ratio: 1:1
-    plot_size = list(plot_width = 500,
-                     plot_height = 500)
-  } else {
-    #custom?
-    plot_size = list(plot_width = 720,
-                     plot_height = 720)
-  }
-  return(plot_size)
-}
-
-#plot_size_finder("make_ideogram")
-
-#GENE --------------------------------------------------------------------
 ## BARCODE PLOT --------------------------------------------------------------------
 make_barcode <- function(input = list()) {
   make_barcode_raw <- function() {
@@ -375,11 +32,7 @@ make_barcode <- function(input = list()) {
            error = function(x){make_bomb_plot()})
 }
 
-#make_barcode(input = list(content = "ROCK1"))
-#make_barcode(input = list(content = c("ROCK1", "ROCK2")))
-
 ## IDEOGRAM PLOT --------------------------------------------------------
-
 #' Ideogram Plot
 #'
 #' \code{make_ideogram} returns an image of a chromosome with a gene position annotated.
@@ -544,7 +197,6 @@ plot_ideogram_legend <- paste0("Each point shows the location of the query gene(
 #' \dontrun{
 #' make_proteinsize(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-#'
 make_proteinsize <- function(protein_data = proteins,
                              input = list(),
                              card = FALSE) {
@@ -935,7 +587,6 @@ plot_protein_domains_legend <- "Rectangles represent the locations and size of n
 # make_protein_domain_plot(input = list(content = c("ROCK1", "ROCK2")), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
 
 ## RADIAL PLOT -------------------------------------------------------------
-#SIGNATURE
 #' Radial Plot
 #'
 #' \code{make_radial} returns an image of ...
@@ -1145,7 +796,7 @@ cluster_plot_aa_bar_title <- "Cluster Bar Plot."
 cluster_plot_aa_bar_legend <- "Amino acid signature/s (percentage of each amino acid in a protein) of the queried cluster/s versus the mean amino acid signature of all the other proteins in the dataset (N = 20375)."
 
 ## UMAP PLOT --------------------------------------------------------
-#' Umap Plot Plot
+#' UMAP Plot
 #'
 #' \code{make_umap_plot} returns an image of ...
 #'
@@ -1202,7 +853,7 @@ make_umap_plot <- function(cluster_data = sequence_clusters,
       ) +
       guides(color = guide_legend(override.aes = list(size = 3))) +
       ## theme changes
-      # theme_ddh(base_size = 16) +
+      theme_ddh() +
       theme(
         text = element_text(family = "Nunito Sans"),
         legend.position = "top",
@@ -1373,6 +1024,90 @@ make_structure <- function(input = list(),
 
 protein_structure_title <- "Predicted Structure."
 protein_structure_legend <- "Alpha Fold predicted structure rendered in a ribbon diagram."
+
+## 3D STRUCTURE PLOT --------------------------------------------------------------------
+make_structure3d <- function(pdb_ids = uniprot_pdb_table,
+                             protein_data = proteins,
+                             gene_id = NULL,
+                             pdb_id = NULL,
+                             input = list(),
+                             color = FALSE,
+                             ribbon = FALSE,
+                             selection = FALSE,
+                             resi = 1:10,
+                             chain = "A",
+                             resn = NULL,
+                             invert = NULL,
+                             elem = NULL
+) {
+  make_structure3d_raw <- function() {
+
+    if(is.null(gene_id)) {
+      if(length(input$content) == 1) {
+        gene_id <- input$content
+      } else {
+        gene_id <- input$content[1]
+      }
+    }
+
+    pdb_path <- load_pdb(input = list(content = gene_id))
+
+    if(!is.null(pdb_path) & is.null(pdb_id)) {
+      plot_data <- read.pdb(pdb_path)
+    } else {
+      plot_data <- protein_data %>%
+        filter(gene_name %in% gene_id) %>%
+        left_join(pdb_ids, by = c("uniprot_id" = "uniprot")) %>%
+        unnest(data) %>%
+        {if (is.null(pdb_id)) dplyr::slice(., 1) else filter(., pdb == pdb_id)} %>%
+        pull(pdb) %>%
+        r3dmol::m_fetch_pdb()
+    }
+
+    plot_complete <- r3dmol::r3dmol() %>%
+      r3dmol::m_add_model(data = plot_data, format = "pdb") %>%
+      r3dmol::m_center()
+
+    if(color) {
+      plot_complete <- plot_complete %>%
+        r3dmol::m_set_style(style = r3dmol::m_style_cartoon(color = "spectrum", ribbon = ribbon)) %>%
+        r3dmol::m_center()
+    } else {
+      plot_complete <- plot_complete %>%
+        r3dmol::m_set_style(style = r3dmol::m_style_cartoon(ribbon = ribbon)) %>%
+        r3dmol::m_center()
+    }
+
+    if(selection) {
+      plot_complete <- plot_complete %>%
+        m_add_style(
+          style = c(
+            m_style_stick(),
+            m_style_sphere(scale = 0.3)
+          ),
+          sel = m_sel(resi =  eval(parse(text = resi)),
+                      chain = chain,
+                      resn = resn,
+                      invert = invert,
+                      elem = elem)
+        ) %>%
+        m_zoom_to(sel = m_sel(resi = eval(parse(text = resi)),
+                              chain = chain)) %>%
+        r3dmol::m_center()
+    }
+
+    return(plot_complete)
+  }
+
+  #error handling
+  tryCatch(make_structure3d_raw(),
+           error = function(x){make_bomb_plot()})
+}
+
+# make_structure3d(input = list(content = "ROCK1"))
+
+protein_structure_title3d <- "Predicted 3D Structure."
+protein_structure_legend3d <- "Interactive 3D predicted structure."
 
 ## PUBMED PLOT ------------------------------------------
 #' Pubmed Plot
@@ -1595,24 +1330,12 @@ make_cellanatogram <- function(cellanatogram_data = subcell,
            error = function(x){make_bomb_plot()})
 }
 
-#' Cellanatogramfacet Plot
-#'
-#' \code{make_cellanatogramfacet} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a cellanatogramfacet plot
-#'
-#' @param input Expecting a list containing type and content variable.
-#' @param card A boolean that sets whether the plot should be scaled down to be a card
-#' @return If no error, then returns a cellanatogramfacet plot. If an error is thrown, then will return a bomb plot.
-#'
-#' @export
-#' @examples
-#' make_cellanatogramfacet(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-#' make_cellanatogramfacet(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
-#' make_cellanatogramfacet(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
-#' \dontrun{
-#' make_cellanatogramfacet(input = list(type = 'gene', content = 'ROCK1'))
-#' }
+# make_cellanatogram(input = list(type = "gene", content = c("ROCK2")))
+# make_cellanatogram(input = list(type = "gene", content = c("ROCK2")), card = TRUE)
+# make_cellanatogram(input = list(type = "gene", query = "ROCK1", content = c("ROCK1", "ROCK2")))
+
+
+# make cell anatogram facet
 make_cellanatogramfacet <- function(cellanatogram_data = subcell,
                                     input = list()) {
   make_cellanatogramfacet_raw <- function() {
@@ -1648,6 +1371,8 @@ make_cellanatogramfacet <- function(cellanatogram_data = subcell,
   tryCatch(make_cellanatogramfacet_raw(),
            error = function(x){make_bomb_plot()})
 }
+
+# make_cellanatogramfacet(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 
 ## HUMAN BODY ANATOGRAMS --------------------------------------------------------
 #' Female Anatogram Plot
@@ -1721,23 +1446,7 @@ make_female_anatogram <- function(anatogram = "female",
 # make_female_anatogram(input = list(type = "gene", content = c("ROCK1")), card = TRUE)
 # make_female_anatogram(input = list(type = "gene", query = "ROCK1", content = c("ROCK1", "ROCK2")))
 
-#' Male Anatogram Plot
-#'
-#' \code{make_male_anatogram} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a male anatogram plot
-#'
-#' @param input Expecting a list containing type and content variable.
-#' @param card A boolean that sets whether the plot should be scaled down to be a card
-#' @return If no error, then returns a male anatogram plot. If an error is thrown, then will return a bomb plot.
-#'
-#' @export
-#' @examples
-#' make_male_anatogram(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-#' make_male_anatogram(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
-#' \dontrun{
-#' make_male_anatogram(input = list(type = 'gene', content = 'ROCK1'))
-#' }
+
 make_male_anatogram <- function(anatogram = "male",
                                 input = list(),
                                 card = FALSE){
@@ -1781,9 +1490,15 @@ make_tissue <- function(tissue_data = tissue,
                     organ = stringr::str_to_title(organ)) %>%
       arrange(desc(sum_value))
 
+    if(nrow(plot_data) == 0){return(NULL)}
+
     if(card == TRUE){
       #get distinct
-      top_organs <- plot_data %>% distinct(organ) %>% ungroup() %>% slice_head(n = 10) %>% pull()
+      top_organs <- plot_data %>%
+        distinct(organ) %>%
+        ungroup() %>%
+        slice_head(n = 10) %>%
+        pull()
       plot_data <-
         plot_data %>%
         dplyr::filter(organ %in% top_organs)
@@ -1901,7 +1616,8 @@ make_cellexpression <- function(expression_data = expression_long,
         dplyr::mutate(gene_fct = fct_inorder(gene)) %>%
         ggplot(aes(y = gene_fct,
                    x = expression_var,
-                   text = paste0("Cell Line: ", cell_line)
+                   text = paste0("Cell Line: ", cell_line),
+                   color = gene
         ))
     } else if (input$type == "cell") {
       plot_data <- plot_initial %>%
@@ -1914,18 +1630,20 @@ make_cellexpression <- function(expression_data = expression_long,
         dplyr::mutate(cell_fct = fct_inorder(cell_line)) %>%
         ggplot(aes(y = cell_fct,
                    x = expression_var,
-                   text = paste0("Gene: ", gene)
+                   text = paste0("Gene: ", gene),
+                   color = cell_line
         ))
     }
 
     plot_complete <-
       plot_data +
-      geom_point(alpha = 0.1, shape = "|", size = 12, color = ddh_pal_d(var)(1)) +
+      geom_point(alpha = 0.1, shape = "|", size = 12) +
       geom_vline(xintercept = 0, color = "lightgray") + #3SD is below zero
       geom_vline(xintercept = mean) +
       geom_vline(xintercept = upper_limit, color = "lightgray") +#3SD
       scale_x_continuous(expand = expansion(mult = 0.01)) +
       scale_y_discrete(expand = expansion(mult = 1 / length(input$content)), na.translate = FALSE) +
+      scale_color_ddh_d(palette = input$type) +
       theme_ddh() +
       theme(
         text = element_text(family = "Nunito Sans"),
@@ -1933,7 +1651,8 @@ make_cellexpression <- function(expression_data = expression_long,
         axis.text.y = element_text(size = 18),
         axis.ticks.y = element_blank(),
         axis.line.y = element_blank(),
-        axis.title.y = element_blank()
+        axis.title.y = element_blank(),
+        legend.position = "none"
       ) +
       NULL
 
@@ -1945,7 +1664,7 @@ make_cellexpression <- function(expression_data = expression_long,
     } else {
       plot_complete <-
         plot_complete +
-        labs(x = paste0(var, " levels"), color = "Query \nGene")
+        labs(x = paste0(var, " levels"), color = "Query")
     }
 
     if(card == TRUE){
@@ -1962,6 +1681,7 @@ make_cellexpression <- function(expression_data = expression_long,
 
 # make_cellexpression(input = list(type = "gene", content = c("ROCK1")))
 # make_cellexpression(input = list(type = "gene", content = c("ROCK1")), var = "protein")
+# make_cellexpression(input = list(type = "gene", content = c("ROCK1")), var = "protein")
 # make_cellexpression(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 # make_tissue(input = list(type = "gene", content = c("ROCK1")), card = TRUE)
 # make_cellexpression(input = list(type = "gene", content = c("HSP90B1")))
@@ -1976,23 +1696,8 @@ plot_cellLineexp_title <- "Expression Values."
 plot_cellLineexp_legend <- "Each point shows the ranked expression value across genes."
 #If present, black line indicates resampled mean expression value (", round(mean_virtual_expression, 2), "). If present, gray line indicates 3 standard deviations away from the resampled mean (", round(expression_upper, 2), ").
 
-#' Cellgeneprotein Plot
-#'
-#' \code{make_cellgeneprotein} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a plot that compares this makes gene v. protein expression levels in a cell
-#'
-#' @param input Expecting a list containing type and content variable.
-#' @param card A boolean that sets whether the plot should be scaled down to be a card
-#' @return If no error, then returns a cellgeneprotein plot. If an error is thrown, then will return a bomb plot.
-#'
-#' @export
-#' @examples
-#' make_cellgeneprotein(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-#' make_cellgeneprotein(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
-#' \dontrun{
-#' make_cellgeneprotein(input = list(type = 'gene', content = 'ROCK1'))
-#' }
+# G-EXPvP-EXP ----------------------------------
+#this makes gene v. protein in a cell
 make_cellgeneprotein <- function(expression_data = expression_long,
                                  expression_join = expression_names,
                                  input = list(),
@@ -2077,6 +1782,8 @@ make_cellgeneprotein <- function(expression_data = expression_long,
            error = function(x){make_bomb_plot()})
 }
 
+plot_cellgeneprotein_title <- "Gene Expression versus Protein Expression."
+plot_cellgeneprotein_legend <- "Each point shows the gene expression value compared to the protein expression value for gene within a given cell line. The Pearson correlation coefficient and the p-values are provided in the top-left corner of the plot."
 
 ## CELL DEPS --------------------------------------------------------------------
 #' Cell Dependencies Plot
@@ -2100,7 +1807,6 @@ make_celldeps <- function(celldeps_data = achilles_long,
                           prism_data = prism_long,
                           expression_data = expression_names,
                           input = list(),
-                          mean,
                           card = FALSE,
                           lineplot = FALSE,
                           scale = NULL) {#scale is expecting 0 to 1
@@ -2171,14 +1877,21 @@ make_celldeps <- function(celldeps_data = achilles_long,
         slice_sample(prop = scale)
     }
 
-    if(card == TRUE) {
+    if(card) {
       if(is.null(scale)) {
         scale <- 0.3
       }
-      plot_data <- plot_data %>%
-        group_by(name) %>%
-        sample_n(scale*n()) %>% # scale is also used here
-        ungroup()
+      if(input$type == "gene") {
+        plot_data <- plot_data %>%
+          group_by(name) %>%
+          sample_n(scale*n()) %>%
+          ungroup()
+      } else {
+        plot_data <- plot_data %>%
+          group_by(cell_line) %>%
+          sample_n(scale*n()) %>%
+          ungroup()
+      }
     }
 
     plot_complete <-
@@ -2191,7 +1904,8 @@ make_celldeps <- function(celldeps_data = achilles_long,
       )) +
       ## dot/line plot
       {if(!card & !lineplot)geom_point(size = 1.1, stroke = .25, alpha = 0.6)} +
-      {if(card | lineplot)geom_line(aes(group = name))} +
+      {if(input$type == "gene" & (card | lineplot))geom_line(aes(group = name))} +
+      {if(input$type == "cell" & (card | lineplot))geom_line(aes(group = cell_line))} +
       ## indicator lines dep. score
       geom_hline(yintercept = mean) +
       geom_hline(yintercept = 1, size = .2, color = "grey70", linetype = "dashed") +
@@ -2236,7 +1950,8 @@ make_celldeps <- function(celldeps_data = achilles_long,
     if(card == TRUE){
       plot_complete <-
         plot_complete +
-        labs(x = "")# , title = "Cell Dependencies", caption = "more ...")
+        labs(x = "") +
+        theme(legend.position = "none")
     }
 
     return(plot_complete)
@@ -2306,7 +2021,8 @@ make_cellbar <- function(celldeps_data = achilles_long,
           med = median(dep_score, na.rm= TRUE)
         ) %>%
         dplyr::ungroup() %>%
-        dplyr::rename(name = gene)
+        dplyr::rename(name = gene) %>%
+        mutate(rank = as.integer(fct_reorder(cell_line, dep_score)))
 
     } else if(input$type == "compound") {
       aes_var <- rlang::sym("name")
@@ -2326,7 +2042,8 @@ make_cellbar <- function(celldeps_data = achilles_long,
           med = median(log2fc, na.rm= TRUE)
         ) %>%
         dplyr::ungroup() %>%
-        dplyr::rename(dep_score = log2fc) #rename for graph
+        dplyr::rename(dep_score = log2fc) %>% #rename for graph
+        mutate(rank = as.integer(fct_reorder(name, dep_score)))
 
     } else { #cell lines
       aes_var <- rlang::sym("cell_line")
@@ -2346,7 +2063,8 @@ make_cellbar <- function(celldeps_data = achilles_long,
           med = median(dep_score, na.rm= TRUE)
         ) %>%
         dplyr::ungroup() %>%
-        dplyr::rename(name = gene)
+        dplyr::rename(name = gene) %>%
+        mutate(rank = as.integer(fct_reorder(name, dep_score)))
 
     }
 
@@ -2354,15 +2072,21 @@ make_cellbar <- function(celldeps_data = achilles_long,
       if(is.null(scale)) {
         scale <- 0.3
       }
-      plot_data <- plot_data %>%
-        group_by(name) %>%
-        sample_n(scale*n()) %>%
-        ungroup()
+      if(input$type == "gene") {
+        plot_data <- plot_data %>%
+          group_by(name) %>%
+          sample_n(scale*n()) %>%
+          ungroup()
+      } else {
+        plot_data <- plot_data %>%
+          group_by(cell_line) %>%
+          sample_n(scale*n()) %>%
+          ungroup()
+      }
     }
 
     plot_complete <-
       plot_data %>%
-      mutate(rank = as.integer(fct_reorder(cell_line, dep_score))) %>%
       ggplot(aes(x = rank,
                  y = dep_score,
                  text = glue::glue('{var_title}: {name}\nCell Line: {cell_line}'),
@@ -2412,7 +2136,8 @@ make_cellbar <- function(celldeps_data = achilles_long,
     if(card == TRUE){
       plot_complete <-
         plot_complete +
-        labs(x = "") #title = "Dependency Barplot", caption = "more ...")
+        labs(x = "") +
+        theme(legend.position = "none")
     }
 
     return(plot_complete)
@@ -2677,6 +2402,8 @@ make_lineage <- function(celldeps_data = achilles_long,
     } else {
       stop("declare your type") }
 
+    if(nrow(data_full) == 0){return(NULL)}
+
     if(highlight) {
       stats_data <- data_full %>%
         group_by(lineage) %>%
@@ -2862,6 +2589,8 @@ make_sublineage <- function(celldeps_data = achilles_long,
     } else {
       stop("declare your type") }
 
+    if(nrow(data_full) == 0){return(NULL)}
+
     if(highlight) {
       stats_data <- data_full %>%
         group_by(lineage_subtype) %>%
@@ -2964,10 +2693,6 @@ make_sublineage <- function(celldeps_data = achilles_long,
 plot_cellsublin_title <- "Cell Line Sub-Lineage Dependencies."
 plot_cellsublin_legend <- "Each point shows the mean dependency score for the gene query within a given cell lineage. The intervals show the 5% quantiles centered on the median, the interquartile ranges, and the 95% quantiles. The gray background highlights weak dependency values between -1 and 1."
 
-#test
-#make_sublineage(input = list(type = "gene", query = "ROCK1", content = c("ROCK1", "ROCK2")))
-#make_sublineage(input = list(type = "compound", query = "aspirin", content = "aspirin"))
-
 ## CORRELATION PLOT FOR CELL DEPS--------------------------------------------------------
 #' Co-essentiality Correlation Plot
 #'
@@ -3036,28 +2761,29 @@ make_correlation <- function(table_data = achilles_cor_nest,
         ) %>%
         dplyr::ungroup()
 
-    } else { #cell lines
-      mean <- mean_virtual_achilles_cell_line
-      upper_limit <- achilles_cell_line_upper
-      lower_limit <- achilles_cell_line_lower
-      var <- rlang::sym("fav_cell") #from https://rlang.r-lib.org/reference/quasiquotation.html
-      label_var <- "Cell Rank"
-      text_var <- "Cell"
-      content_var <- glue::glue_collapse(input$content, sep = ", ")
-
-      plot_data <-
-        cell_line_data %>%
-        dplyr::filter(fav_cell %in% input$content) %>%
-        tidyr::unnest(data) %>%
-        dplyr::group_by(fav_cell) %>%
-        dplyr::arrange(desc(r2)) %>%
-        dplyr::mutate(
-          rank = 1:n(),
-          med = median(r2, na.rm= TRUE)
-        ) %>%
-        dplyr::ungroup() %>%
-        dplyr::rename(name = cell) #for plot name
     }
+    # else { #cell lines
+    #   mean <- mean_virtual_achilles_cell_line
+    #   upper_limit <- achilles_cell_line_upper
+    #   lower_limit <- achilles_cell_line_lower
+    #   var <- rlang::sym("fav_cell") #from https://rlang.r-lib.org/reference/quasiquotation.html
+    #   label_var <- "Cell Rank"
+    #   text_var <- "Cell"
+    #   content_var <- glue::glue_collapse(input$content, sep = ", ")
+    #
+    #   plot_data <-
+    #     cell_line_data %>%
+    #     dplyr::filter(fav_cell %in% input$content) %>%
+    #     tidyr::unnest(data) %>%
+    #     dplyr::group_by(fav_cell) %>%
+    #     dplyr::arrange(desc(r2)) %>%
+    #     dplyr::mutate(
+    #       rank = 1:n(),
+    #       med = median(r2, na.rm= TRUE)
+    #     ) %>%
+    #     dplyr::ungroup() %>%
+    #     dplyr::rename(name = cell) #for plot name
+    # }
 
     if(!is.null(scale) & !card){
       plot_data <-
@@ -3164,50 +2890,81 @@ make_expdep <- function(expression_data = expression_long,
                         celldeps_data = achilles_long,
                         expression_join = expression_names,
                         plot_se = TRUE,
-                        model = "lm",
                         input = list(),
                         card = FALSE) {
   make_expdep_raw <- function() {
 
-    exp_data <-
-      expression_data %>% #plot setup
-      dplyr::select(X1, gene, gene_expression) %>%
-      dplyr::filter(gene %in% input$content)
+    if (input$type == "gene") {
+      exp_data <-
+        expression_data %>% #plot setup
+        dplyr::select(X1, gene, gene_expression) %>%
+        dplyr::filter(gene %in% input$content)
 
-    dep_data <-
-      celldeps_data %>% #plot setup
-      dplyr::filter(gene %in% input$content)
+      dep_data <-
+        celldeps_data %>% #plot setup
+        dplyr::filter(gene %in% input$content)
 
-    combined_data <-
-      exp_data %>%
-      dplyr::left_join(dep_data, by = c("X1", "gene")) %>%
-      filter(!is.na(dep_score),
-             !is.na(gene_expression)) %>%
-      dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
-      dplyr::mutate(med = median(dep_score, na.rm = TRUE)) %>%
-      dplyr::left_join(expression_join, by = "X1") %>%
-      dplyr::select(gene, gene_expression, dep_score, med, cell_line, lineage)
+      combined_data <-
+        exp_data %>%
+        dplyr::inner_join(dep_data, by = c("X1", "gene")) %>%
+        filter(!is.na(dep_score),
+               !is.na(gene_expression)) %>%
+        dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
+        dplyr::mutate(med = median(dep_score, na.rm = TRUE)) %>%
+        dplyr::left_join(expression_join, by = "X1") %>%
+        dplyr::select(gene, gene_expression, dep_score, med, cell_line, lineage)
+    }
+
+    else if (input$type == "cell") {
+      exp_data <-
+        expression_data %>% #plot setup
+        dplyr::left_join(expression_join, by = "X1") %>%
+        dplyr::select(gene, cell_line, gene_expression) %>%
+        dplyr::filter(cell_line %in% input$content)
+
+      dep_data <-
+        celldeps_data %>% #plot setup
+        dplyr::left_join(expression_join, by = "X1") %>%
+        dplyr::filter(cell_line %in% input$content)
+
+      combined_data <-
+        exp_data %>%
+        dplyr::inner_join(dep_data, by = c("cell_line", "gene")) %>%
+        filter(!is.na(dep_score),
+               !is.na(gene_expression)) %>%
+        dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
+        dplyr::mutate(med = median(dep_score, na.rm = TRUE)) %>%
+        dplyr::select(gene, gene_expression, dep_score, med, cell_line, lineage)
+    }
 
     plot_complete <-
       combined_data %>%
       ggplot(aes(dep_score, gene_expression)) +
       ## gray background
-      # geom_rect(aes(xmin = -1, xmax = 1, ymin = -Inf, ymax = Inf), fill = "gray90") + #remove to speed up?
       ## dot plot
-      geom_point(aes(color = fct_reorder(gene, med),
-                     fill = fct_reorder(gene, med)),
-                 size = 2, stroke = .1, alpha = 0.4) +
+      {if(input$type == "gene")geom_point(aes(color = fct_reorder(gene, med),
+                                              fill = fct_reorder(gene, med)),
+                                          size = 2, stroke = .1, alpha = 0.4)} +
+      {if(input$type == "cell")geom_point(aes(color = fct_reorder(cell_line, med),
+                                              fill = fct_reorder(cell_line, med)),
+                                          size = 2, stroke = .1, alpha = 0.4)} +
       # smooth line
-      geom_smooth(aes(color = fct_reorder(gene, med),
-                      fill = fct_reorder(gene, med)),
-                  method = model,
-                  se = plot_se) +
+      {if(input$type == "gene")geom_smooth(aes(color = fct_reorder(gene, med),
+                                               fill = fct_reorder(gene, med)),
+                                           method = "lm",
+                                           se = plot_se)} +
+      {if(input$type == "cell")geom_smooth(aes(color = fct_reorder(cell_line, med),
+                                               fill = fct_reorder(cell_line, med)),
+                                           method = "lm",
+                                           se = plot_se)} +
       # R coefs
-      {if(card == FALSE)ggpubr::stat_cor(aes(color = fct_reorder(gene, med)),
-                                         digits = 3)} +
+      {if(card == FALSE & input$type == "gene")ggpubr::stat_cor(aes(color = fct_reorder(gene, med)),
+                                                                digits = 3)} +
+      {if(card == FALSE & input$type == "cell")ggpubr::stat_cor(aes(color = fct_reorder(cell_line, med)),
+                                                                digits = 3)} +
       ## scales + legends
-      scale_color_ddh_d(palette = "gene") +
-      scale_fill_ddh_d(palette = "gene") +
+      scale_color_ddh_d(palette = input$type) +
+      scale_fill_ddh_d(palette = input$type) +
       guides(
         color = guide_legend(reverse = TRUE, override.aes = list(size = 5)),
         fill = guide_legend(reverse = TRUE, override.aes = list(size = 5))
@@ -3216,8 +2973,8 @@ make_expdep <- function(expression_data = expression_long,
       labs(
         x = "Dependency",
         y = "Expression",
-        color = "Query Gene",
-        fill = "Query Gene"
+        color = ifelse(input$type == "gene", "Query Gene", "Query Cell Line"),
+        fill = ifelse(input$type == "gene", "Query Gene", "Query Cell Line")
       ) +
       ## theme changes
       theme_ddh() +
@@ -3261,8 +3018,33 @@ plot_expdep_title <- "Gene Dependency versus Expression."
 plot_expdep_legend <- paste0("Each point shows the dependency value compared to the expression value for gene within a given cell line. Gray area indicates dependency values that are between -1 and 1.")
 
 #CELL --------------------------------------------------------------------
+make_cell_image <- function(input = list()) {
+  make_cell_image_raw <- function() {
+    #if multiple, then pull single "rep" image; consider pulling >1 and using patchwork, eg.
+    if(length(input$content > 1)) {
+      fav_cell <- sample(input$content, 1) #input$gene_symbols[[1]]
+    } else {
+      fav_cell <- input$content
+    }
 
-## CELL LINE SIMILARITY PLOT --------------------------------------------------------
+    #fetch image path from dir, HARDCODED TO DATA DIR, NOT TEST DATA DIR
+    file_name <- glue::glue('{fav_cell}_cell_image_plot.jpeg')
+    image_path <- here::here(app_data_dir, "images", "cell", fav_cell, file_name)
+
+    return(image_path)
+  }
+  #error handling
+  tryCatch(make_cell_image_raw(),
+           error = function(x){make_bomb_plot()})
+}
+
+#figure legend
+plot_cellimage_title <- "Cell Images. "
+plot_cellimage_legend <- "Cells image shown at low (top) and high (bottom) growth density."
+
+#make_cell_image(input = list(content = "HEPG2"))
+
+## CO-ESSENTIALITY CELL LINE PLOT --------------------------------------------------------
 #' Cell Similarity Plot
 #'
 #' \code{make_cell_similarity_plot} returns an image of ...
@@ -3280,52 +3062,389 @@ plot_expdep_legend <- paste0("Each point shows the dependency value compared to 
 #' \dontrun{
 #' make_cell_similarity_plot(cell1 = "HEL", cell2 = "HEPG2")
 #' }
-make_cell_similarity_plot <- function(cell1,
-                                      cell2,
-                                      cell_mat = cell_line_mat,
-                                      cell_sims = cell_line_combs_gam_p) {
+make_cell_similarity <- function(cell_sims_dep = cell_line_dep_sim,
+                                 cell_sims_exp = cell_line_exp_sim,
+                                 similarity = "dependency",
+                                 input = list(),
+                                 card = FALSE,
+                                 scale = NULL) { #no card option, but need this to prevent error
+  make_similarity_raw <- function() {
 
-  make_cell_similarity_plot_raw <- function() {
+    if(similarity == "dependency") {
+      cell_sims <- cell_sims_dep
+    } else if(similarity == "expression") {
+      cell_sims <- cell_sims_exp
+    }
 
-    association_type <- cell_sims[cell_sims$cell1_name == cell1 & cell_sims$cell2_name == cell2 |
-                                    cell_sims$cell1_name == cell2 & cell_sims$cell2_name == cell1 ,]
+    cell_sim_table <-
+      cell_sims %>%
+      dplyr::filter(cell1_name %in% input$content | cell2_name %in% input$content)
 
-    plot_data <- cell_mat %>%
-      dplyr::select_at(vars(matches(cell1) | matches(cell2)))
+    # Swap cols
+    cell_sim_table[cell_sim_table$cell2_name %in% input$content, c("cell1_name", "cell2_name")] <-
+      cell_sim_table[cell_sim_table$cell2_name %in% input$content, c("cell2_name", "cell1_name")]
+
+    content_var <- glue::glue_collapse(input$content, sep = ", ")
+
+    plot_data <-
+      cell_sim_table %>%
+      dplyr::group_by(cell1_name) %>%
+      dplyr::arrange(desc(coef)) %>%
+      dplyr::mutate(
+        rank = 1:n(),
+        med = median(coef, na.rm = TRUE)
+      ) %>%
+      dplyr::ungroup() %>%
+      dplyr::rename(name = cell1_name) #for plot name
+
+
+    if(!is.null(scale) & !card){
+      plot_data <-
+        plot_data %>%
+        slice_sample(prop = scale)
+    }
+
+    if(card) {
+      if(is.null(scale)) {
+        scale <- 0.3
+      }
+      plot_data <- plot_data %>%
+        group_by(name) %>%
+        sample_n(scale*n()) %>% # scale is also used here
+        ungroup()
+    }
 
     plot_complete <-
       plot_data %>%
-      ggplot(aes_string(cell1, cell2)) +
-      geom_point(size = 1) +
-      {if(association_type$type_bio == "LM")geom_smooth(method = "lm")} +
-      {if(association_type$type_bio == "GAM")geom_smooth(method = "gam", formula = y ~ s(x, bs = "tp"), color = "red")} +
-      labs(x = cell1,
-           y = cell2) +
-      scale_fill_ddh_c(palette = "cell", reverse = TRUE) +
-      guides(fill = guide_colorbar(barheight = unit(6, "lines"),
-                                   barwidth = unit(.6, "lines"),
-                                   reverse = TRUE)) +
-      # theme_ddh(base_size = 16) +
+      ggplot() +
+      geom_hline(yintercept = 0, color = "gray80", linetype = "dashed") +
+      annotate("text", x = Inf, y = 0.005, label = "Cell Rank", color = "gray40", hjust = 1.15 ,vjust = 0) +
+      ## dot plot
+      geom_point(aes(x = rank,
+                     y = coef,
+                     text = glue::glue('Cell: {name}'),
+                     color = fct_reorder(name, med),
+                     fill = fct_reorder(name, med)
+      ),
+      size = 1.1, stroke = .1, alpha = 0.4) +
+      ## scales + legends
+      scale_x_discrete(expand = expansion(mult = 0.02), na.translate = FALSE) +
+      scale_color_ddh_d(palette = input$type) +
+      scale_fill_ddh_d(palette = input$type) +
+      guides(
+        color = guide_legend(reverse = TRUE, override.aes = list(size = 5)),
+        fill = guide_legend(reverse = TRUE, override.aes = list(size = 5))
+      ) +
+      ## labels
+      labs(
+        x = NULL,
+        y = glue::glue("Cell coefficient estimates with {content_var}"),
+        color = "Query Cell",
+        fill = "Query Cell"
+      ) +
+      ## theme changes
+      theme_ddh() +
       theme(
+        text = element_text(family = "Nunito Sans"),
         axis.text = element_text(family = "Roboto Slab"),
-        axis.title = element_text(family = "Roboto Slab")
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.line.x = element_blank()
       ) +
       NULL
+
+    ##change axis in case of more than 1 gene selected
+    if(length(input$content) == 1){ #fix me
+      plot_complete  <-
+        plot_complete +
+        guides(color = "none",
+               fill = "none")
+    }
 
     return(plot_complete)
   }
   #error handling
-  tryCatch(make_cell_similarity_plot_raw(),
+  tryCatch(make_similarity_raw(),
            error = function(x){make_bomb_plot()})
 }
 
-# #figure legend
-make_cell_similarity_plot_title <- "Cell Line Similarity Plot."
-make_cell_similarity_plot_legend <- "Scatterplot of UMAP embedding coordinates for selected cell lines."
+#figure legend
+make_cell_coessentiality_title <- "Cell Line Co-dependencies."
+make_cell_coessentiality_legend <- glue::glue("Each point shows the ranked linear model coefficient estimate value ordered from high to low for each query.")
+
+make_cell_coexpression_title <- "Cell Line Co-expressions."
+
+# testing
+# make_cell_similarity(input = list(type = "cell", query = "HEPG2", content = "HEPG2"))
+
+# FUNCTIONAL PLOT ------------------------------------------
+make_functional_cell <- function(pathway_data = pathways,
+                                 expression_data = expression_long,
+                                 expression_metadata = expression_meta,
+                                 input = list(),
+                                 num_pathways = 10,
+                                 nwords = 5,
+                                 num_genes = 2,
+                                 remove_equivalent_pathways = FALSE,
+                                 card = FALSE) {
+  make_functional_cell_raw <- function() {
+
+    plot_data <- pathway_data %>%
+      unnest(data) %>%
+      left_join(expression_data, by = "gene") %>%
+      dplyr::select(pathway, go, gene, gene_expression, X1) %>%
+      drop_na() %>%
+      left_join(expression_metadata %>%
+                  dplyr::select(X1, cell_line), by = "X1") %>%
+      dplyr::select(-X1) %>%
+      mutate(pathway_short = ifelse(str_count(pathway) >= nwords,
+                                    paste0(gsub(paste0("^((\\w+\\W+){", nwords, "}\\w+).*$"), "\\1", pathway), " ..."),
+                                    pathway)
+      )
+
+    med_cell <- plot_data %>%
+      filter(cell_line %in% input$content) %>%
+      group_by(go, cell_line) %>%
+      mutate(genes_num = n()) %>%
+      filter(genes_num >= num_genes) %>%
+      ungroup() %>%
+      group_by(cell_line, go) %>%
+      summarise(med = median(gene_expression)) %>%
+      ungroup() %>%
+      filter(med != 0) %>% # decide if filter zero expressions
+      left_join(plot_data %>%
+                  dplyr::select(go, pathway_short) %>%
+                  filter(!duplicated(go)),
+                by = "go")
+
+    if(remove_equivalent_pathways) {
+      med_cell <- med_cell %>%
+        filter(!duplicated(med))
+    }
+
+    if(length(input$content) == 1) {
+      diff_cell <- plot_data %>%
+        filter(!cell_line %in% input$content) %>%
+        group_by(go) %>%
+        mutate(genes_num = n()) %>%
+        filter(genes_num > num_genes) %>%
+        ungroup() %>%
+        group_by(go) %>%
+        summarise(med = median(gene_expression)) %>%
+        ungroup() %>%
+        filter(med != 0) %>% # decide if filter zero expressions
+        bind_rows(med_cell) %>%
+        group_by(go) %>%
+        summarise(diff = abs(diff(med))) %>%
+        ungroup() %>%
+        dplyr::arrange(-diff) %>%
+        dplyr::slice(1:num_pathways) %>%
+        left_join(plot_data %>%
+                    dplyr::select(go, pathway_short) %>%
+                    filter(!duplicated(go)),
+                  by = "go")
+    } else {
+      diff_cell <- med_cell %>%
+        group_by(go) %>%
+        summarise(diff = abs(diff(med))) %>%
+        ungroup() %>%
+        dplyr::arrange(-diff) %>%
+        dplyr::slice(1:num_pathways) %>%
+        left_join(plot_data %>%
+                    dplyr::select(go, pathway_short) %>%
+                    filter(!duplicated(go)),
+                  by = "go")
+    }
+
+    med_cell <- med_cell %>%
+      filter(go %in% diff_cell$go) %>%
+      left_join(diff_cell %>%
+                  dplyr::select(-pathway_short) %>%
+                  filter(!duplicated(go)),
+                by = "go")
+
+    background <- plot_data %>%
+      filter(go %in% diff_cell$go) %>%
+      filter(!cell_line %in% input$content) %>%
+      group_by(cell_line, go) %>%
+      summarise(med = median(gene_expression)) %>%
+      ungroup() %>%
+      filter(med != 0) %>% # decide if filter zero expressions
+      left_join(diff_cell, by = "go")
+
+    plot_complete <- ggplot() +
+      geom_jitter(data = background, aes(reorder(pathway_short, diff), med), color = "gray69", alpha = 0.5, width = 0.25) +
+      geom_crossbar(data = med_cell,
+                    aes(reorder(pathway_short, diff), med, ymin = med, ymax = med, color = cell_line)) +
+      geom_point(data = med_cell, aes(reorder(pathway_short, diff), med, color = cell_line), size = 3) +
+      labs(x = NULL,
+           y = "Gene Expression",
+           color = "Query Cell") +
+      coord_flip() +
+      scale_color_ddh_d(palette = input$type) +
+      guides(
+        color = guide_legend(reverse = TRUE, override.aes = list(size = 5))
+      ) +
+      ## theme changes
+      theme_ddh() +
+      theme(
+        text = element_text(family = "Nunito Sans"),
+        axis.text = element_text(family = "Roboto Slab"),
+        legend.title = element_blank()
+      ) +
+      NULL
+
+    if(length(input$content) == 1){
+      plot_complete  <-
+        plot_complete +
+        ylab(paste0(str_c(input$content, collapse = ", "), " Gene Expression")) +
+        theme(
+          legend.position = "none"
+        )
+    } else {
+      plot_complete <- plot_complete +
+        theme(legend.title = element_blank())
+    }
+
+    if(card == TRUE){
+      plot_complete <-
+        plot_complete +
+        theme(axis.title.x = element_blank(),
+              axis.title.y = element_blank(),
+              axis.text.y = element_blank(),
+              axis.ticks.y = element_blank(),
+              axis.line.y = element_blank(),
+              legend.position = "none"
+        )
+    }
+
+    return(plot_complete)
+  }
+
+  #error handling
+  tryCatch(make_functional_cell_raw(),
+           error = function(x){make_bomb_plot()})
+}
+
+functional_plot_title <- "Differential Pathway Expression Plot."
+functional_plot_legend <- "The colored vertical bars indicate the pathway median expression for the queried cell line/s while the background grey points indicate the pathway median expression of all the other cell lines. If the query includes only one cell line, the difference between the median pathway expression of that cell line and the median pathway expression of all the other cell lines will be computed and the pathways with higher differences will appear first in the plot. Otherwise, the biggest difference between pathway medians of the queried cell lines will be used to rank the pathways in the plot. Those pathways with higher differences will appear first in the plot."
+
+# testing
+# make_functional_cell(input = list(type = "cell", content = c("HEL")))
+# make_functional_cell(input = list(type = "cell", content = c("HEPG2", "HEL")))
+
+# CELL METADATA PLOT ------------------------------------------
+make_metadata_cell <- function(input = list(),
+                               cell_line_similarity = "dependency",
+                               metadata = "lineage",
+                               bonferroni_cutoff = 0.05,
+                               card = FALSE) {
+  make_metadata_cell_raw <- function() {
+
+    plot_data <- make_cell_sim_table(similarity = cell_line_similarity,
+                                     bonferroni_cutoff = 1.1, # to include bonf == 1
+                                     input = input) %>%
+      bind_rows() %>%
+      mutate(group = case_when(bonferroni > bonferroni_cutoff ~ "None",
+                               bonferroni < bonferroni_cutoff & coef > 0 ~ "Similar",
+                               bonferroni < bonferroni_cutoff & coef < 0 ~ "Dissimilar"),
+             group = as_factor(group)
+      ) %>%
+      as_tibble()
+
+    if(metadata == "lineage") {
+
+      siglin <- plot_data %>%
+        filter(bonferroni < bonferroni_cutoff) %>%
+        pull(lineage) %>%
+        unique()
+
+      plot_data <- plot_data %>%
+        filter(lineage %in% siglin)
+
+      if(card & nrow(plot_data) > 6) {
+        most_associated <-
+          plot_data %>%
+          arrange(pval) %>%
+          filter(!duplicated(lineage)) %>%
+          dplyr::slice(1:6) %>%
+          dplyr::pull(lineage)
+
+        plot_data <- plot_data %>%
+          dplyr::filter(., lineage %in% most_associated)
+      }
+
+      plot_complete <- plot_data %>%
+        filter(!is.na(lineage)) %>%
+        group_by(lineage, group) %>%
+        count() %>%
+        ungroup() %>%
+        ggplot(aes(x = n, y = lineage, fill = group, group = group))
+    }
+    else if (metadata == "sublineage") {
+
+      sigsublin <- plot_data %>%
+        filter(bonferroni < bonferroni_cutoff) %>%
+        pull(lineage_subtype) %>%
+        unique()
+
+      plot_data <- plot_data %>%
+        filter(lineage_subtype %in% sigsublin)
+
+      plot_complete <- plot_data %>%
+        filter(!is.na(lineage_subtype)) %>%
+        group_by(lineage_subtype, group) %>%
+        count() %>%
+        ungroup() %>%
+        ggplot(aes(x = n, y = lineage_subtype, fill = group, group = group))
+    }
+
+    plot_complete <- plot_complete +
+      geom_col() +
+      labs(x = "# Cell Lines",
+           y = NULL) +
+      # scale_x_continuous(labels = scales::percent_format()) +
+      scale_fill_ddh_d(palette = input$type) +
+      guides(
+        color = guide_legend(reverse = TRUE, override.aes = list(size = 5))
+      ) +
+      ## theme changes
+      theme_ddh() +
+      theme(
+        text = element_text(family = "Nunito Sans"),
+        axis.text = element_text(family = "Roboto Slab"),
+        legend.title = element_blank(),
+        legend.position = "top"
+      ) +
+      NULL
+
+    if(card) {
+      plot_complete <-
+        plot_complete +
+        scale_y_discrete(labels = scales::label_wrap(10)) + #to prevent long lines and squished plots
+        theme(axis.title.x = element_blank(),
+              axis.title.y = element_blank(),
+              plot.title = element_blank(),
+              legend.position = "none"
+        )
+    }
+
+    return(plot_complete)
+  }
+
+  #error handling
+  tryCatch(make_metadata_cell_raw(),
+           error = function(x){make_bomb_plot()})
+}
+
+cell_metadata_plot_title <- "Lineage Similarity Plot."
+cell_metadata_plot_legend <- "Similar and dissimilar lineages (and sublineages) associated with the queried cell line/s."
+
+# testing
+# make_metadata_cell(input = list(type = "cell", content = c("HEL")))
+# make_metadata_cell(input = list(type = "cell", content = c("HEPG2", "HEL")))
 
 #COMPOUND --------------------------------------------------------------------
-
-##COMPOUND STRUCTURES ------------------------------------------
 #' Molecule Structure Plot
 #'
 #' \code{make_molecule_structure} returns an image of ...
@@ -3376,3 +3495,9 @@ make_molecule_structure <- function(input = list(),
   tryCatch(make_molecule_structure_raw(),
            error = function(x){make_bomb_plot()})
 }
+
+#make_molecule_structure(input = list(content = "aspirin"))
+#make_molecule_structure(content = 2244)
+#make_molecule_structure(content = "ibuprofen")
+#make_molecule_structure(content = "ibuprofe")
+

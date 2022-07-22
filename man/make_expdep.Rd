@@ -9,7 +9,6 @@ make_expdep(
   celldeps_data = achilles_long,
   expression_join = expression_names,
   plot_se = TRUE,
-  model = "lm",
   input = list(),
   card = FALSE
 )

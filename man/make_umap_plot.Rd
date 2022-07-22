@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{make_umap_plot}
 \alias{make_umap_plot}
-\title{Umap Plot Plot}
+\title{UMAP Plot}
 \usage{
 make_umap_plot(
   cluster_data = sequence_clusters,

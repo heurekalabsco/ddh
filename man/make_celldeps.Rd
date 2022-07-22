@@ -9,7 +9,6 @@ make_celldeps(
   prism_data = prism_long,
   expression_data = expression_names,
   input = list(),
-  mean,
   card = FALSE,
   lineplot = FALSE,
   scale = NULL
