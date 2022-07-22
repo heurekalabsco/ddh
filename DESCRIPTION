@@ -1,7 +1,7 @@
 Package: ddh
 Type: Package
 Title: Utility Functions and Data Sets for datadrivenhypothesis
-Version: 0.99.0
+Version: 0.1.5
 Authors@R: c(
     person(given = "Matthew",
            family = "Hirschey",
@@ -28,18 +28,23 @@ LazyData: true
 Depends: 
     R (>= 3.1)
 Imports:
+    AnnotationDbi,
     BiocManager,
+    biomaRt,
     Cairo,
+    caret,
+    clusterProfiler,
     colorspace,
     corrr,
     cowplot,
-    dplyr,
+    dbscan,
+    doParallel,
     DT,
+    enrichR,
     furrr,
     future,
     ggdist,
     gghighlight,
-    ggplot2,
     ggpubr,
     ggraph,
     ggrepel,
@@ -49,9 +54,12 @@ Imports:
     gt,
     here,
     hexbin,
+    httr,
     htmltools,
     igraph,
+    impute,
     janitor,
+    jsonlite,
     knitr,
     lexicon,
     lubridate,
@@ -59,25 +67,40 @@ Imports:
     magrittr,
     moderndive,
     optparse,
+    org.Hs.eg.db,
     patchwork,
     pander,
     plotly,
     promises,
+    r3dmol,
+    quarto,
     rayvertex,
+    RCurl,
     readxl,
+    remotes,
     rentrez,
+    reticulate,
     rlang,
     RISmed,
     rmarkdown,
+    rtweet,
+    rvest,
     scales,
+    shinycssloaders,
+    shinyjs,
+    shinyWidgets,
     showtext,
+    stopwords,
+    sysfonts,
     tidygraph,
     tidyselect,
     tidytext,
     tidyverse,
+    uwot,
     vctrs,
     viridis,
     visNetwork,
+    vroom,
     webchem,
     widyr,
     XML
@@ -88,11 +111,7 @@ Suggests:
 Remotes: 
     github::jespermaag/gganatogram,
     github::matthewhirschey/tidybiology,
-    github::tylermorganwall/raymolecule, 
-    bioc::4.0/AnnotationDbi, 
-    bioc::4.0/biomaRt, 
-    bioc::4.0/impute, 
-    bioc::4.0/org.Hs.eg.db
+    github::tylermorganwall/raymolecule
 VignetteBuilder: knitr
 URL: https://github.com/matthewhirschey/ddh
 BugReports: https://github.com/matthewhirschey/ddh/issues

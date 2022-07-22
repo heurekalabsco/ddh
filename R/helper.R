@@ -1,6 +1,6 @@
 #QUARTO HELPER----
 make_roxygen <- function(fun_name, #fun_name <- "make_ideogram"
-                        type = "graph"){ #plot #table
+                         type = "graph"){ #plot #table
   name <- stringr::str_remove_all(fun_name, pattern = "make_") %>% str_replace_all(pattern = "_", replacement = " ")
   title <- stringr::str_to_title(glue::glue("{name} {type}"))
   roxygen_c <- c(
