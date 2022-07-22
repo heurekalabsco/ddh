@@ -2,7 +2,7 @@
 % Please edit documentation in R/helper.R
 \name{make_empty_plot}
 \alias{make_empty_plot}
-\title{Function to create an empty}
+\title{Function to create an empty plot}
 \usage{
 make_empty_plot()
 }
@@ -10,7 +10,7 @@ make_empty_plot()
 A ggplot2 object.
 }
 \description{
-Function to create an empty
+Function to create an empty plot
 }
 \examples{
 make_empty_plot()

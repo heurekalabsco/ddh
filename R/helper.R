@@ -1,5 +1,269 @@
 
-#' Function to create an empty
+#' Function to load all DDH data
+#'
+#' @param app_data_dir
+#' @param release
+#' @param privateMode
+#'
+load_ddh_data <- function(app_data_dir = NULL,
+                          release = "22Q2",
+                          privateMode = TRUE) {
+
+  load_rds <- function() {
+    #read data from create_*.R
+    gene_summary <- readRDS(file = paste0(app_data_dir, release, "_gene_summary.Rds"))
+    pathways <- readRDS(file = paste0(app_data_dir, release, "_pathways.Rds"))
+    gene_location <- readRDS(file = paste0(app_data_dir, release, "_gene_location.Rds"))
+    chromosome <- readRDS(file = paste0(app_data_dir, release, "_chromosome.Rds"))
+    pubmed <- readRDS(file = paste0(app_data_dir, release, "_pubmed.Rds"))
+    cellosaurus <- readRDS(file = paste0(app_data_dir, release, "_cellosaurus.Rds"))
+    cellosaurus_key <- readRDS(file = paste0(app_data_dir, release, "_cellosaurus_key.Rds"))
+
+    #read data from generate_depmap_data.R
+    achilles_long <- readRDS(file = paste0(app_data_dir, release, "_achilles_long.Rds"))
+    achilles_cor_nest <- readRDS(file = paste0(app_data_dir, release, "_achilles_cor_nest.Rds"))
+    expression_meta <- readRDS(file = paste0(app_data_dir, release, "_expression_meta.Rds"))
+    expression_names <- readRDS(file = paste0(app_data_dir, release, "_expression_names.Rds"))
+    expression_long <- readRDS(file = paste0(app_data_dir, release, "_expression_long.Rds"))
+
+    #read drug names for search
+    prism_names <- readRDS(file = paste0(app_data_dir, release, "_prism_names.Rds"))
+    prism_meta <- readRDS(file = paste0(app_data_dir, release, "_prism_meta.Rds"))
+    hmdb_names <- readRDS(file = paste0(app_data_dir, release, "_hmdb_names.Rds"))
+    hmdb_meta <- readRDS(file = paste0(app_data_dir, release, "_hmdb_meta.Rds"))
+
+    #read data from generate_depmap_stats.R
+    sd_threshold <- readRDS(file = paste0(app_data_dir, release, "_sd_threshold.Rds"))
+    achilles_lower <- readRDS(file = paste0(app_data_dir, release, "_achilles_lower.Rds"))
+    achilles_upper <- readRDS(file = paste0(app_data_dir, release, "_achilles_upper.Rds"))
+    mean_virtual_achilles <- readRDS(file = paste0(app_data_dir, release, "_mean_virtual_achilles.Rds"))
+    sd_virtual_achilles <- readRDS(file = paste0(app_data_dir, release, "_sd_virtual_achilles.Rds"))
+
+    gene_expression_upper <- readRDS(file = paste0(app_data_dir, release, "_gene_expression_upper.Rds"))
+    gene_expression_lower <- readRDS(file = paste0(app_data_dir, release, "_gene_expression_lower.Rds"))
+    mean_virtual_gene_expression <- readRDS(file = paste0(app_data_dir, release, "_mean_virtual_gene_expression.Rds"))
+    sd_virtual_gene_expression <- readRDS(file = paste0(app_data_dir, release, "_sd_virtual_gene_expression.Rds"))
+
+    protein_expression_upper <- readRDS(file = paste0(app_data_dir, release, "_protein_expression_upper.Rds"))
+    protein_expression_lower <- readRDS(file = paste0(app_data_dir, release, "_protein_expression_lower.Rds"))
+    mean_virtual_protein_expression <- readRDS(file = paste0(app_data_dir, release, "_mean_virtual_protein_expression.Rds"))
+    sd_virtual_protein_expression <- readRDS(file = paste0(app_data_dir, release, "_sd_virtual_protein_expression.Rds"))
+
+    #read data from generate_depmap_tables & pathways.R
+    master_bottom_table <- readRDS(file = paste0(app_data_dir, release, "_master_bottom_table.Rds"))
+    master_top_table <- readRDS(file = paste0(app_data_dir, release, "_master_top_table.Rds"))
+    master_positive <- readRDS(file = paste0(app_data_dir, release, "_master_positive.Rds"))
+    master_negative <- readRDS(file = paste0(app_data_dir, release, "_master_negative.Rds"))
+    surprise_genes <- readRDS(file = paste0(app_data_dir, release, "_surprise_genes.Rds"))
+    censor_genes <- readRDS(file = paste0(app_data_dir, release, "_censor_genes.Rds"))
+
+    #read data from generate_subcell_data.R
+    subcell <- readRDS(file = paste0(app_data_dir, release, "_subcell.Rds"))
+
+    #read data from generate_proteins_data.R
+    proteins <- readRDS(file = paste0(app_data_dir, release, "_proteins.Rds"))
+
+    #read data from generate_sequence_clusters.R
+    signatures <- readRDS(file = paste0(app_data_dir, release, "_protein_signatures.Rds"))
+    sequence_clusters <- readRDS(file = paste0(app_data_dir, release, "_signature_final_clusters.Rds"))
+    protein_cluster_names <- readRDS(file = paste0(app_data_dir, release, "_protein_cluster_names.Rds"))
+    enriched_clusters <- readRDS(file = paste0(app_data_dir, release, "_protein_cluster_enrichment.Rds"))
+
+    #read data from generate_protein_domains.R
+    protein_domains <- readRDS(file = paste0(app_data_dir, release, "_protein_domains.Rds"))
+
+    #read data from generate_pdb_ids.R
+    uniprot_pdb_table <- readRDS(file = paste0(app_data_dir, release, "_uniprot_pdb_table.Rds"))
+
+    #read data from generate_tissue_data.R
+    male_tissue <- readRDS(file = paste0(app_data_dir, release, "_male_tissue.Rds"))
+    female_tissue <- readRDS(file = paste0(app_data_dir, release, "_female_tissue.Rds"))
+    tissue <- readRDS(file = paste0(app_data_dir, release, "_tissue.Rds"))
+
+    #read data from generate_cell_line_similarity.R
+    cell_line_mat <- readRDS(file = paste0(app_data_dir, release, "_cell_line_mat.Rds"))
+    cell_line_dep_sim <- readRDS(file = paste0(app_data_dir, release, "_cell_line_dep_sim.Rds"))
+    cell_line_exp_sim <- readRDS(file = paste0(app_data_dir, release, "_cell_line_exp_sim.Rds"))
+
+    if(privateMode == TRUE) {
+      #drug data
+      prism_long <- readRDS(file = paste0(app_data_dir, release, "_prism_long.Rds"))
+      prism_cor_nest <- readRDS(file = paste0(app_data_dir, release, "_prism_cor_nest.Rds"))
+      drug_cor_sd_threshold <- readRDS(file = paste0(app_data_dir, release, "_drug_cor_sd_threshold.Rds"))
+      prism_cor_lower <- readRDS(file = paste0(app_data_dir, release, "_prism_cor_lower.Rds"))
+      prism_cor_upper <- readRDS(file = paste0(app_data_dir, release, "_prism_cor_upper.Rds"))
+      mean_virtual_prism_cor <- readRDS(file = paste0(app_data_dir, release, "_mean_virtual_prism_cor.Rds"))
+      sd_virtual_prism_cor <- readRDS(file = paste0(app_data_dir, release, "_sd_virtual_prism_cor.Rds"))
+
+      #combined data
+      gene_drugs_cor_table <- readRDS(file = paste0(app_data_dir, release, "_gene_drugs_cor_table.Rds"))
+      drug_genes_cor_table <- readRDS(file = paste0(app_data_dir, release, "_drug_genes_cor_table.Rds"))
+      gene_drugs_table <- readRDS(file = paste0(app_data_dir, release, "_gene_drugs_table.Rds"))
+      drug_genes_table <- readRDS(file = paste0(app_data_dir, release, "_drug_genes_table.Rds"))
+
+      #cell line data
+      achilles_cell_line_cor_nest <- readRDS(file = paste0(app_data_dir, release, "_achilles_cell_line_cor_nest.Rds"))
+      sd_threshold_cell <- readRDS(file = paste0(app_data_dir, release, "_sd_threshold_cell.Rds"))
+      achilles_cell_line_lower <- readRDS(file = paste0(app_data_dir, release, "_achilles_cell_line_lower.Rds"))
+      achilles_cell_line_upper <- readRDS(file = paste0(app_data_dir, release, "_achilles_cell_line_upper.Rds"))
+      mean_virtual_achilles_cell_line <- readRDS(file = paste0(app_data_dir, release, "_mean_virtual_achilles_cell_line.Rds"))
+      sd_virtual_achilles_cell_line <- readRDS(file = paste0(app_data_dir, release, "_sd_virtual_achilles_cell_line.Rds"))
+
+      master_top_table_cell_line <- readRDS(file = paste0(app_data_dir, release, "_master_top_table_cell_line.Rds"))
+      master_bottom_table_cell_line <- readRDS(file = paste0(app_data_dir, release, "_master_bottom_table_cell_line.Rds"))
+
+      #common essential genes
+      common_essentials <- readRDS(file = paste0(app_data_dir, release, "_common_essentials.Rds"))
+
+      #unique essential genes
+      unique_essential_genes <- readRDS(file = paste0(app_data_dir, release, "_unique_essential_genes.Rds"))
+
+      #uniquely toxic drugs
+      prism_unique_toxic <- readRDS(file = paste0(app_data_dir, release, "_prism_unique_toxic.Rds"))
+
+      #metabolite data
+      hmdb_proteins <- readRDS(file = paste0(app_data_dir, release, "_hmdb_proteins.Rds"))
+      hmdb_metabolites <- readRDS(file = paste0(app_data_dir, release, "_hmdb_metabolites.Rds"))
+      cell_metabolites <- readRDS(file = paste0(app_data_dir, release, "_cell_metabolites.Rds"))
+    }
+
+    if(privateMode == FALSE) {
+      return(list(gene_summary=gene_summary,
+                  pathways=pathways,
+                  gene_location=gene_location,
+                  chromosome=chromosome,
+                  pubmed=pubmed,
+                  cellosaurus=cellosaurus,
+                  cellosaurus_key=cellosaurus_key,
+                  achilles_long=achilles_long,
+                  achilles_cor_nest=achilles_cor_nest,
+                  expression_meta=expression_meta,
+                  expression_names=expression_names,
+                  expression_long=expression_long,
+                  prism_names=prism_names,
+                  prism_meta=prism_meta,
+                  hmdb_names=hmdb_names,
+                  hmdb_meta=hmdb_meta,
+                  sd_threshold=sd_threshold,
+                  achilles_lower=achilles_lower,
+                  achilles_upper=achilles_upper,
+                  mean_virtual_achilles=mean_virtual_achilles,
+                  sd_virtual_achilles=sd_virtual_achilles,
+                  gene_expression_upper=gene_expression_upper,
+                  gene_expression_lower=gene_expression_lower,
+                  mean_virtual_gene_expression=mean_virtual_gene_expression,
+                  sd_virtual_gene_expression=sd_virtual_gene_expression,
+                  protein_expression_upper=protein_expression_upper,
+                  protein_expression_lower=protein_expression_lower,
+                  mean_virtual_protein_expression=mean_virtual_protein_expression,
+                  sd_virtual_protein_expression=sd_virtual_protein_expression,
+                  master_bottom_table=master_bottom_table,
+                  master_top_table=master_top_table,
+                  master_positive=master_positive,
+                  master_negative=master_negative,
+                  surprise_genes=surprise_genes,
+                  censor_genes=censor_genes,
+                  subcell=subcell,
+                  proteins=proteins,
+                  signatures=signatures,
+                  sequence_clusters=sequence_clusters,
+                  protein_cluster_names=protein_cluster_names,
+                  enriched_clusters=enriched_clusters,
+                  protein_domains=protein_domains,
+                  uniprot_pdb_table=uniprot_pdb_table,
+                  male_tissue=male_tissue,
+                  female_tissue=female_tissue,
+                  tissue=tissue,
+                  cell_line_mat=cell_line_mat,
+                  cell_line_dep_sim=cell_line_dep_sim,
+                  cell_line_exp_sim=cell_line_exp_sim)
+      )
+    } else {
+      return(list(gene_summary=gene_summary,
+                  pathways=pathways,
+                  gene_location=gene_location,
+                  chromosome=chromosome,
+                  pubmed=pubmed,
+                  cellosaurus=cellosaurus,
+                  cellosaurus_key=cellosaurus_key,
+                  achilles_long=achilles_long,
+                  achilles_cor_nest=achilles_cor_nest,
+                  expression_meta=expression_meta,
+                  expression_names=expression_names,
+                  expression_long=expression_long,
+                  prism_names=prism_names,
+                  prism_meta=prism_meta,
+                  hmdb_names=hmdb_names,
+                  hmdb_meta=hmdb_meta,
+                  sd_threshold=sd_threshold,
+                  achilles_lower=achilles_lower,
+                  achilles_upper=achilles_upper,
+                  mean_virtual_achilles=mean_virtual_achilles,
+                  sd_virtual_achilles=sd_virtual_achilles,
+                  gene_expression_upper=gene_expression_upper,
+                  gene_expression_lower=gene_expression_lower,
+                  mean_virtual_gene_expression=mean_virtual_gene_expression,
+                  sd_virtual_gene_expression=sd_virtual_gene_expression,
+                  protein_expression_upper=protein_expression_upper,
+                  protein_expression_lower=protein_expression_lower,
+                  mean_virtual_protein_expression=mean_virtual_protein_expression,
+                  sd_virtual_protein_expression=sd_virtual_protein_expression,
+                  master_bottom_table=master_bottom_table,
+                  master_top_table=master_top_table,
+                  master_positive=master_positive,
+                  master_negative=master_negative,
+                  surprise_genes=surprise_genes,
+                  censor_genes=censor_genes,
+                  subcell=subcell,
+                  proteins=proteins,
+                  signatures=signatures,
+                  sequence_clusters=sequence_clusters,
+                  protein_cluster_names=protein_cluster_names,
+                  enriched_clusters=enriched_clusters,
+                  protein_domains=protein_domains,
+                  uniprot_pdb_table=uniprot_pdb_table,
+                  male_tissue=male_tissue,
+                  female_tissue=female_tissue,
+                  tissue=tissue,
+                  cell_line_mat=cell_line_mat,
+                  cell_line_dep_sim=cell_line_dep_sim,
+                  cell_line_exp_sim=cell_line_exp_sim,
+                  prism_long=prism_long,
+                  prism_cor_nest=prism_cor_nest,
+                  drug_cor_sd_threshold=drug_cor_sd_threshold,
+                  prism_cor_lower=prism_cor_lower,
+                  prism_cor_upper=prism_cor_upper,
+                  mean_virtual_prism_cor=mean_virtual_prism_cor,
+                  sd_virtual_prism_cor=sd_virtual_prism_cor,
+                  gene_drugs_cor_table=gene_drugs_cor_table,
+                  drug_genes_cor_table=drug_genes_cor_table,
+                  gene_drugs_table=gene_drugs_table,
+                  drug_genes_table=drug_genes_table,
+                  achilles_cell_line_cor_nest=achilles_cell_line_cor_nest,
+                  sd_threshold_cell=sd_threshold_cell,
+                  achilles_cell_line_lower=achilles_cell_line_lower,
+                  achilles_cell_line_upper=achilles_cell_line_upper,
+                  mean_virtual_achilles_cell_line=mean_virtual_achilles_cell_line,
+                  sd_virtual_achilles_cell_line=sd_virtual_achilles_cell_line,
+                  master_top_table_cell_line=master_top_table_cell_line,
+                  master_bottom_table_cell_line=master_bottom_table_cell_line,
+                  common_essentials=common_essentials,
+                  unique_essential_genes=unique_essential_genes,
+                  prism_unique_toxic=prism_unique_toxic,
+                  hmdb_proteins=hmdb_proteins,
+                  hmdb_metabolites=hmdb_metabolites,
+                  cell_metabolites=cell_metabolites
+                  )
+      )
+    }
+  }
+
+  ddh_data <- load_rds()
+  list2env(ddh_data, .GlobalEnv)
+
+}
+
+#' Function to create an empty plot
 #'
 #' @return A ggplot2 object.
 #'
