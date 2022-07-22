@@ -1,4 +1,5 @@
-## EMPTY GRAPH -----
+
+
 #' Empty Graph Graph
 #'
 #' \code{make_empty_graph} returns an image of ...
