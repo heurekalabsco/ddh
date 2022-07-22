@@ -8,6 +8,13 @@
 
 This package contains functions for data analysis and graphing, data sets, and supporting materials for the [ddh web app](https://www.datadrivenhypothesis.com).
 
+## Installation
+
+```{r, eval = FALSE}
+# install.packages("devtools")
+devtools::install_github("matthewhirschey/ddh")
+```
+
 ## Citation
 
 Hirschey M. _Making data-driven hypotheses for gene functions by integrating dependency, expression, and literature data_. bioRxiv 2020.07.17.208751; doi: https://doi.org/10.1101/2020.07.17.208751
