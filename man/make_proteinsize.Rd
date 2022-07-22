@@ -26,5 +26,4 @@ make_proteinsize(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1')
 \dontrun{
 make_proteinsize(input = list(type = 'gene', content = 'ROCK1'))
 }
-
 }
