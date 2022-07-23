@@ -15,6 +15,18 @@ This package contains functions for data analysis and graphing, data sets, and s
 devtools::install_github("matthewhirschey/ddh")
 ```
 
+## Usage
+
+```{r, eval = FALSE}
+library(ddh)
+
+# Load DDH data from your local directory
+ddh::load_ddh_data(app_data_dir = "xxxx") # path to DDH data dir
+
+# And start using DDH functions!
+ddh::make_radial(input = list(content = "ROCK1"))
+```
+
 ## Citation
 
 Hirschey M. _Making data-driven hypotheses for gene functions by integrating dependency, expression, and literature data_. bioRxiv 2020.07.17.208751; doi: https://doi.org/10.1101/2020.07.17.208751
