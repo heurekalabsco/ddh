@@ -1,5 +1,3 @@
-#this group contains master functions for returning text from summary tables, like ids, akas, summaries
-
 # Gene Summary
 summary_gene <- function(summary_table = gene_summary,
                          input = list(),
@@ -37,90 +35,132 @@ summary_pathway <- function(summary_table = pathways, input = list(), var = "pat
 #summary_pathway(input = list(query = "1902965"), var = "data")
 
 # Gene list Summary
-summary_gene_list <- function(summary_gene = gene_summary,
-                              summary_cell = cellosaurus,
-                              summary_len = 30,
-                              input = list()) {
+summary_list <- function(summary_gene = gene_summary,
+                         location_gene = gene_location,
+                         summary_cell = expression_meta,
+                         cell_meta = cellosaurus,
+                         summary_len = 40, # number of WORDS
+                         input = list()) {
   if (is.null(input$content)) {
     return (NULL)
   }
 
   if(input$type == "gene") {
-    custom_gene_list <- summary_gene %>%
+    custom_list <- summary_gene %>%
       dplyr::filter(approved_symbol %in% input$content) %>%
-      mutate(entrez_summary = paste0(gsub(paste0("^((\\w+\\W+){", summary_len, "}\\w+).*$"), "\\1", entrez_summary), " ...")) # 30-word summary
+      left_join(location_gene, by = "approved_symbol")
 
-    custom_gene_list[custom_gene_list == ""] <- NA
-    custom_gene_list[is.na(custom_gene_list)] <- "No info."
+    custom_list[custom_list == "NA"] <- NA
+    custom_list[custom_list == ""] <- NA
+    custom_list[is.na(custom_list)] <- "No info."
 
-    custom_gene_list_split <- split(custom_gene_list, custom_gene_list$approved_symbol)
+    if(length(input$content) == 1) {
 
-    tab_fun <- function(custom_gene_list_split){
-      summary_tables <- list()
-      for (i in names(custom_gene_list_split)){
-        tabledata <- custom_gene_list_split[[i]]
-        summary_tables[[i]] <- glue::glue("<div><a href='?show=gene&query={tabledata$approved_symbol}' target='_blank'><h3>{tabledata$approved_symbol}</a>: {tabledata$approved_name}</h3></div>
-                                               <div><b>Gene Summary</b></div>
-                                               <div><p>{tabledata$entrez_summary}</p></div>
-                                              ")
-      }
-      return(bind_rows(summary_tables) %>%
-               tidyr::unite("text", everything(), sep = " ")
-      )
+      valid_summaries <- glue::glue("<div><h3>{custom_list$approved_symbol}: {custom_list$approved_name}</h3></div>
+                                    <div><b>Entrez ID: </b><a href='https://www.ncbi.nlm.nih.gov/gene/?term={custom_list$ncbi_gene_id}' target='_blank'>{custom_list$ncbi_gene_id}</a></div>
+                                    <div><b>ENSEMBL ID: </b>{custom_list$ensembl_gene_id}</div>
+                                    <div><b>Chromosome: </b>{custom_list$chromosome}</div>
+                                    <div><b>Coding Sequence Length: </b>{custom_list$cds_length} bp</div>
+                                    <div><b>Aka: </b>{custom_list$aka}</div>
+                                    <div><b>Description</b></div>
+                                    <div><p>{custom_list$entrez_summary}</p></div>
+                                    ") %>%
+        HTML()
     }
+    else {
+      custom_list <- custom_list %>%
+        mutate(entrez_summary = ifelse(str_count(entrez_summary) >= summary_len,
+                                       paste0(gsub(paste0("^((\\w+\\W+){", summary_len, "}\\w+).*$"), "\\1", entrez_summary), " ..."),
+                                       entrez_summary)
+        )
 
-    valid_summaries <- custom_gene_list_split %>%
-      tab_fun() %>%
-      pull(text) %>%
-      HTML()
+      custom_list_split <- split(custom_list, custom_list$approved_symbol)
+
+      tab_fun_gene <- function(custom_list_split){
+        summary_tables <- list()
+        for (i in names(custom_list_split)){
+          tabledata <- custom_list_split[[i]]
+          summary_tables[[i]] <- glue::glue("<div><a href='?show=gene&query={tabledata$approved_symbol}' target='_blank'><h3>{tabledata$approved_symbol}</a>: {tabledata$approved_name}</h3></div>
+                                            <div><b>Entrez ID: </b><a href='https://www.ncbi.nlm.nih.gov/gene/?term={tabledata$ncbi_gene_id}' target='_blank'>{tabledata$ncbi_gene_id}</a></div>
+                                            <div><b>ENSEMBL ID: </b>{tabledata$ensembl_gene_id}</div>
+                                            <div><b>Description</b></div>
+                                            <div><p>{tabledata$entrez_summary}</p></div>
+                                            ")
+        }
+        return(bind_rows(summary_tables) %>%
+                 tidyr::unite("text", everything(), sep = " ")
+        )
+      }
+
+      valid_summaries <- custom_list_split %>%
+        tab_fun_gene() %>%
+        pull(text) %>%
+        HTML()
+    }
 
   } else if (input$type == "cell") {
-    custom_gene_list <- summary_cell %>%
-      dplyr::filter(name %in% input$content) %>%
-      dplyr::select(name, lineage, lineage_subtype, CC, age, sex) %>%
-      mutate(CC = paste0(gsub(paste0("^((\\w+\\W+){", summary_len, "}\\w+).*$"), "\\1", CC), " ...")) # 30-word summary
+    custom_list <- summary_cell %>%
+      dplyr::filter(cell_line %in% input$content) %>%
+      dplyr::select(cell_line, lineage, lineage_subtype, age, sex) %>%
+      left_join(cell_meta %>%
+                  dplyr::select(name, CC) %>%
+                  dplyr::rename(cell_line = name),
+                by = c("cell_line")) %>%
+      replace_na(list(CC = "NA"))
 
-    custom_gene_list[custom_gene_list == ""] <- NA
-    custom_gene_list[is.na(custom_gene_list)] <- "No info."
+    custom_list[custom_list == "NA"] <- NA
+    custom_list[custom_list == ""] <- NA
+    custom_list[is.na(custom_list)] <- "No info."
 
-    custom_gene_list_split <- split(custom_gene_list, custom_gene_list$name)
+    if(length(input$content) == 1) {
 
-    tab_fun <- function(custom_gene_list_split){
-      summary_tables <- list()
-      for (i in names(custom_gene_list_split)){
-        tabledata <- custom_gene_list_split[[i]]
-        summary_tables[[i]] <- glue::glue("<div><a href='?show=cell&query={tabledata$name}' target='_blank'><h3>{tabledata$name}</a></h3></div>
-                                               <div><b>Lineage</b></div>
-                                               <div><p>{tabledata$lineage}</p></div>
-                                               <div><b>Lineage subtype</b></div>
-                                               <div><p>{tabledata$lineage_subtype}</p></div>
-                                               <div><b>Description</b></div>
-                                               <div><p>{tabledata$CC}</p></div>
-                                               <div><b>Age</b></div>
-                                               <div><p>{tabledata$age}</p></div>
-                                               <div><b>Sex</b></div>
-                                               <div><p>{tabledata$sex}</p></div>
-                                              ")
-
-
-
-      }
-      return(bind_rows(summary_tables) %>%
-               tidyr::unite("text", everything(), sep = " ")
-      )
+      valid_summaries <- glue::glue("<div><h3>{custom_list$cell_line} ({custom_list$lineage})</h3></div>
+                                    <div><b>Lineage: </b>{custom_list$lineage}</div>
+                                    <div><b>Lineage subtype: </b>{custom_list$lineage_subtype}</div>
+                                    <div><b>Age: </b>{custom_list$age}</div>
+                                    <div><b>Sex: </b>{custom_list$sex}</div>
+                                    <div><b>Description</b></div>
+                                    <div><p>{custom_list$CC}</p></div>
+                                    ") %>%
+        HTML()
     }
+    else {
+      custom_list <- custom_list %>%
+        mutate(CC = ifelse(str_count(CC) >= summary_len,
+                           paste0(gsub(paste0("^((\\w+\\W+){", summary_len, "}\\w+).*$"), "\\1", CC), " ..."),
+                           CC)
+        )
 
-    valid_summaries <- custom_gene_list_split %>%
-      tab_fun() %>%
-      pull(text) %>%
-      HTML()
+      custom_list_split <- split(custom_list, custom_list$cell_line)
+
+      tab_fun_cell <- function(custom_list_split){
+        summary_tables <- list()
+        for (i in names(custom_list_split)){
+          tabledata <- custom_list_split[[i]]
+          summary_tables[[i]] <- glue::glue("<div><a href='?show=cell&query={tabledata$cell_line}' target='_blank'><h3>{tabledata$cell_line} ({tabledata$lineage})</a></h3></div>
+                                            <div><b>Lineage: </b>{tabledata$lineage}</div>
+                                            <div><b>Lineage subtype: </b>{tabledata$lineage_subtype}</div>
+                                            <div><b>Description</b></div>
+                                            <div><p>{tabledata$CC}</p></div>
+                                            ")
+        }
+        return(bind_rows(summary_tables) %>%
+                 tidyr::unite("text", everything(), sep = " ")
+        )
+      }
+
+      valid_summaries <- custom_list_split %>%
+        tab_fun_cell() %>%
+        pull(text) %>%
+        HTML()
+    }
   }
 
   return(valid_summaries)
 }
 
-#summary_gene_list(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
-#summary_gene_list(input = list(type = "cell", content = c("HEL", "HEPG2")))
+#summary_list(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
+#summary_list(input = list(type = "cell", content = c("HEL", "HEPG2")))
 
 # protein summary
 #this is a master function to pull data out of the proteins df
@@ -167,22 +207,6 @@ summary_lineage <- function(summary_table = expression_names,
   return(cell_lineage_var)
 }
 #summary_lineage(input = list(query = "Cervix"))
-
-# Cell list Summary
-summary_cell_list <- function(summary_table = expression_names,
-                              input = list()) {
-  if (is.null(input$query)) {
-    return (NULL)
-  }
-  # Filter out invalid symbols for when a user edits "custom_gene_list" content parameter
-  valid_cell_lines <-
-    summary_table %>%
-    dplyr::filter(cell_line %in% input$content) %>%
-    dplyr::pull(cell_line) %>%
-    str_c(collapse = ", ")
-  return(valid_cell_lines)
-}
-#summary_cell_list(input = list(query = "custom_cell_list", content = c("HEPG2", "HL60")))
 
 ### cellosaurus
 summary_cellosaurus <- function(summary_table = cellosaurus,
@@ -323,3 +347,4 @@ summary_compound_list <- function(summary_table = prism_meta,
   return(valid_compound_name)
 }
 # summary_compound_list(input = list(content = c("aspirin", "carprofen")))
+
