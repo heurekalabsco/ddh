@@ -2,7 +2,7 @@
 % Please edit documentation in R/helper.R
 \name{load_ddh_data}
 \alias{load_ddh_data}
-\title{Function to load all DDH data}
+\title{Function to Load All DDH Data Including .RDS Files and Colors}
 \usage{
 load_ddh_data(app_data_dir = NULL, release = "22Q2", privateMode = TRUE)
 }
@@ -10,5 +10,5 @@ load_ddh_data(app_data_dir = NULL, release = "22Q2", privateMode = TRUE)
 \item{privateMode}{}
 }
 \description{
-Function to load all DDH data
+Function to Load All DDH Data Including .RDS Files and Colors
 }

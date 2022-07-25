@@ -1,12 +1,34 @@
-#' Function to load all DDH data
+#' Function to Load All DDH Data Including .RDS Files and Colors
 #'
 #' @param app_data_dir
 #' @param release
 #' @param privateMode
 #'
+#' @export
 load_ddh_data <- function(app_data_dir = NULL,
                           release = "22Q2",
                           privateMode = TRUE) {
+
+  # Load .RDS files
+  load_ddh_rds(app_data_dir = app_data_dir,
+               release = release,
+               privateMode = privateMode)
+
+  # Load colors
+  load_ddh_colors()
+
+}
+
+#' Function to load all DDH .RDS files
+#'
+#' @param app_data_dir
+#' @param release
+#' @param privateMode
+#'
+#' @export
+load_ddh_rds <- function(app_data_dir = NULL,
+                         release = "22Q2",
+                         privateMode = TRUE) {
 
   load_rds <- function() {
     #read data from create_*.R
@@ -259,6 +281,78 @@ load_ddh_data <- function(app_data_dir = NULL,
 
   ddh_data <- load_rds()
   list2env(ddh_data, .GlobalEnv)
+
+}
+
+#' Function to load DDH colors
+#'
+#' @export
+load_ddh_colors <- function() {
+  ## MAIN COLORS -----------------------------------------------------------------
+  ##2EC09C  ## cyan
+  ##BE34EF  ## violet
+  ##E06B12  ## orange
+  ##004AAB  ## blue
+  ##F0CE44  ## yellow
+  ##1785A4  ## blend cyan + blue
+
+  load_colors <- function() {
+    ## Color sets  for genes
+    color_set_gene <- generate_colors("#2EC09C")  ## cyan
+    #CC is the hex alpha conversion for 80%, so the next line adds it; used in graph
+    color_set_gene_alpha <- purrr::map_chr(color_set_gene, ~ glue::glue_collapse(c(.x, "CC"), sep = ""))
+
+    ## Palette function for genes
+    color_pal_gene <- grDevices::colorRampPalette(color_set_gene)
+
+    ## Color sets for proteins
+    color_set_protein <- generate_colors("#004AAB")  ## blue
+    color_set_protein_alpha <- purrr::map_chr(color_set_protein, ~ glue::glue_collapse(c(.x, "CC"), sep = ""))
+
+    ## Palette function for proteins
+    color_pal_protein <- grDevices::colorRampPalette(color_set_protein)
+
+    ## Color sets for proteins
+    color_set_geneprotein <- generate_colors("#1785A4")  ## blue
+    color_set_geneprotein_alpha <- purrr::map_chr(color_set_geneprotein, ~ glue::glue_collapse(c(.x, "CC"), sep = ""))
+
+    ## Palette function for proteins
+    color_pal_geneprotein <- grDevices::colorRampPalette(color_set_geneprotein)
+
+    ## Color sets for cells
+    color_set_cell <- generate_colors("#BE34EF")  ## violet
+    color_set_cell_alpha <- purrr::map_chr(color_set_cell, ~ glue::glue_collapse(c(.x, "CC"), sep = ""))
+
+    ## Palette function for cells
+    color_pal_cell <- grDevices::colorRampPalette(color_set_cell)
+
+    ## Color sets for compounds
+    color_set_compound <- generate_colors("#E06B12")  ## orange
+    color_set_compound_alpha <- purrr::map_chr(color_set_compound, ~ glue::glue_collapse(c(.x, "CC"), sep = ""))
+
+    ## Palette function for compounds
+    color_pal_compound <- grDevices::colorRampPalette(color_set_compound)
+
+    return(list(color_set_gene=color_set_gene,
+                color_set_gene_alpha=color_set_gene_alpha,
+                color_pal_gene=color_pal_gene,
+                color_set_protein=color_set_protein,
+                color_set_protein_alpha=color_set_protein_alpha,
+                color_pal_protein=color_pal_protein,
+                color_set_geneprotein=color_set_geneprotein,
+                color_set_geneprotein_alpha=color_set_geneprotein_alpha,
+                color_pal_geneprotein=color_pal_geneprotein,
+                color_set_cell=color_set_cell,
+                color_set_cell_alpha=color_set_cell_alpha,
+                color_pal_cell=color_pal_cell,
+                color_set_compound=color_set_compound,
+                color_set_compound_alpha=color_set_compound_alpha,
+                color_pal_compound=color_pal_compound)
+    )
+  }
+
+  ddh_colors <- load_colors()
+  list2env(ddh_colors, .GlobalEnv)
 
 }
 

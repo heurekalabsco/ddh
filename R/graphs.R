@@ -1,5 +1,9 @@
-
 ## SETUP GRAPH ----------------------------------------------------------------------
+#' Setup graph parameters
+#'
+#' @import tidyverse
+#'
+#' @export
 setup_graph <- function(toptable_data = master_top_table,
                         bottomtable_data = master_bottom_table,
                         compound_data = prism_cor_nest,
@@ -307,6 +311,9 @@ setup_graph <- function(toptable_data = master_top_table,
 #' @param tooltipLink Boolean to denote whether or not to include a link in the tooltip for a gene. Default to false.
 #'
 #' @return Outputs a complete network graph. If an error is thrown, then will return an empty graph.
+#'
+#' @import tidyverse
+#'
 #' @export
 #' @examples
 #' make_graph(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
@@ -396,8 +403,8 @@ make_graph <- function(toptable_data = master_top_table,
       tidygraph::as_tbl_graph(dep_network_list$df)
 
     nodes <-
-      as_tibble(graph_network) %>%
-      rowid_to_column("id") %>%
+      dplyr::as_tibble(graph_network) %>%
+      tibble::rowid_to_column("id") %>%
       mutate(degree = igraph::degree(graph_network),
              group = case_when(name %in% dep_network_list$query_id == TRUE ~ "Query", #could use input$content or input$content
                                name %in% dep_network_list$top_id == TRUE ~ "Positive",
