@@ -2,7 +2,7 @@
 % Please edit documentation in R/graphs.R
 \name{make_graph}
 \alias{make_graph}
-\title{Graph Graph}
+\title{Create network graph visualization using visNetwork}
 \usage{
 make_graph(
   toptable_data = master_top_table,
@@ -11,6 +11,10 @@ make_graph(
   input = list(),
   threshold = 10,
   deg = 2,
+  cell_line_similarity = "dependency",
+  cell_dep = cell_line_dep_sim,
+  cell_exp = cell_line_exp_sim,
+  bonferroni_cutoff = 0.05,
   corrType = "Positive",
   displayHeight = "90vh",
   displayWidth = "100\%",
@@ -41,10 +45,9 @@ make_graph(
 Outputs a complete network graph. If an error is thrown, then will return an empty graph.
 }
 \description{
-\code{make_graph} returns an image of ...
-}
-\details{
-This is a graph function that takes a gene name and returns a graph graph
+This function takes in dependency correlations and a gene query list to then output a dependency network graph
+visualization containing the top/bottom threshold for each of the top/bottom threshold of the gene query list
+using visNetwork.
 }
 \examples{
 make_graph(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
