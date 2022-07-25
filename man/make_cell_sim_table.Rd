@@ -2,14 +2,13 @@
 % Please edit documentation in R/tables.R
 \name{make_cell_sim_table}
 \alias{make_cell_sim_table}
-\title{Cell Sim Table}
+\title{Cell Similarity Table}
 \usage{
 make_cell_sim_table(
-  cell_sims = cell_line_combs_gam_p,
-  cell_metadata = expression_names,
-  sim_type = "bio",
-  pval_ct = 0.01,
-  fdr_ct = 0.05,
+  cell_sims_dep = cell_line_dep_sim,
+  cell_sims_exp = cell_line_exp_sim,
+  similarity = "dependency",
+  bonferroni_cutoff = 0.05,
   input = list()
 )
 }

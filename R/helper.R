@@ -263,6 +263,17 @@ load_ddh_data <- function(app_data_dir = NULL,
 
 }
 
+#' Function to create an empty table
+#'
+#' @return A data.frame.
+#'
+#' @examples
+#' make_empty_table()
+make_empty_table <- function() {
+  empty <- as.data.frame("No data available")
+  return(empty)
+}
+
 #' Function to create an empty plot
 #'
 #' @return A ggplot2 object.

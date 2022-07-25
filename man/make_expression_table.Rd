@@ -7,6 +7,7 @@
 make_expression_table(
   expression_data = expression_long,
   expression_join = expression_names,
+  gene_data = gene_summary,
   input = list(),
   var = "gene"
 )
