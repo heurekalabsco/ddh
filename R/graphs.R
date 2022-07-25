@@ -1,6 +1,8 @@
 ## SETUP GRAPH ----------------------------------------------------------------------
 #' Setup graph parameters
 #'
+#' @importFrom magrittr %>%
+#'
 #' @export
 setup_graph <- function(toptable_data = master_top_table,
                         bottomtable_data = master_bottom_table,
@@ -314,6 +316,7 @@ setup_graph <- function(toptable_data = master_top_table,
 #'
 #' @return Outputs a complete network graph. If an error is thrown, then will return an empty graph.
 #'
+#' @importFrom magrittr %>%
 #' @import visNetwork
 #'
 #' @export
@@ -646,6 +649,7 @@ graph_legend_list <- "Each point represents one of the queried genes, and then t
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a bipartite graph graph. If an error is thrown, then will return an empty graph.
 #'
+#' @importFrom magrittr %>%
 #' @import visNetwork
 #'
 #' @export
