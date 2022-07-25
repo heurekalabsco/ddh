@@ -68,9 +68,9 @@ setup_graph <- function(toptable_data = master_top_table,
           dplyr::slice(1:setup_threshold) %>%
           dplyr::rowwise() %>%
           dplyr::mutate(cells = list(c(cell1_name, cell2_name))) %>%
-          pull(cells) %>%
+          dplyr::pull(cells) %>%
           unlist()
-        top <- top[!top %in%  input_list$content]
+        top <- top[!top %in% input_list$content]
       }
       if(setup_corrType == "Negative" | setup_corrType == "Positive and Negative") {
         bottom <-
@@ -370,13 +370,13 @@ make_graph <- function(toptable_data = master_top_table,
     }
 
     #get dep_network object
-    dep_network_list <- setup_graph(input_list = input,
-                                    setup_corrType = corrType,
-                                    setup_threshold = threshold,
-                                    cell_line_similarity = cell_line_similarity,
-                                    cell_dep = cell_line_dep_sim,
-                                    cell_exp = cell_line_exp_sim,
-                                    bonferroni_cutoff = bonferroni_cutoff)
+    dep_network_list <- ddh::setup_graph(input_list = input,
+                                         setup_corrType = corrType,
+                                         setup_threshold = threshold,
+                                         cell_line_similarity = cell_line_similarity,
+                                         cell_dep = cell_line_dep_sim,
+                                         cell_exp = cell_line_exp_sim,
+                                         bonferroni_cutoff = bonferroni_cutoff)
     #dep_network_list <<- dep_network_list #for testing, to see what I'm getting back out
 
     #add check for no genes list
@@ -407,21 +407,21 @@ make_graph <- function(toptable_data = master_top_table,
     graph_network <-
       tidygraph::as_tbl_graph(dep_network_list$df)
 
-    nodes <-
-      dplyr::as_tibble(graph_network) %>%
+    nodes <- graph_network %>%
+      tidygraph::as_tibble() %>%
       tibble::rowid_to_column("id") %>%
-      mutate(degree = igraph::degree(graph_network),
-             group = dplyr::case_when(name %in% dep_network_list$query_id == TRUE ~ "Query", #could use input$content or input$content
+      dplyr::mutate(degree = igraph::degree(graph_network),
+                    group = dplyr::case_when(name %in% dep_network_list$query_id == TRUE ~ "Query", #could use input$content or input$content
                                       name %in% dep_network_list$top_id == TRUE ~ "Positive",
                                       name %in% dep_network_list$bottom_id == TRUE ~ "Negative",
                                       TRUE ~ "Connected"),
              group = forcats::as_factor(group),
-             group = forcats::fct_relevel(group, group_var))  %>%
+             group = forcats::fct_relevel(group, group_var)) %>%
       dplyr::arrange(group)
 
     links <- graph_network %>%
       tidygraph::activate(edges) %>% # %E>%
-      dplyr::as_tibble()
+      tidygraph::as_tibble()
 
     # determine the nodes that have at least the minimum degree
     nodes_filtered <-
@@ -502,9 +502,9 @@ make_graph <- function(toptable_data = master_top_table,
           dplyr::filter(approved_symbol==gene) %>%
           dplyr::pull(approved_name)
         if(length(newVal)==0){
-          nameTable <- add_row(nameTable, name = "No gene summary available")# handles cases where the gene is not in the gene summary table
+          nameTable <- tibble::add_row(nameTable, name = "No gene summary available")# handles cases where the gene is not in the gene summary table
         } else{
-          nameTable <- add_row(nameTable, name=newVal)
+          nameTable <- tibble::add_row(nameTable, name=newVal)
         }
       }
     } else if(input$type == "cell") {
@@ -524,9 +524,9 @@ make_graph <- function(toptable_data = master_top_table,
         }
 
         newVal <- newVal %>%
-          pull(cell2_name)
+          dplyr::pull(cell2_name)
 
-        if(length(newVal)==0){
+        if(length(newVal) == 0){
           nameTable <- tibble::add_row(nameTable, name = "No cell line available")# handles cases where the gene is not in the gene summary table
         } else{
           nameTable <- tibble::add_row(nameTable, name=newVal)
@@ -673,7 +673,7 @@ make_bipartite_graph <- function(toptable_data = master_top_table,
   make_bipartite_graph_raw <- function() {
     if(input$type == "gene") {
       #get dep_network object
-      dep_network_list <- setup_graph(input_list = input,
+      dep_network_list <- ddh::setup_graph(input_list = input,
                                       setup_corrType = corrType,
                                       setup_threshold = threshold)
       #get gene_names
@@ -779,8 +779,8 @@ make_bipartite_graph <- function(toptable_data = master_top_table,
                                 <p>
                                 {.x}
                                 <br>
-                                {if(length(gene_summary %>% filter(approved_symbol == .x) %>% pull(approved_name)) != 0) {
-                                gene_summary %>% filter(approved_symbol == .x) %>% pull(approved_name)} else {
+                                {if(length(gene_summary %>% dplyr::filter(approved_symbol == .x) %>% dplyr::pull(approved_name)) != 0) {
+                                gene_summary %>% dplyr::filter(approved_symbol == .x) %>% dplyr::pull(approved_name)} else {
                                 "No summary"}
                                 }
                                 <br>
