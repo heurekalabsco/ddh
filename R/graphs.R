@@ -1,52 +1,26 @@
 
-
-#' Empty Graph Graph
-#'
-#' \code{make_empty_graph} returns an image of ...
-#'
-#' This is a graph function that takes a gene name and returns a empty graph graph
-#'
-#' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a empty graph graph. If an error is thrown, then will return an empty graph.
-#'
-#' @examples
-#' make_empty_graph()
-#' \dontrun{
-#' make_empty_graph()
-#' }
-make_empty_graph <- function(type = "gene") {
-  if(type == "gene") {
-    queryColor <- color_set_gene_alpha[2]
-  } else if(type == "compound") {
-    queryColor <- color_set_compound_alpha[2]
-  } else {
-    stop("declare your type")
-  }
-  #set params, copied from below
-  borderColor <- "rgba(204, 204, 204, 0.8)" #(gray80), formerly white 255, 255, 255
-  displayHeight = '90vh'
-  displayWidth = '100%'
-  #make empty nodes table
-  nodes_empty = tibble(id = 0,
-                       name = "Empty",
-                       group = "Query",
-                       title = "Not enough data to build a network")
-  visNetwork(nodes = nodes_empty,
-             width = displayWidth,
-             height = displayHeight) %>%
-    visGroups(groupname = "Query",
-              color = list(background = queryColor, border = borderColor, highlight = queryColor, hover = queryColor),
-              shape='dot',
-              borderWidth = 2)
-}
-
 ## SETUP GRAPH ----------------------------------------------------------------------
 setup_graph <- function(toptable_data = master_top_table,
                         bottomtable_data = master_bottom_table,
                         compound_data = prism_cor_nest,
                         input_list = list(), #changed name here to prevent var naming overlap for nested funs()
                         setup_threshold,
-                        setup_corrType) {
+                        setup_corrType,
+                        cell_line_similarity = "dependency",
+                        cell_dep = cell_line_dep_sim,
+                        cell_exp = cell_line_exp_sim,
+                        bonferroni_cutoff = 0.05) {
+
+  # this is the equivalent of master top/bottom table
+  if(cell_line_similarity == "dependency") {
+    cell_top_data <- cell_dep %>%
+      dplyr::filter(bonferroni < bonferroni_cutoff)
+  } else if (cell_line_similarity == "expression") {
+    cell_top_data <- cell_exp %>%
+      dplyr::filter(bonferroni < bonferroni_cutoff)
+  }
+
+  ####
 
   if(input_list$type == "gene") {
     #generate data
@@ -71,6 +45,40 @@ setup_graph <- function(toptable_data = master_top_table,
           dplyr::arrange(r2) %>%
           dplyr::slice(1:setup_threshold)%>%
           dplyr::pull("gene")
+      }
+    } else {
+      query <- input_list$content
+      top <- input_list$content #set to query here, to pull top correlated genes, reset below
+      bottom <- input_list$content  #set to query here, to pull bottom correlated genes, reset below
+    }
+  } else if(input_list$type == "cell") {
+    #generate data
+    if(length(input_list$content) == 1){
+      #find top and bottom correlations for fav_gene
+      query <- input_list$content
+      if(setup_corrType == "Positive" | setup_corrType == "Positive and Negative") {
+        top <-
+          cell_top_data %>%
+          dplyr::filter(cell1_name %in% input_list$content | cell2_name %in% input_list$content) %>%
+          dplyr::arrange(dplyr::desc(coef)) %>%
+          dplyr::slice(1:setup_threshold) %>%
+          dplyr::rowwise() %>%
+          dplyr::mutate(cells = list(c(cell1_name, cell2_name))) %>%
+          pull(cells) %>%
+          unlist()
+        top <- top[!top %in%  input_list$content]
+      }
+      if(setup_corrType == "Negative" | setup_corrType == "Positive and Negative") {
+        bottom <-
+          cell_top_data %>%
+          dplyr::filter(cell1_name %in% input_list$content | cell2_name %in% input_list$content) %>%
+          dplyr::arrange(coef) %>%
+          dplyr::slice(1:setup_threshold) %>%
+          dplyr::rowwise() %>%
+          dplyr::mutate(cells = list(c(cell1_name, cell2_name))) %>%
+          pull(cells) %>%
+          unlist()
+        bottom <- bottom[!bottom %in% input_list$content]
       }
     } else {
       query <- input_list$content
@@ -130,6 +138,18 @@ setup_graph <- function(toptable_data = master_top_table,
         table_var <- bottomtable_data
         origin_var <- "neg"
       }
+    } else if(fun_input_list$type == "cell") {
+      # filter_var <- rlang::sym("cell2_name") # this is different to genes because the top table is different
+      rename_var <- rlang::sym("cell2_name") # this is different to genes because the top table is different
+      if(top == TRUE) {
+        message_var <- "top"
+        table_var <- cell_top_data
+        origin_var <- "pos"
+      } else {
+        message_var <- "bottom"
+        table_var <- cell_top_data
+        origin_var <- "neg"
+      }
     } else if(fun_input_list$type == "compound") {
       filter_var <- rlang::sym("fav_drug")
       rename_var <- rlang::sym("name")
@@ -148,7 +168,7 @@ setup_graph <- function(toptable_data = master_top_table,
 
     message(glue::glue('Getting {message_var} correlations from {content}'))
 
-    if(content %in% table_var[[1]]){ #check to see if gene query is in table (either fav_gene or fav_drug)
+    if(fun_input_list$type != "cell" & content %in% table_var[[1]]) {  #check to see if gene query is in table (either fav_gene or fav_drug)
       related_table <-
         table_var %>%
         dplyr::filter(!!filter_var == content) %>%
@@ -160,7 +180,36 @@ setup_graph <- function(toptable_data = master_top_table,
                       origin = origin_var) %>%
         dplyr::rename(y = !!rename_var) %>%
         dplyr::select(x, y, r2, origin)
-      return(related_table)}
+
+      return(related_table)
+
+    } else {
+      related_table <-
+        table_var %>%
+        # dplyr::filter(!!filter_var == content) %>%
+        dplyr::filter(cell1_name == content | cell2_name == content)
+
+      # Swap cols (based on query)
+      for(i in 1:nrow(related_table)) {
+        if(related_table$cell2_name[i] %in% content & !(related_table$cell1_name[i] %in% content)) {
+          cell1 <- related_table$cell1_name[i]
+          cell2 <- related_table$cell2_name[i]
+
+          related_table$cell2_name[i] <- cell1
+          related_table$cell1_name[i] <- cell2
+        }
+      }
+
+      related_table <- related_table %>%
+        {if (top == TRUE) dplyr::arrange(., desc(coef)) else dplyr::arrange(., coef)} %>%
+        dplyr::slice(1:setup_threshold) %>%
+        dplyr::mutate(x = content,
+                      origin = origin_var) %>%
+        dplyr::rename(y = !!rename_var) %>%
+        dplyr::select(x, y, coef, origin)
+
+      return(related_table)
+    }
   }
 
   #make empty tibble
@@ -238,16 +287,7 @@ setup_graph <- function(toptable_data = master_top_table,
 #tmp1 <- setup_graph(input_list = list(type = "gene", content = "ROCK1"), setup_corrType = "Positive and Negative", setup_threshold = 10)
 #tmp2 <- setup_graph(input_list = list(type = "gene", content = c("ROCK1", "ROCK2")), setup_corrType = "Positive", setup_threshold = 10)
 #tmp4 <- setup_graph(input_list = list(type = "compound", content = "ADP"), setup_corrType = "Positive and Negative", setup_threshold = 10)
-
-#' Graph Graph
-#'
-#' \code{make_graph} returns an image of ...
-#'
-#' This is a graph function that takes a gene name and returns a graph graph
-#'
-#' @param input Expecting a list containing type and content variable.
-#'
-
+#tmp5 <- setup_graph(input_list = list(type = "cell", content = "HEL"), setup_corrType = "Positive and Negative", setup_threshold = 10)
 
 ## MAKE GRAPH ----------------------------------------------------------------------
 #' Create network graph visualization using visNetwork
@@ -287,6 +327,10 @@ make_graph <- function(toptable_data = master_top_table,
                        input = list(),
                        threshold = 10,
                        deg = 2,
+                       cell_line_similarity = "dependency",
+                       cell_dep = cell_line_dep_sim,
+                       cell_exp = cell_line_exp_sim,
+                       bonferroni_cutoff = 0.05,
                        corrType = "Positive",
                        displayHeight = '90vh',
                        displayWidth = '100%',
@@ -295,6 +339,18 @@ make_graph <- function(toptable_data = master_top_table,
   make_graph_raw <- function() {
     if(input$type == "gene") {
       queryColor <- color_set_gene_alpha[2]
+    }  else if (input$type == "cell"){
+      queryColor <- color_set_cell_alpha[2]
+
+      # this is the equivalent of master top/bottom table
+      if(cell_line_similarity == "dependency") {
+        cell_top_data <- cell_dep %>%
+          dplyr::filter(bonferroni < bonferroni_cutoff)
+      } else if (cell_line_similarity == "expression") {
+        cell_top_data <- cell_exp %>%
+          dplyr::filter(bonferroni < bonferroni_cutoff)
+      }
+
     } else if(input$type == "compound") {
       queryColor <- color_set_compound_alpha[2]
     } else {
@@ -304,7 +360,11 @@ make_graph <- function(toptable_data = master_top_table,
     #get dep_network object
     dep_network_list <- setup_graph(input_list = input,
                                     setup_corrType = corrType,
-                                    setup_threshold = threshold)
+                                    setup_threshold = threshold,
+                                    cell_line_similarity = cell_line_similarity,
+                                    cell_dep = cell_line_dep_sim,
+                                    cell_exp = cell_line_exp_sim,
+                                    bonferroni_cutoff = bonferroni_cutoff)
     #dep_network_list <<- dep_network_list #for testing, to see what I'm getting back out
 
     #add check for no genes list
@@ -413,21 +473,13 @@ make_graph <- function(toptable_data = master_top_table,
     #check to see if query gene is missing; if so, then adds a dummy so it shows up on graph, but disconnected
     disconnected <- F
     #could simplify this if/else with common input name, b/c only here to get input$content vs. input$content
-    if(input$type == "gene") {
-      if(sum(str_detect(nodes_filtered$group, "Query")) == 0){
-        dummy <- tibble("id" = max(nodes_filtered$id) + 1, "name" = input$content, "degree" = 1, "group" = "Query", "value" = 0)
-        nodes_filtered <- bind_rows(dummy, nodes_filtered)
-        disconnected <- T
-      }
-    } else if(input$type == "compound") {
-      if(sum(str_detect(nodes_filtered$group, "Query")) == 0){
-        dummy <- tibble("id" = max(nodes_filtered$id) + 1, "name" = input$content, "degree" = 1, "group" = "Query", "value" = 0)
-        nodes_filtered <- bind_rows(dummy, nodes_filtered)
-        disconnected <- T
-      }
-    } else {
-      stop("declare your type")
-    }
+    # if(sum(str_detect(nodes_filtered$group, "Query")) == 0){
+    #   dummy <- tibble("id" = max(nodes_filtered$id) + 1, "name" = input$content, "degree" = 1, "group" = "Query", "value" = 0)
+    #   nodes_filtered <- bind_rows(dummy, nodes_filtered)
+    #   disconnected <- T
+    # } else {
+    #   stop("declare your type")
+    # }
 
     # get the approved_name of each gene from the gene_summary table - will be added to nodes tibble for tooltip
     nameTable <- tibble(name=character())
@@ -439,6 +491,31 @@ make_graph <- function(toptable_data = master_top_table,
           dplyr::pull(approved_name)
         if(length(newVal)==0){
           nameTable <- add_row(nameTable, name = "No gene summary available")# handles cases where the gene is not in the gene summary table
+        } else{
+          nameTable <- add_row(nameTable, name=newVal)
+        }
+      }
+    } else if(input$type == "cell") {
+      for(cell in nodes_filtered$name){
+        newVal <- cell_top_data %>%
+          dplyr::filter(cell1_name == cell | cell2_name == cell)
+
+        # Swap cols (based on query)
+        for(i in 1:nrow(newVal)) {
+          if(newVal$cell2_name[i] %in% cell & !(newVal$cell1_name[i] %in% cell)) {
+            cell1 <- newVal$cell1_name[i]
+            cell2 <- newVal$cell2_name[i]
+
+            newVal$cell2_name[i] <- cell1
+            newVal$cell1_name[i] <- cell2
+          }
+        }
+
+        newVal <- newVal %>%
+          pull(cell2_name)
+
+        if(length(newVal)==0){
+          nameTable <- add_row(nameTable, name = "No cell line available")# handles cases where the gene is not in the gene summary table
         } else{
           nameTable <- add_row(nameTable, name=newVal)
         }
@@ -461,17 +538,21 @@ make_graph <- function(toptable_data = master_top_table,
     # add title information (tooltip that appears on hover)
     if(!tooltipLink){ # Do not form a url when just making the standalone graph while testing or making reports
       nodes_filtered <- nodes_filtered %>%
-        dplyr::mutate(title=paste0("<center><p>", nodes_filtered$name,"<br>",nameTable$name, '</p>'),
-                      label = nodes_filtered$name )
-    }else{
+        dplyr::mutate(title=paste0("<center><p>", name,"<br>",name, '</p>'),
+                      label = name )
+    } else {
       if(input$type == "gene") {
         nodes_filtered <- nodes_filtered %>%
-          dplyr::mutate(title=paste0("<center><p>", nodes_filtered$name,"<br>",nameTable$name ,'<br><a target="_blank" href="?show=gene&query=',nodes_filtered$name,'">Gene Link</a></p>'),
-                        label = nodes_filtered$name )
+          dplyr::mutate(title=paste0("<center><p>",name,"<br>",name ,'<br><a target="_blank" href="?show=gene&query=',name,'">Gene Link</a></p>'),
+                        label = name )
+      } else if(input$type == "cell") {
+        nodes_filtered <- nodes_filtered %>%
+          dplyr::mutate(title=paste0("<center><p>", name,"<br>",name ,'<br><a target="_blank" href="?show=cell&query=',name,'">Cell Line Link</a></p>'),
+                        label = name )
       } else if(input$type == "compound") {
         nodes_filtered <- nodes_filtered %>%
-          dplyr::mutate(title=paste0("<center><p>", nodes_filtered$name,"<br>",nameTable$name ,'<br><a target="_blank" href="?show=compound&query=',nodes_filtered$name,'">Drug Link</a></p>'),
-                        label = nodes_filtered$name )
+          dplyr::mutate(title=paste0("<center><p>", name,"<br>",name ,'<br><a target="_blank" href="?show=compound&query=',name,'">Drug Link</a></p>'),
+                        label = name )
       } else {
         stop("declare your type")
       }
@@ -504,10 +585,10 @@ make_graph <- function(toptable_data = master_top_table,
     if(corrType == "Positive and Negative"){
       visNetwork(nodes = nodes_filtered, edges = links_filtered, width = displayWidth, height = displayHeight) %>%
         visOptions(highlightNearest = list(enabled = T)) %>%
-        visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape='dot', borderWidth = 2) %>%
-        visGroups(groupname = "Positive", color = list(background = positiveColor, border = borderColor, highlight = positiveColor, hover = positiveColor), shape='dot', borderWidth = 2) %>%
-        visGroups(groupname = "Negative", color = list(background = negativeColor, border = borderColor, highlight = negativeColor, hover = negativeColor), shape='dot', borderWidth = 2) %>%
-        visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape='dot', borderWidth = 2) %>%
+        visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_similarity == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visGroups(groupname = "Positive", color = list(background = positiveColor, border = borderColor, highlight = positiveColor, hover = positiveColor), shape=ifelse(cell_line_similarity == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visGroups(groupname = "Negative", color = list(background = negativeColor, border = borderColor, highlight = negativeColor, hover = negativeColor), shape=ifelse(cell_line_similarity == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_similarity == "dependency", "dot", "diamond"), borderWidth = 2) %>%
         visEdges(color = edgeColor, smooth = F) %>%
         visNodes(scaling = list(min = 10, max =20)) %>%
         visPhysics(barnesHut = list(damping = damping, centralGravity = gravity), timestep = timestep, stabilization = list(iterations = iter)) %>%
@@ -516,9 +597,9 @@ make_graph <- function(toptable_data = master_top_table,
     }  else if(corrType == "Positive"){
       visNetwork(nodes = nodes_filtered, edges = links_filtered, width = displayWidth, height = displayHeight) %>%
         visOptions(highlightNearest = list(enabled = T)) %>%
-        visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape='dot', borderWidth = 2) %>%
-        visGroups(groupname = "Positive", color = list(background = positiveColor, border = borderColor, highlight = positiveColor, hover = positiveColor), shape='dot', borderWidth = 2) %>%
-        visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape='dot', borderWidth = 2) %>%
+        visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_similarity == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visGroups(groupname = "Positive", color = list(background = positiveColor, border = borderColor, highlight = positiveColor, hover = positiveColor), shape=ifelse(cell_line_similarity == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_similarity == "dependency", "dot", "diamond"), borderWidth = 2) %>%
         visEdges(color = edgeColor, smooth = F) %>%
         visNodes(scaling = list(min = 10, max =20)) %>%
         visPhysics(barnesHut = list(damping = damping, centralGravity = gravity), timestep = timestep, stabilization = list(iterations = iter)) %>%
@@ -526,9 +607,9 @@ make_graph <- function(toptable_data = master_top_table,
     }  else if(corrType == "Negative"){
       visNetwork(nodes = nodes_filtered, edges = links_filtered, width = displayWidth, height = displayHeight) %>%
         visOptions(highlightNearest = list(enabled = T)) %>%
-        visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape='dot', borderWidth = 2) %>%
-        visGroups(groupname = "Negative", color = list(background = negativeColor, border = borderColor, highlight = negativeColor, hover = negativeColor), shape='dot', borderWidth = 2) %>%
-        visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape='dot', borderWidth = 2) %>%
+        visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_similarity == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visGroups(groupname = "Negative", color = list(background = negativeColor, border = borderColor, highlight = negativeColor, hover = negativeColor), shape=ifelse(cell_line_similarity == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_similarity == "dependency", "dot", "diamond"), borderWidth = 2) %>%
         visEdges(color = edgeColor, smooth = F) %>%
         visNodes(scaling = list(min = 10, max = 20)) %>%
         visPhysics(barnesHut = list(damping = damping, centralGravity = gravity), timestep = timestep, stabilization = list(iterations = iter)) %>%
@@ -754,3 +835,4 @@ make_bipartite_graph <- function(toptable_data = master_top_table,
 #                      censor = c("ADP", "Adenosine triphosphate"))
 #
 # make_bipartite_graph(input = list(type = "compound", content = "adp"))
+

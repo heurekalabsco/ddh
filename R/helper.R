@@ -653,3 +653,45 @@ make_roxygen <- function(fun_name,
   writeLines(roxygen, con = output_file)
 }
 
+#' Empty Graph Graph
+#'
+#' \code{make_empty_graph} returns an image of ...
+#'
+#' This is a graph function that takes a gene name and returns a empty graph graph
+#'
+#' @param input Expecting a list containing type and content variable.
+#' @return If no error, then returns a empty graph graph. If an error is thrown, then will return an empty graph.
+#'
+#' @examples
+#' make_empty_graph()
+#' \dontrun{
+#' make_empty_graph()
+#' }
+make_empty_graph <- function(type = "gene") {
+  if(type == "gene") {
+    queryColor <- color_set_gene_alpha[2]
+  } else if (type == "cell") {
+    queryColor <- color_set_cell_alpha[2]
+  }else if (type == "compound") {
+    queryColor <- color_set_compound_alpha[2]
+  } else {
+    stop("declare your type")
+  }
+  #set params, copied from below
+  borderColor <- "rgba(204, 204, 204, 0.8)" #(gray80), formerly white 255, 255, 255
+  displayHeight = '90vh'
+  displayWidth = '100%'
+  #make empty nodes table
+  nodes_empty = tibble(id = 0,
+                       name = "Empty",
+                       group = "Query",
+                       title = "Not enough data to build a network")
+  visNetwork(nodes = nodes_empty,
+             width = displayWidth,
+             height = displayHeight) %>%
+    visGroups(groupname = "Query",
+              color = list(background = queryColor, border = borderColor, highlight = queryColor, hover = queryColor),
+              shape='dot',
+              borderWidth = 2)
+}
+
