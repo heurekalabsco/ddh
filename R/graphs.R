@@ -313,6 +313,7 @@ setup_graph <- function(toptable_data = master_top_table,
 #' @return Outputs a complete network graph. If an error is thrown, then will return an empty graph.
 #'
 #' @import tidyverse
+#' @import visNetwork
 #'
 #' @export
 #' @examples
@@ -415,7 +416,7 @@ make_graph <- function(toptable_data = master_top_table,
       arrange(group)
 
     links <- graph_network %>%
-      activate(edges) %>% # %E>%
+      tidygraph::activate(edges) %>% # %E>%
       as_tibble()
 
     # determine the nodes that have at least the minimum degree
@@ -644,9 +645,15 @@ graph_legend_list <- "Each point represents one of the queried genes, and then t
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a bipartite graph graph. If an error is thrown, then will return an empty graph.
 #'
+#' @import tidyverse
+#' @import visNetwork
+#'
 #' @export
 #' @examples
 #' make_bipartite_graph(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_bipartite_graph(input = list(type = "gene", content = "ROCK1"), collapsed = TRUE, threshold = 10, corrType = "Positive")
+#' make_bipartite_graph(input = list(type = "gene", content = c("ROCK1", "ROCK2")), collapsed = TRUE, threshold = 10, corrType = "Positive", censor = c("ADP", "Adenosine triphosphate"))
+#' make_bipartite_graph(input = list(type = "compound", content = "adp"))
 #' \dontrun{
 #' make_bipartite_graph(input = list(type = 'gene', content = 'ROCK1'))
 #' }
@@ -829,17 +836,4 @@ make_bipartite_graph <- function(toptable_data = master_top_table,
   tryCatch(make_bipartite_graph_raw(),
            error = function(x){"Graph cannot be built"})
 }
-# Test Cases
-# make_bipartite_graph(input = list(type = "gene", content = "ROCK1"),
-#                      collapsed = TRUE,
-#                      threshold = 10,
-#                      corrType = "Positive")
-#
-# make_bipartite_graph(input = list(type = "gene", content = c("ROCK1", "ROCK2")),
-#                      collapsed = TRUE,
-#                      threshold = 10,
-#                      corrType = "Positive",
-#                      censor = c("ADP", "Adenosine triphosphate"))
-#
-# make_bipartite_graph(input = list(type = "compound", content = "adp"))
 

@@ -30,6 +30,9 @@ This is a graph function that takes a gene name and returns a bipartite graph gr
 }
 \examples{
 make_bipartite_graph(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_bipartite_graph(input = list(type = "gene", content = "ROCK1"), collapsed = TRUE, threshold = 10, corrType = "Positive")
+make_bipartite_graph(input = list(type = "gene", content = c("ROCK1", "ROCK2")), collapsed = TRUE, threshold = 10, corrType = "Positive", censor = c("ADP", "Adenosine triphosphate"))
+make_bipartite_graph(input = list(type = "compound", content = "adp"))
 \dontrun{
 make_bipartite_graph(input = list(type = 'gene', content = 'ROCK1'))
 }
