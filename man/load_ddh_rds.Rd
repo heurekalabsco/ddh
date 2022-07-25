@@ -7,7 +7,11 @@
 load_ddh_rds(app_data_dir = NULL, release = "22Q2", privateMode = TRUE)
 }
 \arguments{
-\item{privateMode}{}
+\item{app_data_dir}{Data directory path.}
+
+\item{release}{Character vector indicating the release version.}
+
+\item{privateMode}{Boolean indicating if private data is required.}
 }
 \description{
 Function to load all DDH .RDS files

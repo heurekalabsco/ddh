@@ -1,8 +1,8 @@
 #' Function to Load All DDH Data Including .RDS Files and Colors
 #'
-#' @param app_data_dir
-#' @param release
-#' @param privateMode
+#' @param app_data_dir Data directory path.
+#' @param release Character vector indicating the release version.
+#' @param privateMode Boolean indicating if private data is required.
 #'
 #' @export
 load_ddh_data <- function(app_data_dir = NULL,
@@ -21,9 +21,9 @@ load_ddh_data <- function(app_data_dir = NULL,
 
 #' Function to load all DDH .RDS files
 #'
-#' @param app_data_dir
-#' @param release
-#' @param privateMode
+#' @param app_data_dir Data directory path.
+#' @param release Character vector indicating the release version.
+#' @param privateMode Boolean indicating if private data is required.
 #'
 #' @export
 load_ddh_rds <- function(app_data_dir = NULL,
@@ -755,6 +755,9 @@ make_roxygen <- function(fun_name,
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a empty graph graph. If an error is thrown, then will return an empty graph.
 #'
+#' @importFrom dplyr tibble
+#' @import visNetwork
+#'
 #' @examples
 #' make_empty_graph()
 #' \dontrun{
@@ -775,10 +778,10 @@ make_empty_graph <- function(type = "gene") {
   displayHeight = '90vh'
   displayWidth = '100%'
   #make empty nodes table
-  nodes_empty = tibble(id = 0,
-                       name = "Empty",
-                       group = "Query",
-                       title = "Not enough data to build a network")
+  nodes_empty = dplyr::tibble(id = 0,
+                              name = "Empty",
+                              group = "Query",
+                              title = "Not enough data to build a network")
   visNetwork(nodes = nodes_empty,
              width = displayWidth,
              height = displayHeight) %>%
