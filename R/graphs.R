@@ -1,8 +1,6 @@
 ## SETUP GRAPH ----------------------------------------------------------------------
 #' Setup graph parameters
 #'
-#' @import tidyverse
-#'
 #' @export
 setup_graph <- function(toptable_data = master_top_table,
                         bottomtable_data = master_bottom_table,
@@ -80,7 +78,7 @@ setup_graph <- function(toptable_data = master_top_table,
           dplyr::slice(1:setup_threshold) %>%
           dplyr::rowwise() %>%
           dplyr::mutate(cells = list(c(cell1_name, cell2_name))) %>%
-          pull(cells) %>%
+          dplyr::pull(cells) %>%
           unlist()
         bottom <- bottom[!bottom %in% input_list$content]
       }
@@ -232,7 +230,7 @@ setup_graph <- function(toptable_data = master_top_table,
       #each temp object is bound together
       dep_network <-
         dep_network %>%
-        bind_rows(dep_top_related)
+        dplyr::bind_rows(dep_top_related)
     }
   } else if(setup_corrType == "Positive and Negative"){
     network_list <- unique(c(top, bottom))
@@ -249,11 +247,11 @@ setup_graph <- function(toptable_data = master_top_table,
       #each temp object is bound together, and then bound to the final df for graphing
       dep_related <-
         dep_top_related %>%
-        bind_rows(dep_bottom_related)
+        dplyr::bind_rows(dep_bottom_related)
 
       dep_network <-
         dep_network %>%
-        bind_rows(dep_related)
+        dplyr::bind_rows(dep_related)
     }
   } else if(setup_corrType == "Negative"){
     network_list <- unique(bottom)
@@ -267,15 +265,19 @@ setup_graph <- function(toptable_data = master_top_table,
       #each temp object is bound together
       dep_network <-
         dep_network %>%
-        bind_rows(dep_bottom_related)
+        dplyr::bind_rows(dep_bottom_related)
     }
   } else {
     stop("delcare your corrType")
   }
   if(length(input_list$content) > 1) { #this reassigns top and bottom ids from multi-gene queries
     query <- input_list$content
-    top <- dep_network %>% filter(origin == "pos") %>% pull(y)
-    bottom <- dep_network %>% filter(origin == "neg") %>% pull(y)
+    top <- dep_network %>%
+      dplyr::filter(origin == "pos") %>%
+      dplyr::pull(y)
+    bottom <- dep_network %>%
+      dplyr::filter(origin == "neg") %>%
+      dplyr::pull(y)
   }
   #fun now returns a list, to preserve some info that gets passed on to rest make_graph()
   return(list(type = setup_corrType,
@@ -312,7 +314,6 @@ setup_graph <- function(toptable_data = master_top_table,
 #'
 #' @return Outputs a complete network graph. If an error is thrown, then will return an empty graph.
 #'
-#' @import tidyverse
 #' @import visNetwork
 #'
 #' @export
@@ -407,28 +408,28 @@ make_graph <- function(toptable_data = master_top_table,
       dplyr::as_tibble(graph_network) %>%
       tibble::rowid_to_column("id") %>%
       mutate(degree = igraph::degree(graph_network),
-             group = case_when(name %in% dep_network_list$query_id == TRUE ~ "Query", #could use input$content or input$content
-                               name %in% dep_network_list$top_id == TRUE ~ "Positive",
-                               name %in% dep_network_list$bottom_id == TRUE ~ "Negative",
-                               TRUE ~ "Connected"),
-             group = as_factor(group),
-             group = fct_relevel(group, group_var))  %>%
-      arrange(group)
+             group = dplyr::case_when(name %in% dep_network_list$query_id == TRUE ~ "Query", #could use input$content or input$content
+                                      name %in% dep_network_list$top_id == TRUE ~ "Positive",
+                                      name %in% dep_network_list$bottom_id == TRUE ~ "Negative",
+                                      TRUE ~ "Connected"),
+             group = forcats::as_factor(group),
+             group = forcats::fct_relevel(group, group_var))  %>%
+      dplyr::arrange(group)
 
     links <- graph_network %>%
       tidygraph::activate(edges) %>% # %E>%
-      as_tibble()
+      dplyr::as_tibble()
 
     # determine the nodes that have at least the minimum degree
     nodes_filtered <-
       nodes %>%
-      filter(degree >= deg) %>%  #input$degree
+      dplyr::filter(degree >= deg) %>%  #input$degree
       as.data.frame
 
     # filter the edge list to contain only links to or from the nodes that have the minimum or more degree
     links_filtered <-
       links %>%
-      filter(to %in% nodes_filtered$id & from %in% nodes_filtered$id) %>%
+      dplyr::filter(to %in% nodes_filtered$id & from %in% nodes_filtered$id) %>%
       as.data.frame
 
     # re-adjust the from and to values to reflect the new positions of nodes in the filtered nodes list
@@ -438,9 +439,9 @@ make_graph <- function(toptable_data = master_top_table,
     #check to see if setting degree removed all links; if so, then throws error, so this fills a dummy links_filtered df to plot only nodes
     if(nrow(links_filtered) == 0) {
       if(corrType == "Negative"){
-        links_filtered <- tibble("from" = -1, "to" = -1, "r2" = 1, "origin" = "neg")
+        links_filtered <- dplyr::tibble("from" = -1, "to" = -1, "r2" = 1, "origin" = "neg")
       }    else{
-        links_filtered <- tibble("from" = -1, "to" = -1, "r2" = 1, "origin" = "pos")}
+        links_filtered <- dplyr::tibble("from" = -1, "to" = -1, "r2" = 1, "origin" = "pos")}
     }
 
     # shift id values properly to work with visNetwork
@@ -457,13 +458,13 @@ make_graph <- function(toptable_data = master_top_table,
     # make node size a function of their degree in the current network
     if(names(degVec)[1] == "-1"){ # if there are no links remaining then assign degree of each node to 0
       nodes_filtered <- nodes_filtered %>%
-        mutate(value = 0)
+        dplyr::mutate(value = 0)
     } else if(length(input$content > 1) & length(degVec) != dim(nodes_filtered)[1]){ # handle cases where some query genes are disconnected
       genesWithConnections <- degVec %>%
         names() %>%
         as.numeric()
       nodes_filtered <- nodes_filtered %>%
-        add_column(value = 0)
+        tibble::add_column(value = 0)
       for(gene in 1:dim(nodes_filtered)[1]){
         if(nodes_filtered[gene,"id"] %in% genesWithConnections){
           nodes_filtered[gene,"value"] <- degVec[nodes_filtered[gene,"id"] %>% toString()]
@@ -471,12 +472,12 @@ make_graph <- function(toptable_data = master_top_table,
       }
     }else{
       nodes_filtered <- nodes_filtered[degVec %>% names() %>% as.numeric() +1,] %>%
-        mutate(value = degVec)
+        dplyr::mutate(value = degVec)
     }
 
     # make sure query gene is at the start so legend shows proper order
     nodes_filtered <- nodes_filtered %>%
-      arrange(id)
+      dplyr::arrange(id)
 
     #check to see if query gene is missing; if so, then adds a dummy so it shows up on graph, but disconnected
     disconnected <- F
@@ -523,9 +524,9 @@ make_graph <- function(toptable_data = master_top_table,
           pull(cell2_name)
 
         if(length(newVal)==0){
-          nameTable <- add_row(nameTable, name = "No cell line available")# handles cases where the gene is not in the gene summary table
+          nameTable <- tibble::add_row(nameTable, name = "No cell line available")# handles cases where the gene is not in the gene summary table
         } else{
-          nameTable <- add_row(nameTable, name=newVal)
+          nameTable <- tibble::add_row(nameTable, name=newVal)
         }
       }
     } else if(input$type == "compound") {
@@ -534,9 +535,9 @@ make_graph <- function(toptable_data = master_top_table,
           dplyr::filter(name==drug) %>%
           dplyr::pull(moa)
         if(length(newVal)==0){
-          nameTable <- add_row(nameTable, name = "No drug MOA available")# handles cases where the gene is not in the gene summary table
+          nameTable <- tibble::add_row(nameTable, name = "No drug MOA available")# handles cases where the gene is not in the gene summary table
         } else{
-          nameTable <- add_row(nameTable, name=newVal)
+          nameTable <- tibble::add_row(nameTable, name=newVal)
         }
       }
     } else {
@@ -645,7 +646,6 @@ graph_legend_list <- "Each point represents one of the queried genes, and then t
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a bipartite graph graph. If an error is thrown, then will return an empty graph.
 #'
-#' @import tidyverse
 #' @import visNetwork
 #'
 #' @export
