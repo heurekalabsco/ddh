@@ -2,7 +2,7 @@
 % Please edit documentation in R/tables.R
 \name{make_dep_table}
 \alias{make_dep_table}
-\title{Dep Table}
+\title{Dependency Table}
 \usage{
 make_dep_table(
   achilles_data = achilles_long,
@@ -27,6 +27,8 @@ This is a table function that takes a gene name and returns a dep Table
 }
 \examples{
 make_dep_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_dep_table(input = list(type = 'compound', query = 'aspirin', content = 'aspirin'))
+make_dep_table(input = list(type = 'cell', query = 'HEPG2', content = 'HEPG2'))
 \dontrun{
 make_dep_table(input = list(type = 'gene', content = 'ROCK1'))
 }

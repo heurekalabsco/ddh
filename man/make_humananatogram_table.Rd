@@ -2,7 +2,7 @@
 % Please edit documentation in R/tables.R
 \name{make_humananatogram_table}
 \alias{make_humananatogram_table}
-\title{Humananatogram Table}
+\title{Human Anatogram Table}
 \usage{
 make_humananatogram_table(humananatogram_data = tissue, input = list())
 }

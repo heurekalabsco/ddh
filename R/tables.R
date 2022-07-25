@@ -1,8 +1,3 @@
-# HELPER -----
-make_empty_table <- function() {
-  empty <- as.data.frame("No data available")
-  return(empty)
-}
 
 # PATHWAY TABLES -----
 #' Pathway List Table
@@ -34,10 +29,7 @@ make_pathway_list <- function(table_name = pathways,
     filter(map_lgl(table_name$data, ~present(list = .x, query = input$content)) == TRUE)
   return(filtered_table)
 }
-#TEST
-#make_pathway_list(table_name = pathways, input = list(content = "FXR1"))
 
-# pathway genes makes a gene table of a pathway query
 #' Pathway Genes Table
 #'
 #' \code{make_pathway_genes} returns an image of ...
@@ -63,7 +55,6 @@ make_pathway_genes <- function(table_name = pathways, table_join = gene_summary,
   return(pathway_table)
 }
 
-##compounds
 #' Compound Table
 #'
 #' \code{make_compound_table} returns an image of ...
@@ -75,9 +66,9 @@ make_pathway_genes <- function(table_name = pathways, table_join = gene_summary,
 #'
 #' @export
 #' @examples
-#' make_compound_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_compound_table(input = list(compound = "aspirin"), top = TRUE)
 #' \dontrun{
-#' make_compound_table(input = list(type = 'gene', content = 'ROCK1'))
+#' make_compound_table(input = list(compound = "aspirin"), top = FALSE)
 #' }
 make_compound_table <- function(data_table = prism_cor_nest,
                                 join_table = prism_names,
@@ -103,10 +94,6 @@ make_compound_table <- function(data_table = prism_cor_nest,
   tryCatch(make_compound_table_raw(),
            error = function(x){make_empty_table()})
 }
-
-#test
-#make_compound_table(input = list(compound = "aspirin"), top = TRUE)
-#make_compound_table(input = list(compound = "aspirin"), top = FALSE)
 
 # PUBMED TABLE -----
 #' Pubmed Table
@@ -157,10 +144,6 @@ make_pubmed_table <- function(pubmed_data = pubmed,
            error = function(x){make_empty_table()})
 }
 
-#make_pubmed_table(input = list(type = "gene", content = "DXTL3"))
-#make_pubmed_table(input = list(type = "gene", content = c("ROCK1", "ROCK2"))) %>% count()
-#make_pubmed_table(input = list(type = "gene", content = "ROCK"))
-
 # CELL ANATOGRAM TABLES -----
 #' Cellanatogram Table
 #'
@@ -210,6 +193,7 @@ make_cellanatogram_table <- function(cellanatogram_data = subcell,
 #' }
 make_expression_table <- function(expression_data = expression_long,
                                   expression_join = expression_names,
+                                  gene_data = gene_summary,
                                   input = list(),
                                   var = "gene") { #you are so slow
   make_expression_table_raw <- function() {
@@ -245,7 +229,13 @@ make_expression_table <- function(expression_data = expression_long,
         tidyr::pivot_wider(names_from = cell_line, values_from = expression_var) %>%
         dplyr::select(gene, everything()) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
-        dplyr::rename("Gene" = "gene")
+        dplyr::rename("Gene" = "gene") %>%
+        left_join(gene_data %>%
+                    dplyr::select(Gene = approved_symbol,
+                                  `Gene Name` = approved_name),
+                  by = "Gene") %>%
+        dplyr::relocate(`Gene Name`, .after = Gene)
+
     }
   }
   #error handling
@@ -253,11 +243,8 @@ make_expression_table <- function(expression_data = expression_long,
            error = function(x){make_empty_table()})
 }
 
-#make_expression_table(input = list(type = "gene", subtype = "gene", content = "ROCK1"))
-#make_expression_table(input = list(type = "gene", subtype = "gene", content = "HSP90B1"))
-
 # HUMAN ANATOGRAM TABLES -----
-#' Humananatogram Table
+#' Human Anatogram Table
 #'
 #' \code{make_humananatogram_table} returns an image of ...
 #'
@@ -290,8 +277,6 @@ make_humananatogram_table <- function(humananatogram_data = tissue,
   tryCatch(make_humananatogram_table_raw(),
            error = function(x){make_empty_table()})
 }
-
-#make_humananatogram_table(input = list(type = "gene", subtype = "gene", content = "ROCK1"))
 
 ## PROTEIN CLUSTER TABLE -----------------------------------------------
 #' Clustering Table
@@ -419,8 +404,29 @@ make_clustering_enrichment_table <- function(cluster_data = sequence_clusters,
            error = function(x){make_empty_table()})
 }
 
+## 3D STRUCTURE TABLE --------------------------------------------------------------------
+make_structure3d_table <- function(pdb_ids = uniprot_pdb_table,
+                                   protein_data = proteins,
+                                   input = list()
+) {
+  make_structure3d_table_raw <- function() {
+
+    table_complete <- protein_data %>%
+      filter(gene_name %in% input$content) %>%
+      left_join(pdb_ids, by = c("uniprot_id" = "uniprot")) %>%
+      unnest(data) %>%
+      dplyr::select(gene_name, uniprot_id, pdb, title, doi, organism, expression_system)
+
+    return(table_complete)
+  }
+
+  #error handling
+  tryCatch(make_structure3d_table_raw(),
+           error = function(x){make_empty_table()})
+}
+
 # DEPENDENCY TABLES -----
-#' Dep Table
+#' Dependency Table
 #'
 #' \code{make_dep_table} returns an image of ...
 #'
@@ -432,6 +438,8 @@ make_clustering_enrichment_table <- function(cluster_data = sequence_clusters,
 #' @export
 #' @examples
 #' make_dep_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_dep_table(input = list(type = 'compound', query = 'aspirin', content = 'aspirin'))
+#' make_dep_table(input = list(type = 'cell', query = 'HEPG2', content = 'HEPG2'))
 #' \dontrun{
 #' make_dep_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
@@ -464,11 +472,12 @@ make_dep_table <- function(achilles_data = achilles_long,
           achilles_data %>%
           dplyr::left_join(expression_data, by = "X1") %>%
           dplyr::filter(cell_line %in% input$content) %>%
+          dplyr::select(-X1, -lineage, -lineage_subtype) %>%
           tidyr::pivot_wider(names_from = cell_line, values_from = dep_score) %>%
-          dplyr::rename("dep_score" = as.character(input$content)) %>%
           dplyr::left_join(gene_summary, by = c("gene" = "approved_symbol")) %>%
-          dplyr::select(gene, approved_name, dep_score, contains(input$content)) %>%
+          dplyr::select(gene, approved_name, contains(input$content)) %>%
           dplyr::mutate(unique_essential = gene %in% unique_essential_genes$gene, common_essential = gene %in% common_essentials$gene)
+
       }
       else if (var == "drug"){
         table_data <-
@@ -493,14 +502,7 @@ make_dep_table <- function(achilles_data = achilles_long,
            error = function(x){make_empty_table()})
 }
 
-#test
-#make_dep_table(input = list(type = "gene", query = "ROCK1", content = "ROCK1"))
-#make_dep_table(input = list(type = "gene", query = "ROCK1", content = c("ROCK1", "ROCK2")))
-#make_dep_table(input = list(type = "compound", query = "aspirin", content = "aspirin"))
-#make_dep_table(input = list(type = "cell", query = "HEPG2", content = "HEPG2"))
-
-##co-essentiality-----
-##similar
+## co-essentiality -----
 #' Top Table
 #'
 #' \code{make_top_table} returns an image of ...
@@ -557,12 +559,7 @@ make_top_table <- function(toptable_data = master_top_table,
   tryCatch(make_top_table_raw(),
            error = function(x){make_empty_table()})
 }
-#test
-#make_top_table(input = list(type = "gene", content = "ROCK1"))
-#make_top_table(input = list(type = "gene", content = "ROCK"))
-#make_top_table(input = list(type = "cell", content = "MCC13"))
 
-##dissimilar
 #' Bottom Table
 #'
 #' \code{make_bottom_table} returns an image of ...
@@ -620,16 +617,10 @@ make_bottom_table <- function(bottomtable_data = master_bottom_table,
            error = function(x){make_empty_table()})
 }
 
-#test
-#make_bottom_table(input = list(type = "gene", content = "ROCK1"))
-#make_bottom_table(input = list(type = "gene", content = "QARS1"))
 
 ##censor-----
 #censor is used to remove genes from similarity table that are garbage (too many associations)
-censor <- function(top_table,
-                   censor_data = censor_genes,
-                   choice = FALSE,
-                   greater_than) {
+censor <- function(top_table, censor_data = censor_genes, choice = FALSE, greater_than) {
   if(choice == TRUE){
     censor_data <-
       censor_data %>%
@@ -675,9 +666,6 @@ make_enrichment_top <- function(enrichmenttop_data = master_positive,
            error = function(x){make_empty_table()})
 }
 
-# make_enrichment_top(input = list(content = c("ROCK1")))
-# make_enrichment_top(input = list(type = "gene", query = "ROCK1", content = c("ROCK1")))
-
 #' Enrichment Bottom Table
 #'
 #' \code{make_enrichment_bottom} returns an image of ...
@@ -708,10 +696,37 @@ make_enrichment_bottom <- function(enrichmentbottom_data = master_negative,
            error = function(x){make_empty_table()})
 }
 
-# make_enrichment_bottom(input = list(content = c("ROCK1")))
+# CELL SUMMARY TABLE ------
+make_cell_line_table <- function(cell_data_meta = expression_meta,
+                                 input = list()) {
+
+  make_cell_summary_raw <- function() {
+
+    queried_lineage <- cell_data_meta %>%
+      filter(cell_line %in% input$content) %>%
+      pull(lineage) %>%
+      unique()
+
+    cell_summary_table <- cell_data_meta %>%
+      filter(!cell_line %in% input$content) %>%
+      filter(lineage %in% queried_lineage) %>%
+      dplyr::select(`Cell Line` = cell_line,
+                    Lineage = lineage,
+                    `Lineage Subtype` = lineage_subtype,
+                    Age = age,
+                    Sex = sex)
+
+    return(cell_summary_table)
+  }
+
+  # error handling
+  tryCatch(make_cell_summary_raw(),
+           error = function(x){make_empty_table()})
+
+}
 
 # CELL SIMILARITY TABLE -----
-#' Cell Sim Table
+#' Cell Similarity Table
 #'
 #' \code{make_cell_sim_table} returns an image of ...
 #'
@@ -727,65 +742,56 @@ make_enrichment_bottom <- function(enrichmentbottom_data = master_negative,
 #' \dontrun{
 #' make_cell_sim_table(input = list(type = "cell", content = "HEL"))
 #' }
-make_cell_sim_table <- function(cell_sims = cell_line_combs_gam_p,
-                                cell_metadata = expression_names,
-                                sim_type = "bio",
-                                pval_ct = 0.01,
-                                fdr_ct = 0.05,
+make_cell_sim_table <- function(cell_sims_dep = cell_line_dep_sim,
+                                cell_sims_exp = cell_line_exp_sim,
+                                similarity = "dependency",
+                                bonferroni_cutoff = 0.05,
                                 input = list()) {
 
   make_cell_sim_table_raw <- function() {
-    cell_sim_table <-
-      cell_sims %>%
-      dplyr::filter(cell1_name %in% input$content | cell2_name %in% input$content)
 
-    # Swap cols
-    cell_sim_table[cell_sim_table$cell2_name %in% input$content, c("cell1_name", "cell2_name")] <-
-      cell_sim_table[cell_sim_table$cell2_name %in% input$content, c("cell2_name", "cell1_name")]
-
-    # Linear and non-linear associations are provided in the same table.
-    # However, p-values should be interpreted separately.
-    # Important to highlight in "methods".
-    if(sim_type == "bio") {
-      cell_sim_table <- cell_sim_table %>%
-        dplyr::mutate(pvalue = ifelse(type_bio == "LM", lm_p, gam_p),
-                      fdr = ifelse(type_bio == "LM", lm_fdr, gam_fdr),
-                      association_type = ifelse(type_bio == "LM", "Linear", "Non-linear")) %>%
-        dplyr::select(cell1_name, cell2_name, pvalue, fdr, association_type) %>%
-        dplyr::filter(pvalue < pval_ct & fdr < fdr_ct) %>%
-        dplyr::rename(cell1 = cell1_name, cell2 = cell2_name)
-
-    } else {
-      cell_sim_table <- cell_sim_table %>%
-        dplyr::mutate(pvalue = ifelse(type_stat == "LM", lm_p, gam_p),
-                      fdr = ifelse(type_stat == "LM", lm_fdr, gam_fdr),
-                      association_type = ifelse(type_stat == "LM", "Linear", "Non-linear")) %>%
-        dplyr::select(cell1_name, cell2_name, pvalue, fdr, association_type) %>%
-        dplyr::filter(pvalue < pval_ct & fdr < fdr_ct) %>%
-        dplyr::rename(cell1 = cell1_name, cell2 = cell2_name)
-
+    if(similarity == "dependency") {
+      cell_sims <- cell_sims_dep
+    } else if(similarity == "expression") {
+      cell_sims <- cell_sims_exp
     }
 
-    cell_sim_table <- cell_sim_table %>%
-      # dplyr::left_join(cell_metadata %>%
-      #                    dplyr::select(cell_line, lineage, lineage_subtype),
-      #                  by = c("cell1" = "cell_line")
-      #                  ) %>%
-      # dplyr::rename(lineage_cell1 = lineage,
-      #               lineage_subtype_cell1 = lineage_subtype) %>%
-      dplyr::left_join(cell_metadata %>%
-                         dplyr::select(cell_line, lineage, lineage_subtype),
-                       by = c("cell2" = "cell_line")
+    cell_sim_table <-
+      cell_sims %>%
+      dplyr::filter(cell1_name %in% input$content | cell2_name %in% input$content) %>%
+      dplyr::mutate(sex = ifelse(cell1_name %in% input$content, sex.y, sex.x),
+                    age = ifelse(cell1_name %in% input$content, age.y, age.x),
+                    lineage = ifelse(cell1_name %in% input$content, lineage.y, lineage.x),
+                    lineage_subtype = ifelse(cell1_name %in% input$content, lineage_subtype.y, lineage_subtype.x),
+                    status = ifelse(cell1_name %in% input$content, primary_or_metastasis.y, primary_or_metastasis.x)
       ) %>%
-      dplyr::rename(lineage_cell2 = lineage,
-                    lineage_subtype_cell2 = lineage_subtype) %>%
-      dplyr::select(cell1, cell2,
-                    # lineage_cell1, lineage_subtype_cell1,
-                    lineage_cell2, lineage_subtype_cell2,
-                    pvalue, fdr,
-                    association_type)
+      dplyr::select(cell1_name, cell2_name, lineage, coef, pval, fdr, bonferroni, lineage_subtype, sex, age, status)
 
-    return(cell_sim_table)
+    # Filter significant
+    cell_sim_table <- cell_sim_table %>%
+      filter(bonferroni < bonferroni_cutoff)
+
+    # Swap cols (based on query)
+    for(i in 1:nrow(cell_sim_table)) {
+      if(cell_sim_table$cell2_name[i] %in% input$content & !(cell_sim_table$cell1_name[i] %in% input$content)) {
+        cell1 <- cell_sim_table$cell1_name[i]
+        cell2 <- cell_sim_table$cell2_name[i]
+
+        cell_sim_table$cell2_name[i] <- cell1
+        cell_sim_table$cell1_name[i] <- cell2
+      }
+    }
+
+    # top table
+    top_table <- cell_sim_table %>%
+      filter(coef > 0)
+
+    # bottom table
+    bottom_table <- cell_sim_table %>%
+      filter(coef < 0)
+
+    return(list(top_table = top_table,
+                bottom_table = bottom_table))
   }
 
   # error handling
@@ -805,9 +811,9 @@ make_cell_sim_table <- function(cell_sims = cell_line_combs_gam_p,
 #'
 #' @export
 #' @examples
-#' make_drug_genes_table(input = list(content = "aspirin"))
+#' make_drug_genes_cor_table(input = list(content = "aspirin"))
 #' \dontrun{
-#' make_drug_genes_table(input = list(content = "aspirin"))
+#' make_drug_genes_cor_table(input = list(content = "aspirin"))
 #' }
 make_drug_genes_cor_table <- function(table_data = drug_genes_cor_table, drug) {
   make_drug_genes_cor_table_raw <- function() {
@@ -822,7 +828,6 @@ make_drug_genes_cor_table <- function(table_data = drug_genes_cor_table, drug) {
   tryCatch(make_drug_genes_cor_table_raw(),
            error = function(x){make_empty_table()})
 }
-
 
 #' Gene Drugs Cor Table
 #'
@@ -853,7 +858,6 @@ make_gene_drugs_cor_table <- function(table_data = gene_drugs_cor_table,
   tryCatch(make_gene_drugs_cor_table_raw(),
            error = function(x){make_empty_table()})
 }
-
 
 #' Drug Genes Table
 #'
@@ -888,23 +892,6 @@ make_drug_genes_table <- function(table_data = drug_genes_table,
            error = function(x){make_empty_table()})
 }
 
-#' Gene Drugs Table
-#'
-#' \code{make_gene_drugs_table} returns an image of ...
-#'
-#' This is a table function that takes a gene name and returns a gene drugs Table
-#'
-#' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a gene drugs Table. If an error is thrown, then will return an empty table.
-#'
-#' @export
-#' @examples
-#' make_gene_drugs_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-#' make_gene_drugs_table_raw(input = list(content = c("ROCK1", "RDX")))
-#' make_gene_drugs_table_raw(input = list(content = c("ROCK1", "RDX", "ROCK")))
-#' \dontrun{
-#' make_gene_drugs_table(input = list(type = 'gene', content = 'ROCK1'))
-#' }
 make_gene_drugs_table <- function(table_data = gene_drugs_table,
                                   input = list()) {
   make_gene_drugs_table_raw <- function() {
@@ -918,6 +905,24 @@ make_gene_drugs_table <- function(table_data = gene_drugs_table,
   }
   #error handling
   tryCatch(make_gene_drugs_table_raw(),
+           error = function(x){make_empty_table()})
+}
+
+make_cell_drugs_table <- function(table_data = prism_long,
+                                  cell_meta = expression_meta,
+                                  input = list()) {
+  make_cell_drugs_table_raw <- function() {
+    cell_table <-
+      table_data %>%
+      dplyr::rename(X1 = 1) %>%
+      left_join(cell_meta, by = "X1") %>%
+      dplyr::select(cell_line, name, log2fc) %>%
+      dplyr::filter(cell_line %in% input$content) %>%
+      dplyr::arrange(desc(abs(log2fc)))
+    return(cell_table)
+  }
+  #error handling
+  tryCatch(make_cell_drugs_table_raw(),
            error = function(x){make_empty_table()})
 }
 
@@ -943,6 +948,7 @@ make_gene_drugs_table <- function(table_data = gene_drugs_table,
 #' }
 make_metabolite_table <- function(protein_data = hmdb_proteins,
                                   metabolite_data = hmdb_metabolites,
+                                  cell_data = cell_metabolites,
                                   input = list()) {
   make_metabolite_table_raw <- function() {
     if(input$type == "gene") {
@@ -963,7 +969,7 @@ make_metabolite_table <- function(protein_data = hmdb_proteins,
         dplyr::arrange(metabolite_name, gene_name)
     } else if(input$type == "cell") {
       table_complete <-
-        metabolite_data %>%
+        cell_data %>%
         dplyr::left_join(expression_names, by = c("DepMap_ID" = "X1")) %>%
         dplyr::filter(cell_line %in% input$content) %>%
         dplyr::select(-CCLE_ID, -DepMap_ID, -lineage, -lineage_subtype) %>%
@@ -977,3 +983,4 @@ make_metabolite_table <- function(protein_data = hmdb_proteins,
   tryCatch(make_metabolite_table_raw(),
            error = function(x){make_empty_table()})
 }
+

@@ -19,8 +19,8 @@ If no error, then returns a drug genes cor Table. If an error is thrown, then wi
 This is a table function that takes a gene name and returns a drug genes cor Table
 }
 \examples{
-make_drug_genes_table(input = list(content = "aspirin"))
+make_drug_genes_cor_table(input = list(content = "aspirin"))
 \dontrun{
-make_drug_genes_table(input = list(content = "aspirin"))
+make_drug_genes_cor_table(input = list(content = "aspirin"))
 }
 }

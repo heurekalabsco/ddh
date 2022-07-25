@@ -7,6 +7,7 @@
 make_metabolite_table(
   protein_data = hmdb_proteins,
   metabolite_data = hmdb_metabolites,
+  cell_data = cell_metabolites,
   input = list()
 )
 }

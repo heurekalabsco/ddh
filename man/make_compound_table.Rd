@@ -24,8 +24,8 @@ If no error, then returns a compound Table. If an error is thrown, then will ret
 This is a table function that takes a gene name and returns a compound Table
 }
 \examples{
-make_compound_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_compound_table(input = list(compound = "aspirin"), top = TRUE)
 \dontrun{
-make_compound_table(input = list(type = 'gene', content = 'ROCK1'))
+make_compound_table(input = list(compound = "aspirin"), top = FALSE)
 }
 }
