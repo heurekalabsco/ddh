@@ -1,4 +1,3 @@
-
 #' Function to load all DDH data
 #'
 #' @param app_data_dir
