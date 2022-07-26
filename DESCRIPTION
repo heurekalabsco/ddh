@@ -95,10 +95,10 @@ Imports:
     stringr,
     stopwords,
     sysfonts,
+    tidyr,
     tidygraph,
     tidyselect,
     tidytext,
-    tidyverse,
     uwot,
     vctrs,
     viridis,
@@ -110,7 +110,8 @@ Imports:
 Suggests: 
     covr,
     spelling,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    tidyverse
 Remotes: 
     github::jespermaag/gganatogram,
     github::matthewhirschey/tidybiology,
