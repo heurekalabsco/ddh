@@ -242,7 +242,7 @@ make_expression_table <- function(expression_data = expression_long,
 #' This is a table function that takes a gene name and returns a humananatogram Table
 #'
 #' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a humananatogram Table. If an error is thrown, then will return an empty table.
+#' @return If no error, then returns a human anatogram Table. If an error is thrown, then will return an empty table.
 #'
 #' @export
 #' @examples
@@ -254,11 +254,11 @@ make_humananatogram_table <- function(humananatogram_data = tissue,
                                       input = list()) {
   make_humananatogram_table_raw <- function() {
     humananatogram_data %>%
-      dplyr::filter_all(any_vars(gene_name %in% input$content)) %>%
+      dplyr::filter_all(dplyr::any_vars(gene_name %in% input$content)) %>%
       dplyr::filter(!is.na(value)) %>%
       dplyr::mutate(organ = stringr::str_replace_all(organ, "_", " "),
                     organ = stringr::str_to_title(organ)) %>%
-      dplyr::arrange(desc(value)) %>%
+      dplyr::arrange(dplyr::desc(value)) %>%
       dplyr::select(-gene) %>%
       tidyr::pivot_wider(names_from = gene_name, values_from = value, names_sort = TRUE) %>%
       dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
@@ -306,8 +306,7 @@ make_clustering_table <- function(cluster_data = sequence_clusters,
 
     cluster_table <- cluster_data %>%
       dplyr::left_join(signature_data, by = "uniprot_id") %>%
-      dplyr::select(uniprot_id, gene_name.x, protein_name,
-                    clust) %>%
+      dplyr::select(uniprot_id, gene_name.x, protein_name, clust) %>%
       dplyr::filter(clust %in% query_clust) %>%
       dplyr::rename(gene_name = 2) %>%
       dplyr::left_join(cluster_names, by = "clust") %>%
@@ -322,7 +321,7 @@ make_clustering_table <- function(cluster_data = sequence_clusters,
       cluster_table <- cluster_table %>%
         dplyr::left_join(signature_data %>%
                            dplyr::select(uniprot_id, A:U) %>%
-                           mutate_at(vars(A:U), ~ round(., 2)),
+                           dplyr::mutate_at(dplyr::vars(A:U), ~ round(., 2)),
                          by = "uniprot_id")
     }
 
@@ -378,7 +377,7 @@ make_clustering_enrichment_table <- function(cluster_data = sequence_clusters,
 
     enrichment_table <-
       enrichment_tables %>%
-      bind_rows() %>%
+      dplyr::bind_rows() %>%
       dplyr::filter(cluster == query_clust) %>%
       dplyr::filter(ont == ontology) %>%
       dplyr::select(-ont, -cluster)
@@ -403,9 +402,9 @@ make_structure3d_table <- function(pdb_ids = uniprot_pdb_table,
   make_structure3d_table_raw <- function() {
 
     table_complete <- protein_data %>%
-      filter(gene_name %in% input$content) %>%
-      left_join(pdb_ids, by = c("uniprot_id" = "uniprot")) %>%
-      unnest(data) %>%
+      dplyr::filter(gene_name %in% input$content) %>%
+      dplyr::left_join(pdb_ids, by = c("uniprot_id" = "uniprot")) %>%
+      tidyr::unnest(data) %>%
       dplyr::select(gene_name, uniprot_id, pdb, title, doi, organism, expression_system)
 
     return(table_complete)
@@ -444,7 +443,7 @@ make_dep_table <- function(achilles_data = achilles_long,
     if(input$type == "gene") {
       table_data <-
         achilles_data %>%
-        dplyr::filter_all(any_vars(gene %in% input$content)) %>%
+        dplyr::filter_all(dplyr::any_vars(gene %in% input$content)) %>%
         tidyr::pivot_wider(names_from = gene, values_from = dep_score) %>%
         dplyr::left_join(expression_data, by = "X1") %>%
         dplyr::select(cell_line, lineage, contains(input$content)) %>%
@@ -452,7 +451,7 @@ make_dep_table <- function(achilles_data = achilles_long,
     } else if(input$type == "compound") {
       table_data <-
         prism_data %>%
-        dplyr::filter_all(any_vars(name %in% input$content)) %>%
+        dplyr::filter_all(dplyr::any_vars(name %in% input$content)) %>%
         tidyr::pivot_wider(names_from = name, values_from = log2fc) %>%
         dplyr::left_join(expression_data, by = c("x1" = "X1")) %>%
         dplyr::select(cell_line, lineage, contains(input$content)) %>%
@@ -478,7 +477,7 @@ make_dep_table <- function(achilles_data = achilles_long,
           dplyr::filter(cell_line %in% input$content) %>%
           tidyr::pivot_wider(names_from = cell_line, values_from = log2fc) %>%
           dplyr::rename("log2fc" = as.character(input$content)) %>%
-          dplyr::select(name, moa, log2fc, contains(input$content)) %>%
+          dplyr::select(name, moa, log2fc, dplyr::contains(input$content)) %>%
           dplyr::mutate(unique_toxic = name %in% prism_unique_toxic$name)
       }
     }
@@ -518,11 +517,11 @@ make_top_table <- function(toptable_data = master_top_table,
     if(input$type == "gene") {
       table_data <-
         toptable_data %>%
-        dplyr::filter_all(any_vars(fav_gene %in% input$content))
+        dplyr::filter_all(dplyr::any_vars(fav_gene %in% input$content))
     } else if(input$type == "cell") {
       table_data <-
         toptable_data_cell %>%
-        dplyr::filter_all(any_vars(fav_cell %in% input$content))
+        dplyr::filter_all(dplyr::any_vars(fav_cell %in% input$content))
     } else {
       stop("delcare your type")
     }
@@ -531,14 +530,14 @@ make_top_table <- function(toptable_data = master_top_table,
         table_complete <-
           table_data %>%
           tidyr::unnest(data) %>%
-          filter(GLSpvalue < 0.05 & !duplicated(gene)) %>%
-          dplyr::arrange(-desc(GLSpvalue))
+          dplyr::filter(GLSpvalue < 0.05 & !duplicated(gene)) %>%
+          dplyr::arrange(-dplyr::desc(GLSpvalue))
       } else {
         table_complete <-
           table_data %>%
           tidyr::unnest(data) %>%
-          filter(r2 > upper & !duplicated(gene)) %>%
-          dplyr::arrange(desc(r2))
+          dplyr::filter(r2 > upper & !duplicated(gene)) %>%
+          dplyr::arrange(dplyr::desc(r2))
       }
     } else {
       table_complete <-
@@ -575,11 +574,11 @@ make_bottom_table <- function(bottomtable_data = master_bottom_table,
     if(input$type == "gene") {
       table_data <-
         bottomtable_data %>%
-        dplyr::filter_all(any_vars(fav_gene %in% input$content))
+        dplyr::filter_all(dplyr::any_vars(fav_gene %in% input$content))
     } else if(input$type == "cell") {
       table_data <-
         bottomtable_data_cell %>%
-        dplyr::filter_all(any_vars(fav_cell %in% input$content))
+        dplyr::filter_all(dplyr::any_vars(fav_cell %in% input$content))
     } else {
       stop("delcare your type")
     }
@@ -588,14 +587,14 @@ make_bottom_table <- function(bottomtable_data = master_bottom_table,
         table_complete <-
           table_data %>%
           tidyr::unnest(data) %>%
-          filter(GLSpvalue < 0.05 & !duplicated(gene)) %>%
-          dplyr::arrange(-desc(GLSpvalue))
+          dplyr::filter(GLSpvalue < 0.05 & !duplicated(gene)) %>%
+          dplyr::arrange(-dplyr::desc(GLSpvalue))
       } else {
         table_complete <-
           table_data %>%
           tidyr::unnest(data) %>%
-          filter(r2 < lower & !duplicated(gene)) %>%
-          dplyr::arrange(desc(r2))
+          dplyr::filter(r2 < lower & !duplicated(gene)) %>%
+          dplyr::arrange(dplyr::desc(r2))
       }
     } else {
       table_complete <-
@@ -646,7 +645,7 @@ make_enrichment_top <- function(enrichmenttop_data = master_positive,
                                 input = list()) {
   make_enrichment_top_raw <- function() {
     enrichmenttop_data %>%
-      dplyr::filter_all(any_vars(fav_gene %in% input$content)) %>%
+      dplyr::filter_all(dplyr::any_vars(fav_gene %in% input$content)) %>%
       tidyr::unnest(data) %>%
       dplyr::select(fav_gene, enrichr, Term, Overlap, Adjusted.P.value, Combined.Score, Genes) %>%
       dplyr::arrange(Adjusted.P.value) %>%
@@ -676,7 +675,7 @@ make_enrichment_bottom <- function(enrichmentbottom_data = master_negative,
                                    input = list()) {
   make_enrichment_bottom_raw <- function() {
     enrichmentbottom_data %>%
-      dplyr::filter_all(any_vars(fav_gene %in% input$content)) %>%
+      dplyr::filter_all(dplyr::any_vars(fav_gene %in% input$content)) %>%
       tidyr::unnest(data) %>%
       dplyr::select(fav_gene, enrichr, Term, Overlap, Adjusted.P.value, Combined.Score, Genes) %>%
       dplyr::arrange(Adjusted.P.value) %>%
@@ -694,13 +693,13 @@ make_cell_line_table <- function(cell_data_meta = expression_meta,
   make_cell_summary_raw <- function() {
 
     queried_lineage <- cell_data_meta %>%
-      filter(cell_line %in% input$content) %>%
-      pull(lineage) %>%
+      dplyr::filter(cell_line %in% input$content) %>%
+      dplyr::pull(lineage) %>%
       unique()
 
     cell_summary_table <- cell_data_meta %>%
-      filter(!cell_line %in% input$content) %>%
-      filter(lineage %in% queried_lineage) %>%
+      dplyr::filter(!cell_line %in% input$content) %>%
+      dplyr::filter(lineage %in% queried_lineage) %>%
       dplyr::select(`Cell Line` = cell_line,
                     Lineage = lineage,
                     `Lineage Subtype` = lineage_subtype,
@@ -760,7 +759,7 @@ make_cell_sim_table <- function(cell_sims_dep = cell_line_dep_sim,
 
     # Filter significant
     cell_sim_table <- cell_sim_table %>%
-      filter(bonferroni < bonferroni_cutoff)
+      dplyr::filter(bonferroni < bonferroni_cutoff)
 
     # Swap cols (based on query)
     for(i in 1:nrow(cell_sim_table)) {
@@ -775,11 +774,11 @@ make_cell_sim_table <- function(cell_sims_dep = cell_line_dep_sim,
 
     # top table
     top_table <- cell_sim_table %>%
-      filter(coef > 0)
+      dplyr::filter(coef > 0)
 
     # bottom table
     bottom_table <- cell_sim_table %>%
-      filter(coef < 0)
+      dplyr::filter(coef < 0)
 
     return(list(top_table = top_table,
                 bottom_table = bottom_table))
@@ -796,24 +795,15 @@ make_cell_sim_table <- function(cell_sims_dep = cell_line_dep_sim,
 #' \code{make_drug_genes_cor_table} returns an image of ...
 #'
 #' This is a table function that takes a gene name and returns a drug genes cor Table
-#'
-#' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a drug genes cor Table. If an error is thrown, then will return an empty table.
-#'
-#' @export
-#' @examples
-#' make_drug_genes_cor_table(input = list(content = "aspirin"))
-#' \dontrun{
-#' make_drug_genes_cor_table(input = list(content = "aspirin"))
-#' }
-make_drug_genes_cor_table <- function(table_data = drug_genes_cor_table, drug) {
+make_drug_genes_cor_table <- function(table_data = drug_genes_cor_table,
+                                      drug) {
   make_drug_genes_cor_table_raw <- function() {
     unnested_table <-
       table_data %>%
-      dplyr::filter_all(any_vars(fav_drug %in% drug)) %>%
+      dplyr::filter_all(dplyr::any_vars(fav_drug %in% drug)) %>%
       tidyr::unnest(data) %>%
       dplyr::ungroup() %>%
-      dplyr::arrange(desc(r2))
+      dplyr::arrange(dplyr::desc(r2))
     return(unnested_table)
   }
   tryCatch(make_drug_genes_cor_table_raw(),
@@ -840,10 +830,10 @@ make_gene_drugs_cor_table <- function(table_data = gene_drugs_cor_table,
   make_gene_drugs_cor_table_raw <- function() {
     unnested_table <-
       table_data %>%
-      dplyr::filter_all(any_vars(fav_gene %in% input$content)) %>%
+      dplyr::filter_all(dplyr::any_vars(fav_gene %in% input$content)) %>%
       tidyr::unnest(data) %>%
       dplyr::ungroup() %>%
-      dplyr::arrange(desc(r2))
+      dplyr::arrange(dplyr::desc(r2))
     return(unnested_table)
   }
   tryCatch(make_gene_drugs_cor_table_raw(),
@@ -872,7 +862,7 @@ make_drug_genes_table <- function(table_data = drug_genes_table,
   make_drug_genes_table_raw <- function() {
     unnested_table <-
       table_data %>%
-      dplyr::filter_all(any_vars(fav_drug %in% drug)) %>%
+      dplyr::filter_all(dplyr::any_vars(fav_drug %in% drug)) %>%
       tidyr::unnest(data) %>%
       dplyr::ungroup() %>%
       dplyr::arrange(fav_gene)
@@ -888,7 +878,7 @@ make_gene_drugs_table <- function(table_data = gene_drugs_table,
   make_gene_drugs_table_raw <- function() {
     unnested_table <-
       table_data %>%
-      dplyr::filter_all(any_vars(fav_gene %in% input$content)) %>% #this ensures no error out if combo of gene found + not found
+      dplyr::filter_all(dplyr::any_vars(fav_gene %in% input$content)) %>% #this ensures no error out if combo of gene found + not found
       tidyr::unnest(data) %>%
       dplyr::ungroup() %>%
       dplyr::arrange(fav_drug)
@@ -906,10 +896,10 @@ make_cell_drugs_table <- function(table_data = prism_long,
     cell_table <-
       table_data %>%
       dplyr::rename(X1 = 1) %>%
-      left_join(cell_meta, by = "X1") %>%
+      dplyr::left_join(cell_meta, by = "X1") %>%
       dplyr::select(cell_line, name, log2fc) %>%
       dplyr::filter(cell_line %in% input$content) %>%
-      dplyr::arrange(desc(abs(log2fc)))
+      dplyr::arrange(dplyr::desc(abs(log2fc)))
     return(cell_table)
   }
   #error handling
@@ -932,7 +922,7 @@ make_cell_drugs_table <- function(table_data = prism_long,
 #' make_metabolite_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_metabolite_table(input = list(type = "gene", content = "ROCK2"))
 #' make_metabolite_table(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
-#' make_metabolite_table(input = list(type = "compound", content = "aspirin")
+#' make_metabolite_table(input = list(type = "compound", content = "NAD"))
 #' make_metabolite_table(input = list(type = "cell", query = "HEPG2", content = "HEPG2"))
 #' \dontrun{
 #' make_metabolite_table(input = list(type = 'gene', content = 'ROCK1'))
@@ -945,7 +935,7 @@ make_metabolite_table <- function(protein_data = hmdb_proteins,
     if(input$type == "gene") {
       table_complete <-
         protein_data %>% #gene centric df
-        dplyr::filter_all(any_vars(fav_gene %in% input$content)) %>%
+        dplyr::filter_all(dplyr::any_vars(fav_gene %in% input$content)) %>%
         tidyr::unnest(data_original) %>%
         dplyr::ungroup() %>%
         dplyr::select(gene_name, metabolite_name, gene_accession, metabolite_accession) %>%
@@ -953,7 +943,7 @@ make_metabolite_table <- function(protein_data = hmdb_proteins,
     } else if(input$type == "compound") {
       table_complete <-
         metabolite_data %>% #metabolite centric df
-        dplyr::filter_all(any_vars(fav_metabolite %in% input$content)) %>%
+        dplyr::filter_all(dplyr::any_vars(fav_metabolite %in% input$content)) %>%
         tidyr::unnest(data) %>%
         dplyr::ungroup() %>%
         dplyr::select(metabolite_name, gene_name, gene_accession, metabolite_accession) %>%
@@ -964,8 +954,8 @@ make_metabolite_table <- function(protein_data = hmdb_proteins,
         dplyr::left_join(expression_names, by = c("DepMap_ID" = "X1")) %>%
         dplyr::filter(cell_line %in% input$content) %>%
         dplyr::select(-CCLE_ID, -DepMap_ID, -lineage, -lineage_subtype) %>%
-        pivot_longer(cols = !cell_line, names_to = "metabolite") %>%
-        arrange(-value)
+        tidyr::pivot_longer(cols = !cell_line, names_to = "metabolite") %>%
+        dplyr::arrange(-value)
     } else {
       stop("declare your type") }
     return(table_complete)
