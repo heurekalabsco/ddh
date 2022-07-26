@@ -137,7 +137,7 @@ theme_ddh <- function(style = "default", base_size = 15,
         family = fontfamily_sans,
         color = light_col,
         size = base_size * .75,
-        margin = margin(b = 10)
+        margin = ggplot2::margin(b = 10)
       ),
       legend.text = ggplot2::element_text(
         family = fontfamily_slab,
