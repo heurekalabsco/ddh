@@ -10,7 +10,7 @@ make_humananatogram_table(humananatogram_data = tissue, input = list())
 \item{input}{Expecting a list containing type and content variable.}
 }
 \value{
-If no error, then returns a humananatogram Table. If an error is thrown, then will return an empty table.
+If no error, then returns a human anatogram Table. If an error is thrown, then will return an empty table.
 }
 \description{
 \code{make_humananatogram_table} returns an image of ...
