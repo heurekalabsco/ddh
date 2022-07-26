@@ -35,9 +35,7 @@ make_barcode <- function(input = list()) {
 ## IDEOGRAM PLOT --------------------------------------------------------
 #' Ideogram Plot
 #'
-#' \code{make_ideogram} returns an image of a chromosome with a gene position annotated.
-#'
-#' This is a plotting function that takes a gene name and returns
+#' Each point shows the location of the query gene(s) on human chromosomes.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -177,19 +175,13 @@ make_ideogram <- function(location_data = gene_location,
            error = function(x){make_bomb_plot()})
 }
 
-make_ideogram_legend <- function() {
-  title <- "Gene Location."
-  legend <- "Each point shows the location of the query gene(s) on human chromosomes."
-
-  return(list(title, legend))
-}
-
 ## SIZE PLOT --------------------------------------------------------
 #' Protein Size Plot
 #'
-#' \code{make_proteinsize} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a proteinsize plot
+#' Mass compared to all protein masses. The colored strip visualizes the
+#' distribution of protein sizes. Each colored box is thus representing a
+#' decile of the full data. The triangle indicates where exactly the queried
+#' genes fall on this gradient of protein sizes.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -335,13 +327,6 @@ make_proteinsize <- function(protein_data = proteins,
            error = function(x){make_bomb_plot()})
 }
 
-make_proteinsize_legend <- function() {
-  title <- "Protein Size."
-  legend <- "Mass compared to all protein masses. The colored strip visualizes the distribution of protein sizes. Each colored box is thus representing a decile of the full data. The triangle indicates where exactly the queried genes fall on this gradient of protein sizes."
-
-  return(list(title, legend))
-}
-
 ## SEQUENCE PLOT --------------------------------------------------------------------
 #' Sequence Plot
 #'
@@ -436,9 +421,9 @@ make_sequence <- function(sequence_data = proteins,
 ## PROTEIN DOMAIN PLOT --------------------------------------------------------
 #' Protein Domain Plot
 #'
-#' \code{make_protein_domain_plot} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a protein domain plot plot
+#' Rectangles represent the locations and size of named protein domains, while black
+#' shaped elements represent PTMs. Horizontal line(s) indicate the length of one or
+#' more selected proteins.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -580,27 +565,21 @@ make_protein_domain_plot <- function(input = list(),
            error = function(x){make_bomb_plot()})
 }
 
-make_protein_domain_plot_legend <- function() {
-  title <- "Protein Domain Plot."
-  legend <-  "Rectangles represent the locations and size of named protein domains, while black shaped elements represent PTMs. Horizontal line(s) indicate the length of one or more selected proteins."
-
-  return(list(title, legend))
-}
-
 ## RADIAL PLOT -------------------------------------------------------------
-#' Radial Plot
+#' Amino Acid Radial and Bar Plots
 #'
-#' \code{make_radial} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a radial plot
+#' Amino acid signature/s (percentage of each amino acid in a protein) of the queried gene/clusters
+#' versus the mean amino acid signature of all the other proteins in the dataset (N = 20375).
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a radial plot. If an error is thrown, then will return a bomb plot.
 #'
+#' @importFrom magrittr %>%
 #' @export
 #' @examples
 #' make_radial(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_radial(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), cluster = TRUE)
 #' make_radial(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' \dontrun{
 #' make_radial(input = list(type = 'gene', content = 'ROCK1'))
@@ -633,22 +612,23 @@ make_radial <- function(cluster_data = sequence_clusters,
 
       signature_cluster_means_query <-
         signature_cluster_means_prep %>%
-        mutate(clust = as.numeric(as.character(clust)),
+        dplyr::mutate(clust = as.numeric(as.character(clust)),
                clust = as.factor(ifelse(clust %in% as.numeric(as.character(query_clust)), clust, "Mean"))) %>%
-        group_by(clust) %>%
-        summarise_if(is.numeric, list(mean = mean)) %>%
-        pivot_longer(cols = -clust) %>%
-        mutate(name = str_remove(name, "_mean"),
-               clust = as.factor(ifelse(clust == "Mean", "Mean", paste0("Cluster ", as.numeric(as.character(clust)))))
+        dplyr::group_by(clust) %>%
+        dplyr::summarise_if(is.numeric, list(mean = mean)) %>%
+        tidyr::pivot_longer(cols = -clust) %>%
+        dplyr::mutate(name = stringr::str_remove(name, "_mean"),
+                      clust = as.factor(ifelse(clust == "Mean", "Mean",
+                                               paste0("Cluster ", as.numeric(as.character(clust)))))
         )
 
       if(relative){
         signature_cluster_means_query <-
           signature_cluster_means_query %>%
-          pivot_wider(id_cols = clust, values_fn = mean) %>%
+          tidyr::pivot_wider(id_cols = clust, values_fn = mean) %>%
           dplyr::arrange(factor(clust, levels = "Mean")) %>%
           dplyr::mutate(across(A:Y, ~ . / .[1])) %>%
-          pivot_longer(cols = -clust)
+          tidyr::pivot_longer(cols = -clust)
       }
 
       if(length(unique(signature_cluster_means_query$clust)) == 1) {
@@ -664,15 +644,15 @@ make_radial <- function(cluster_data = sequence_clusters,
         signature_cluster_means_prep %>%
         dplyr::filter(!gene_name %in% input$content) %>%
         dplyr::rename(Mean = gene_name) %>%
-        summarise_if(is.numeric, list(mean = mean)) %>%
+        dplyr::summarise_if(is.numeric, list(mean = mean)) %>%
         tibble::rownames_to_column("clust") %>%
-        pivot_longer(cols = -clust) %>%
-        mutate(name = str_remove(name, "_mean"),
-               clust = "Mean")
+        tidyr::pivot_longer(cols = -clust) %>%
+        dplyr::mutate(name = stringr::str_remove(name, "_mean"),
+                      clust = "Mean")
 
       signature_gene_query <- signature_cluster_means_prep %>%
         dplyr::filter(gene_name %in% input$content) %>%
-        pivot_longer(cols = -gene_name) %>%
+        tidyr::pivot_longer(cols = -gene_name) %>%
         dplyr::rename(clust = gene_name)
 
       signature_cluster_means_query <- dplyr::bind_rows(signature_cluster_means_query,
@@ -681,10 +661,10 @@ make_radial <- function(cluster_data = sequence_clusters,
       if(relative){
         signature_cluster_means_query <-
           signature_cluster_means_query %>%
-          pivot_wider(id_cols = clust, values_fn = mean) %>%
+          tidyr::pivot_wider(id_cols = clust, values_fn = mean) %>%
           dplyr::arrange(factor(clust, levels = "Mean")) %>%
           dplyr::mutate(across(A:Y, ~ . / .[1])) %>%
-          pivot_longer(cols = -clust)
+          tidyr::pivot_longer(cols = -clust)
       }
     }
 
@@ -707,67 +687,67 @@ make_radial <- function(cluster_data = sequence_clusters,
       y_label = "AA Frequency (%)"
     }
     # RADIAL/BAR PLOT
-    plot_complete <- ggplot(signature_cluster_means_query,
-                            aes(x = fct_inorder(name),
+    plot_complete <- ggplot2::ggplot(signature_cluster_means_query,
+                                     ggplot2::aes(x = forcats::fct_inorder(name),
                                 y = value,
                                 group = clust,
                                 color = clust
                             )) +
-      {if(!barplot)geom_point(alpha = 0.8, show.legend = FALSE)} +
-      {if(!barplot)geom_polygon(fill = NA)} +
-      {if(barplot & relative)geom_col(data = signature_cluster_means_query %>%
+      {if(!barplot)ggplot2::geom_point(alpha = 0.8, show.legend = FALSE)} +
+      {if(!barplot)ggplot2::geom_polygon(fill = NA)} +
+      {if(barplot & relative)ggplot2::geom_col(data = signature_cluster_means_query %>%
                                         dplyr::filter(clust != "Mean"),
-                                      aes(x = reorder(name, -value),
+                                        ggplot2::aes(x = reorder(name, -value),
                                           y = value,
                                           group = clust,
                                           color = clust,
                                           fill = clust),
                                       position = "dodge2")} +
-      {if(barplot & !relative)geom_col(aes(fill = clust), position = "dodge2")} +
-      {if(barplot & relative)geom_hline(yintercept = 1, color = "gray48")} +
-      labs(y = y_label,
-           x = element_blank()) +
-      {if(!barplot)coord_polar()} +
-      scale_color_manual(values = colors_radial) +
-      {if(barplot)scale_fill_manual(values = colors_bar)} +
+      {if(barplot & !relative)ggplot2::geom_col(aes(fill = clust), position = "dodge2")} +
+      {if(barplot & relative)ggplot2::geom_hline(yintercept = 1, color = "gray48")} +
+      ggplot2::labs(y = y_label,
+           x = ggplot2::element_blank()) +
+      {if(!barplot)ggplot2::coord_polar()} +
+      ggplot2::scale_color_manual(values = colors_radial) +
+      {if(barplot)ggplot2::scale_fill_manual(values = colors_bar)} +
       ## theme changes
       theme_ddh(base_size = 16) +
-      {if(!barplot)theme_minimal()} +
-      {if(!barplot)theme(
-        text = element_text(family = "Nunito Sans"),
+      {if(!barplot)ggplot2::theme_minimal()} +
+      {if(!barplot)ggplot2::theme(
+        text = ggplot2::element_text(family = "Nunito Sans"),
         legend.position = "top",
-        legend.title = element_blank(),
-        legend.text = element_text(size = 15),
-        axis.line.y = element_blank(),
-        axis.ticks.y = element_blank(),
-        axis.text = element_text(family = "Roboto Slab", size = 16),
-        axis.text.y = element_text(size = 16, color = "grey30"),
-        axis.title = element_text(size = 16)
+        legend.title = ggplot2::element_blank(),
+        legend.text = ggplot2::element_text(size = 15),
+        axis.line.y = ggplot2::element_blank(),
+        axis.ticks.y = ggplot2::element_blank(),
+        axis.text = ggplot2::element_text(family = "Roboto Slab", size = 16),
+        axis.text.y = ggplot2::element_text(size = 16, color = "grey30"),
+        axis.title = ggplot2::element_text(size = 16)
       )} +
-      {if(barplot)theme(
-        text = element_text(family = "Nunito Sans"),
+      {if(barplot)ggplot2::theme(
+        text = ggplot2::element_text(family = "Nunito Sans"),
         legend.position = "top",
-        legend.title = element_blank(),
-        legend.text = element_text(size = 15),
-        axis.text = element_text(family = "Roboto Slab"),
-        axis.ticks.x = element_blank(),
-        axis.line.x = element_blank()
+        legend.title = ggplot2::element_blank(),
+        legend.text = ggplot2::element_text(size = 15),
+        axis.text = ggplot2::element_text(family = "Roboto Slab"),
+        axis.ticks.x = ggplot2::element_blank(),
+        axis.line.x = ggplot2::element_blank()
       )} +
       NULL
 
     if(card == TRUE){
       plot_complete <-
         plot_complete +
-        labs(x = "", y = "") + #, title = "Signature Information", caption = "more ...") +
-        theme(
-          text = element_text(family = "Nunito Sans"),
+        ggplot2::labs(x = "", y = "") + #, title = "Signature Information", caption = "more ...") +
+        ggplot2::theme(
+          text = ggplot2::element_text(family = "Nunito Sans"),
           legend.position = "none",
-          legend.title = element_blank(),
-          legend.text = element_blank(),
-          axis.text.x = element_text(family = "Roboto Slab"),
-          axis.text.y = element_blank(),
-          axis.ticks.x = element_blank(),
-          axis.line.x = element_blank()
+          legend.title = ggplot2::element_blank(),
+          legend.text = ggplot2::element_blank(),
+          axis.text.x = ggplot2::element_text(family = "Roboto Slab"),
+          axis.text.y = ggplot2::element_blank(),
+          axis.ticks.x = ggplot2::element_blank(),
+          axis.line.x = ggplot2::element_blank()
         )
     }
 
@@ -779,33 +759,17 @@ make_radial <- function(cluster_data = sequence_clusters,
            error = function(x){make_bomb_plot()})
 }
 
-#test
-# make_radial(input = list(content = "ROCK2"), cluster = F, relative = F, barplot = F, card = F) # default
-# make_radial(input = list(content = "ROCK2"), card = TRUE)
-
-#figure legend
-plot_radial_title <- "Radial Plot."
-plot_radial_legend <- "Amino acid signature/s (percentage of each amino acid in a protein) of the queried gene/s versus the mean amino acid signature of all the other proteins in the dataset (N = 20375)."
-
-plot_aa_bar_title <- "Bar Plot."
-plot_aa_bar_legend <- "Amino acid signature/s (percentage of each amino acid in a protein) of the queried gene/s versus the mean amino acid signature of all the other proteins in the dataset (N = 20375)."
-
-cluster_plot_radial_title <- "Cluster Radial Plot."
-cluster_plot_radial_legend <- "Amino acid signature/s (percentage of each amino acid in a protein) of the queried cluster/s versus the mean amino acid signature of all the other proteins in the dataset (N = 20375)."
-
-cluster_plot_aa_bar_title <- "Cluster Bar Plot."
-cluster_plot_aa_bar_legend <- "Amino acid signature/s (percentage of each amino acid in a protein) of the queried cluster/s versus the mean amino acid signature of all the other proteins in the dataset (N = 20375)."
-
 ## UMAP PLOT --------------------------------------------------------
 #' UMAP Plot
 #'
-#' \code{make_umap_plot} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a umap plot plot
+#' Amino acid signature (percentage of each amino acid in a protein) UMAP embeddings (2D)
+#' colored by the cluster to which they belong (N = 20375).
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a umap plot plot. If an error is thrown, then will return a bomb plot.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
@@ -822,7 +786,7 @@ make_umap_plot <- function(cluster_data = sequence_clusters,
 
     sequence_data_clean <- cluster_data %>%
       # dplyr::filter(clust != 0) %>%
-      mutate(clust = paste0("Cluster ", clust))
+      dplyr::mutate(clust = paste0("Cluster ", clust))
 
     query_clust <- sequence_data_clean %>%
       dplyr::filter(gene_name %in% input$content) %>%
@@ -835,34 +799,34 @@ make_umap_plot <- function(cluster_data = sequence_clusters,
     colors <- ddh_pal_c(palette = "protein")(length(query_clust))
 
     # UMAP PLOT
-    plot_complete <- ggplot() +
-      {if(!show_subset)geom_point(data = sequence_data_clean %>%
+    plot_complete <- ggplot2::ggplot() +
+      {if(!show_subset)ggplot2::geom_point(data = sequence_data_clean %>%
                                     dplyr::filter(!uniprot_id %in% cluster_genes$uniprot_id),
-                                  aes(X1, X2), size = 0.8, color = "grey80")} +
-      geom_point(data = sequence_data_clean %>%
+                                    ggplot2::aes(X1, X2), size = 0.8, color = "grey80")} +
+      ggplot2::geom_point(data = sequence_data_clean %>%
                    dplyr::filter(uniprot_id %in% cluster_genes$uniprot_id),
-                 aes(X1, X2, color = clust), size = 0.8) +
+                   ggplot2::aes(X1, X2, color = clust), size = 0.8) +
       {if(labels)ggrepel::geom_label_repel(data = cluster_genes %>%
                                              dplyr::filter(gene_name %in% input$content),
-                                           aes(X1, X2, label = gene_name))} +
-      labs(x = "UMAP1",
-           y = "UMAP2") +
-      scale_color_manual(
+                                           ggplot2::aes(X1, X2, label = gene_name))} +
+      ggplot2::labs(x = "UMAP 1",
+           y = "UMAP 2") +
+      ggplot2::scale_color_manual(
         values = rep(colors, length.out =
                        nrow(sequence_data_clean %>%
                               dplyr::filter(uniprot_id %in% cluster_genes$uniprot_id)))
       ) +
-      guides(color = guide_legend(override.aes = list(size = 3))) +
+      ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 3))) +
       ## theme changes
       theme_ddh() +
-      theme(
-        text = element_text(family = "Nunito Sans"),
+      ggplot2::theme(
+        text = ggplot2::element_text(family = "Nunito Sans"),
         legend.position = "top",
-        legend.title = element_blank(),
-        legend.text = element_text(size = 15),
-        axis.text = element_text(family = "Roboto Slab", size = 16),
-        axis.text.y = element_text(size = 16, color = "grey30"),
-        axis.title = element_text(size = 16)
+        legend.title = ggplot2::element_blank(),
+        legend.text = ggplot2::element_text(size = 15),
+        axis.text = ggplot2::element_text(family = "Roboto Slab", size = 16),
+        axis.text.y = ggplot2::element_text(size = 16, color = "grey30"),
+        axis.title = ggplot2::element_text(size = 16)
       ) +
       NULL
 
@@ -874,20 +838,18 @@ make_umap_plot <- function(cluster_data = sequence_clusters,
            error = function(x){make_bomb_plot()})
 }
 
-#figure legend
-plot_umap_title <- "UMAP Plot."
-plot_umap_legend <- "Amino acid signature (percentage of each amino acid in a protein) UMAP embeddings (2D) colored by the cluster to which they belong (N = 20375)."
-
 ## CLUSTER ENRICHMENT PLOT --------------------------------------------------------
-#' Cluster Enrich Plot
+#' Cluster Enrichment Plot
 #'
-#' \code{make_cluster_enrich} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a cluster enrich plot
+#' Enriched GO terms (BP, MF, and CC) by all genes in the selected amino acid signature cluster.
+#' The x-axis shows the number of genes in the cluster that belong to each term while the color
+#' scale represents the p-values of each enriched term.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a cluster enrich plot. If an error is thrown, then will return a bomb plot.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
@@ -902,33 +864,33 @@ make_cluster_enrich <- function(input = list(),
 
   make_cluster_enrich_plot_raw <- function() {
 
-    plot_data <- make_clustering_enrichment_table(input = input, #update this
+    plot_data <- make_clustering_enrichment_table(input = input,
                                                   ontology = ontology)
 
     plot_complete <-
       plot_data %>%
       dplyr::arrange(pvalue) %>%
       dplyr::slice(1:num_terms) %>%
-      ggplot(aes(x = Count,
+      ggplot2::ggplot(ggplot2::aes(x = Count,
                  y = reorder(substr(paste0(Description, " (", ID, ")"), 1, 40), Count),
                  fill = pvalue)) +
-      geom_col() +
-      labs(x = "Gene Count",
+      ggplot2::geom_col() +
+      ggplot2::labs(x = "Gene Count",
            y = NULL) +
       scale_fill_ddh_c(palette = "protein", reverse = TRUE) +
-      guides(fill = guide_colorbar(barheight = unit(6, "lines"),
-                                   barwidth = unit(.6, "lines"),
+      ggplot2::guides(fill = ggplot2::guide_colorbar(barheight = ggplot2::unit(6, "lines"),
+                                   barwidth = ggplot2::unit(.6, "lines"),
                                    reverse = TRUE)) +
       theme_ddh() +
-      theme(
-        title = element_blank(),
-        text = element_text(family = "Nunito Sans"),
+      ggplot2::theme(
+        title = ggplot2::element_blank(),
+        text = ggplot2::element_text(family = "Nunito Sans"),
         legend.position = "right",
-        legend.title = element_text(size = 16),
-        legend.text = element_text(size = 16),
-        axis.text = element_text(family = "Roboto Slab"),
-        axis.ticks.x = element_blank(),
-        axis.line.x = element_blank()
+        legend.title = ggplot2::element_text(size = 16),
+        legend.text = ggplot2::element_text(size = 16),
+        axis.text = ggplot2::element_text(family = "Roboto Slab"),
+        axis.ticks.x = ggplot2::element_blank(),
+        axis.line.x = ggplot2::element_blank()
       ) +
       NULL
 
@@ -938,10 +900,6 @@ make_cluster_enrich <- function(input = list(),
   tryCatch(make_cluster_enrich_plot_raw(),
            error = function(x){make_bomb_plot()})
 }
-
-# #figure legend
-plot_cluster_enrichment_title <- "Cluster Enrichment Plot."
-plot_cluster_enrichment_legend <- "Enriched GO terms (BP, MF, and CC) by all genes in the selected amino acid signature cluster. The x-axis shows the number of genes in the cluster that belong to each term while the color scale represents the p-values of each enriched term."
 
 ## STRUCTURE PLOT --------------------------------------------------------------------
 #' Structure Plot
@@ -953,6 +911,8 @@ plot_cluster_enrichment_legend <- "Enriched GO terms (BP, MF, and CC) by all gen
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a structure plot. If an error is thrown, then will return a bomb plot.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
@@ -1027,6 +987,9 @@ protein_structure_title <- "Predicted Structure."
 protein_structure_legend <- "Alpha Fold predicted structure rendered in a ribbon diagram."
 
 ## 3D STRUCTURE PLOT --------------------------------------------------------------------
+#' 3D Protein Structure Plot
+#'
+#'  @importFrom magrittr %>%
 make_structure3d <- function(pdb_ids = uniprot_pdb_table,
                              protein_data = proteins,
                              gene_id = NULL,
@@ -1120,6 +1083,8 @@ protein_structure_legend3d <- "Interactive 3D predicted structure."
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a pubmed plot. If an error is thrown, then will return a bomb plot.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
@@ -1272,6 +1237,8 @@ make_pubmed <- function(pubmed_data = pubmed,
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a cellanatogram plot. If an error is thrown, then will return a bomb plot.
 #'
+#' @importFrom magrittr %>%
+#'
 #' @export
 #' @examples
 #' make_cellanatogram(input = list(type = "gene", content = c("ROCK2")))
@@ -1336,7 +1303,9 @@ make_cellanatogram <- function(cellanatogram_data = subcell,
 # make_cellanatogram(input = list(type = "gene", query = "ROCK1", content = c("ROCK1", "ROCK2")))
 
 
-# make cell anatogram facet
+#' Cell Anatogram Facet
+#'
+#'  @importFrom magrittr %>%
 make_cellanatogramfacet <- function(cellanatogram_data = subcell,
                                     input = list()) {
   make_cellanatogramfacet_raw <- function() {
@@ -1385,6 +1354,8 @@ make_cellanatogramfacet <- function(cellanatogram_data = subcell,
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a female anatogram plot. If an error is thrown, then will return a bomb plot.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
@@ -1470,6 +1441,8 @@ make_male_anatogram <- function(anatogram = "male",
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a tissue plot. If an error is thrown, then will return a bomb plot.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
@@ -1571,6 +1544,8 @@ make_tissue <- function(tissue_data = tissue,
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a cellexpression plot. If an error is thrown, then will return a bomb plot.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
@@ -1698,7 +1673,9 @@ plot_cellLineexp_legend <- "Each point shows the ranked expression value across 
 #If present, black line indicates resampled mean expression value (", round(mean_virtual_expression, 2), "). If present, gray line indicates 3 standard deviations away from the resampled mean (", round(expression_upper, 2), ").
 
 # G-EXPvP-EXP ----------------------------------
-#this makes gene v. protein in a cell
+#' Gene versus protein in a cell
+#'
+#'  @importFrom magrittr %>%
 make_cellgeneprotein <- function(expression_data = expression_long,
                                  expression_join = expression_names,
                                  input = list(),
@@ -1796,6 +1773,8 @@ plot_cellgeneprotein_legend <- "Each point shows the gene expression value compa
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a celldeps plot. If an error is thrown, then will return a bomb plot.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
@@ -1989,6 +1968,8 @@ plot_celldeps_legend <- "Each point shows the ranked dependency score ordered fr
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a cellbar plot. If an error is thrown, then will return a bomb plot.
 #'
+#' @importFrom magrittr %>%
+#'
 #' @export
 #' @examples
 #' make_cellbar(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
@@ -2167,6 +2148,8 @@ plot_cellbar_legend <- "Each bar shows the dependency scores of the queried gene
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a cellbins plot. If an error is thrown, then will return a bomb plot.
 #'
+#' @importFrom magrittr %>%
+#'
 #' @export
 #' @examples
 #' make_cellbins(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
@@ -2333,6 +2316,8 @@ plot_cellbins_legend <- "Kernel density estimate of dependency scores. Dependenc
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a lineage plot. If an error is thrown, then will return a bomb plot.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
@@ -2522,6 +2507,8 @@ plot_celllin_legend <- "Each point shows the mean dependency score for the gene 
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a sublineage plot. If an error is thrown, then will return a bomb plot.
 #'
+#' @importFrom magrittr %>%
+#'
 #' @export
 #' @examples
 #' make_sublineage(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
@@ -2705,6 +2692,8 @@ plot_cellsublin_legend <- "Each point shows the mean dependency score for the ge
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a correlation plot. If an error is thrown, then will return a bomb plot.
 #'
+#' @importFrom magrittr %>%
+#'
 #' @export
 #' @examples
 #' make_correlation(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
@@ -2879,6 +2868,8 @@ plot_genecorrelations_legend <- "Each point shows the ranked correlation value o
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a expdep plot. If an error is thrown, then will return a bomb plot.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
@@ -3055,6 +3046,8 @@ plot_cellimage_legend <- "Cells image shown at low (top) and high (bottom) growt
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a cell similarity plot If an error is thrown, then will return a bomb plot.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
@@ -3455,6 +3448,8 @@ cell_metadata_plot_legend <- "Similar and dissimilar lineages (and sublineages) 
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a molecule structure plot. If an error is thrown, then will return a bomb plot.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
