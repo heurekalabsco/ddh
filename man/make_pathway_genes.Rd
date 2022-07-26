@@ -6,21 +6,6 @@
 \usage{
 make_pathway_genes(table_name = pathways, table_join = gene_summary, go_id)
 }
-\arguments{
-\item{input}{Expecting a list containing type and content variable.}
-}
-\value{
-If no error, then returns a pathway genes table. If an error is thrown, then will return an empty table.
-}
 \description{
-\code{make_pathway_genes} returns an image of ...
-}
-\details{
-This is a table function that takes a gene name and returns a pathway genes table
-}
-\examples{
-make_pathway_genes(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-\dontrun{
-make_pathway_genes(input = list(type = 'gene', content = 'ROCK1'))
-}
+Pathway Genes Table
 }

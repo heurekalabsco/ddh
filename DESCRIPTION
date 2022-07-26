@@ -92,6 +92,7 @@ Imports:
     shinyjs,
     shinyWidgets,
     showtext,
+    stringr,
     stopwords,
     sysfonts,
     tidygraph,

@@ -22,30 +22,18 @@ make_pathway_list <- function(table_name = pathways,
   }
   present <- function(list, query){ #is the gene present?
     y <- unlist(list, use.names = FALSE)
-    any(str_detect(y, query))
+    any(stringr::str_detect(y, query))
   }
   filtered_table <-
     table_name %>%
-    filter(map_lgl(table_name$data, ~present(list = .x, query = input$content)) == TRUE)
+    dplyr::filter(purrr::map_lgl(table_name$data, ~present(list = .x, query = input$content)) == TRUE)
   return(filtered_table)
 }
 
 #' Pathway Genes Table
-#'
-#' \code{make_pathway_genes} returns an image of ...
-#'
-#' This is a table function that takes a gene name and returns a pathway genes table
-#'
-#' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a pathway genes table. If an error is thrown, then will return an empty table.
-#'
-#' @export
-#' @examples
-#' make_pathway_genes(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-#' \dontrun{
-#' make_pathway_genes(input = list(type = 'gene', content = 'ROCK1'))
-#' }
-make_pathway_genes <- function(table_name = pathways, table_join = gene_summary, go_id) {
+make_pathway_genes <- function(table_name = pathways,
+                               table_join = gene_summary,
+                               go_id) {
   pathway_table <-
     table_name %>%
     dplyr::filter(go %in% go_id) %>%
@@ -66,9 +54,9 @@ make_pathway_genes <- function(table_name = pathways, table_join = gene_summary,
 #'
 #' @export
 #' @examples
-#' make_compound_table(input = list(compound = "aspirin"), top = TRUE)
+#' make_compound_table(input = list(content = "aspirin"), top = TRUE)
 #' \dontrun{
-#' make_compound_table(input = list(compound = "aspirin"), top = FALSE)
+#' make_compound_table(input = list(content = "aspirin"), top = FALSE)
 #' }
 make_compound_table <- function(data_table = prism_cor_nest,
                                 join_table = prism_names,
@@ -81,11 +69,11 @@ make_compound_table <- function(data_table = prism_cor_nest,
 
     table_complete <-
       data_table %>%
-      dplyr::filter_all(any_vars(fav_drug %in% input$content)) %>%
+      dplyr::filter_all(dplyr::any_vars(fav_drug %in% input$content)) %>%
       tidyr::unnest("data") %>%
       dplyr::ungroup() %>%
-      {if (top == TRUE) filter(., r2 > upper) else filter(., r2 < lower)} %>% #mean +/- 3sd
-      dplyr::arrange(desc(r2)) %>%
+      {if (top == TRUE) dplyr::filter(., r2 > upper) else dplyr::filter(., r2 < lower)} %>% #mean +/- 3sd
+      dplyr::arrange(dplyr::desc(r2)) %>%
       dplyr::left_join(join_table, by = "name") %>%
       dplyr::select(1:4)
     return(table_complete)
@@ -117,14 +105,14 @@ make_pubmed_table <- function(pubmed_data = pubmed,
     if(input$type == "gene") {
       pubmed_table <-
         pubmed_data %>%
-        dplyr::filter_all(any_vars(name %in% input$content)) %>%
+        dplyr::filter_all(dplyr::any_vars(name %in% input$content)) %>%
         tidyr::unnest(data) %>%
         dplyr::ungroup() %>%
         dplyr::arrange(as.numeric(pmid))
     } else if(input$type == "compound") {
       pubmed_table <-
         pubmed_data %>%
-        dplyr::filter_all(any_vars(name %in% input$content)) %>%
+        dplyr::filter_all(dplyr::any_vars(name %in% input$content)) %>%
         tidyr::unnest(data) %>%
         dplyr::ungroup() %>%
         dplyr::arrange(as.numeric(pmid))
@@ -164,11 +152,14 @@ make_cellanatogram_table <- function(cellanatogram_data = subcell,
                                      input = list()) { #change to input=list()
   make_cellanatogram_table_raw <- function() {
     cellanatogram_data %>%
-      dplyr::filter_all(any_vars(gene_name %in% input$content)) %>%
+      dplyr::filter_all(dplyr::any_vars(gene_name %in% input$content)) %>%
       dplyr::filter(!is.na(type)) %>%
       dplyr::add_count(main_location) %>%
-      dplyr::transmute(Gene = gene_name, Reliability = reliability, Location = main_location, Count = as_factor(n)) %>%
-      dplyr::arrange(desc(Count))
+      dplyr::transmute(Gene = gene_name,
+                       Reliability = reliability,
+                       Location = main_location,
+                       Count = as_factor(n)) %>%
+      dplyr::arrange(dplyr::desc(Count))
   }
   #error handling
   tryCatch(make_cellanatogram_table_raw(),
@@ -200,40 +191,40 @@ make_expression_table <- function(expression_data = expression_long,
     if (var == "gene") {
       table_data <-
         expression_data %>%
-        dplyr::select(any_of(c("X1", "gene", "gene_expression"))) %>%
+        dplyr::select(dplyr::any_of(c("X1", "gene", "gene_expression"))) %>%
         dplyr::rename("expression_var" = "gene_expression")
     } else if (var == "protein") {
       table_data <-
         expression_data %>%
-        dplyr::select(any_of(c("X1", "gene", "protein_expression"))) %>%
+        dplyr::select(dplyr::any_of(c("X1", "gene", "protein_expression"))) %>%
         dplyr::rename("expression_var" = "protein_expression")
     } else {
       stop("delcare your variable")
     }
     if (input$type == "gene") {
       table_data %>%
-        dplyr::filter_all(any_vars(gene %in% input$content)) %>%
-        dplyr::arrange(desc(.[3])) %>%
+        dplyr::filter_all(dplyr::any_vars(gene %in% input$content)) %>%
+        dplyr::arrange(dplyr::desc(.[3])) %>%
         tidyr::pivot_wider(names_from = gene, values_from = expression_var) %>%
         dplyr::left_join(expression_join, by = "X1") %>%
         dplyr::select(-X1) %>%
-        dplyr::select(cell_line, lineage, lineage_subtype, everything()) %>%
+        dplyr::select(cell_line, lineage, lineage_subtype, dplyr::everything()) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
         dplyr::rename("Cell Line" = "cell_line", "Lineage" = "lineage", "Subtype" = "lineage_subtype")
     } else if (input$type == "cell") {
       table_data %>%
-        dplyr::arrange(desc(.[3])) %>%
+        dplyr::arrange(dplyr::desc(.[3])) %>%
         dplyr::left_join(expression_join, by = "X1") %>%
         dplyr::select(-X1, -lineage, -lineage_subtype) %>%
-        dplyr::filter_all(any_vars(cell_line %in% input$content)) %>%
+        dplyr::filter_all(dplyr::any_vars(cell_line %in% input$content)) %>%
         tidyr::pivot_wider(names_from = cell_line, values_from = expression_var) %>%
-        dplyr::select(gene, everything()) %>%
+        dplyr::select(gene, dplyr::everything()) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
         dplyr::rename("Gene" = "gene") %>%
-        left_join(gene_data %>%
-                    dplyr::select(Gene = approved_symbol,
-                                  `Gene Name` = approved_name),
-                  by = "Gene") %>%
+        dplyr::left_join(gene_data %>%
+                           dplyr::select(Gene = approved_symbol,
+                                         `Gene Name` = approved_name),
+                         by = "Gene") %>%
         dplyr::relocate(`Gene Name`, .after = Gene)
 
     }
