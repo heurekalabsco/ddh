@@ -374,8 +374,8 @@ make_empty_table <- function() {
 #' @examples
 #' make_empty_plot()
 make_empty_plot <- function() {
-  ggplot() +
-    labs(title = "Nothing to see here. Try again.")
+  ggplot2::ggplot() +
+    ggplot2::labs(title = "Nothing to see here. Try again.")
 }
 
 #' Function to create a bomb plot
@@ -408,8 +408,8 @@ make_bomb_plot <- function(){
 
   circle <-
     circle %>%
-    mutate(distance_to_center = sqrt((x-x_center)^2 + (y-y_center)^2),
-           include = if_else(distance_to_center < radius, TRUE, FALSE))
+    dplyr::mutate(distance_to_center = sqrt((x-x_center)^2 + (y-y_center)^2),
+           include = dplyr::if_else(distance_to_center < radius, TRUE, FALSE))
 
   #add bomb top
   #target 1/3 of bomb width; target 1/6 for height
@@ -428,7 +428,7 @@ make_bomb_plot <- function(){
 
   white_streak <-
     white_streak %>%
-    mutate(x = round(30 - (sqrt((streak_arc^2) - (y_center-y)^2)), digits = 0))
+    dplyr::mutate(x = round(30 - (sqrt((streak_arc^2) - (y_center-y)^2)), digits = 0))
 
   #drop 2/3
   samples_to_keep <- nrow(white_streak)/3
@@ -454,7 +454,7 @@ make_bomb_plot <- function(){
 
   fuse <-
     fuse %>%
-    mutate(y = fuse_fun(x,
+    dplyr::mutate(y = fuse_fun(x,
                         cube_var = cube,
                         lin_var = lin,
                         whole_var = whole))
@@ -613,31 +613,31 @@ make_bomb_plot <- function(){
 
   spark_lines <-
     sparkline1 %>%
-    bind_rows(sparkline2) %>%
-    bind_rows(sparkline3) %>%
-    bind_rows(sparkline4) %>%
-    bind_rows(sparkline5) %>%
-    bind_rows(sparkline6)
+    dplyr::bind_rows(sparkline2) %>%
+    dplyr::bind_rows(sparkline3) %>%
+    dplyr::bind_rows(sparkline4) %>%
+    dplyr::bind_rows(sparkline5) %>%
+    dplyr::bind_rows(sparkline6)
 
   #drop some
   spark_lines <-
     spark_lines %>%
-    mutate(distance_to_center = sqrt((x-x_fuse)^2 + (y-y_fuse)^2),
-           include = if_else(distance_to_center < spark_radius/3, FALSE, TRUE))
+    dplyr::mutate(distance_to_center = sqrt((x-x_fuse)^2 + (y-y_fuse)^2),
+           include = dplyr::if_else(distance_to_center < spark_radius/3, FALSE, TRUE))
 
   #build plot with layers
   plot_complete <-
-    ggplot() +
-    geom_tile(data = background, aes(x, y), fill = "white", color = "white") +
-    geom_tile(data = circle %>% dplyr::filter(include == TRUE), aes(x, y), fill = "black", color = "black") +
-    geom_tile(data = bomb_top, aes(x, y), fill = "black", color = "black") +
-    geom_tile(data = white_streak %>% sample_n(size = samples_to_keep), aes(x, y), fill = "white", color = "white") +
-    geom_tile(data = fuse, aes(x_final, y_final), fill = "black", color = "black") +
-    #geom_tile(data = spark %>% dplyr::filter(include == TRUE), aes(x, y), fill = "blue", alpha = 0.5) +
-    #geom_tile(data = spark_points, aes(x, y), fill = "blue") +
-    geom_tile(data = spark_lines %>% dplyr::filter(include == TRUE), aes(x, y), fill = "black", color = "black") +
-    coord_cartesian(xlim = c(0,72), ylim = c(0,72)) +
-    theme_void() +
+    ggplot2::ggplot() +
+    ggplot2::geom_tile(data = background, ggplot2::aes(x, y), fill = "white", color = "white") +
+    ggplot2::geom_tile(data = circle %>% dplyr::filter(include == TRUE), ggplot2::aes(x, y), fill = "black", color = "black") +
+    ggplot2::geom_tile(data = bomb_top, ggplot2::aes(x, y), fill = "black", color = "black") +
+    ggplot2::geom_tile(data = white_streak %>% dplyr::sample_n(size = samples_to_keep), ggplot2::aes(x, y), fill = "white", color = "white") +
+    ggplot2::geom_tile(data = fuse, ggplot2::aes(x_final, y_final), fill = "black", color = "black") +
+    #ggplot2::geom_tile(data = spark %>% dplyr::filter(include == TRUE), ggplot2::aes(x, y), fill = "blue", alpha = 0.5) +
+    #ggplot2::geom_tile(data = spark_points, ggplot2::aes(x, y), fill = "blue") +
+    ggplot2::geom_tile(data = spark_lines %>% dplyr::filter(include == TRUE), ggplot2::aes(x, y), fill = "black", color = "black") +
+    ggplot2::coord_cartesian(xlim = c(0,72), ylim = c(0,72)) +
+    ggplot2::theme_void() +
     NULL
   return(plot_complete)
 }
@@ -720,7 +720,8 @@ plot_size_finder <- function(function_name){ #this function sets the output size
 #' make_roxygen("make_ideogram")
 make_roxygen <- function(fun_name,
                          type = "graph"){
-  name <- stringr::str_remove_all(fun_name, pattern = "make_") %>% str_replace_all(pattern = "_", replacement = " ")
+  name <- stringr::str_remove_all(fun_name, pattern = "make_") %>%
+    stringr::str_replace_all(pattern = "_", replacement = " ")
   title <- stringr::str_to_title(glue::glue("{name} {type}"))
   roxygen_c <- c(
     glue::glue("#' {title}"),
@@ -755,7 +756,6 @@ make_roxygen <- function(fun_name,
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a empty graph graph. If an error is thrown, then will return an empty graph.
 #'
-#' @importFrom dplyr tibble
 #' @import visNetwork
 #'
 #' @examples

@@ -42,7 +42,9 @@ make_barcode <- function(input = list()) {
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns an ideogram plot. If an error is thrown, then will return a bomb plot
-
+#'
+#' @importFrom magrittr %>%
+#'
 #' @export
 #' @examples
 #' sum(1:10)
@@ -59,7 +61,7 @@ make_ideogram <- function(location_data = gene_location,
     #set baseline chromosome info
     chromosome_list <- dplyr::pull(chromosome, id)
     chromosome_levels <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "X", "Y")
-    chromosome_list <- fct_relevel(chromosome_list, chromosome_levels)
+    chromosome_list <- forcats::fct_relevel(chromosome_list, chromosome_levels)
 
     #adjust by n so it bumps genes/bands off chromosome ends
     n <- 2000000 #chr1 is 250M
@@ -99,7 +101,7 @@ make_ideogram <- function(location_data = gene_location,
       dplyr::mutate(min = basepairs - abs_min - (n/2), #chromosome positions count from the top, so need to reverse order for plotting
                     max = basepairs - abs_max - (n/2) #correct for n adjustment here
       ) %>%
-      dplyr::mutate(alternate = row_number(chromosome_name) %% 2)
+      dplyr::mutate(alternate = dplyr::row_number(chromosome_name) %% 2)
 
     #adding if (is.null(gene_symbol)), gene_symbol=NULL allows me to generate a plot, even without gene_symbol data, #no data filters, #drop geom_point here
     #get location data for each gene query
@@ -122,50 +124,50 @@ make_ideogram <- function(location_data = gene_location,
     #max lengths
     clip_height <-
       max_lengths %>%
-      filter(chromosome_name %in% chromosome_loci) %>%
-      slice_max(basepairs) %>%
-      pull(basepairs)
+      dplyr::filter(chromosome_name %in% chromosome_loci) %>%
+      dplyr::slice_max(basepairs) %>%
+      dplyr::pull(basepairs)
 
     ideogram_plot <-
-      ggplot() +
+      ggplot2::ggplot() +
       #background line fixes height
-      geom_segment(data = pq %>% filter(chromosome_name %in% chromosome_loci),
-                   aes(x = chromosome_name, xend = chromosome_name, y = 0, yend = 260000000, alpha = 1),
+      ggplot2::geom_segment(data = pq %>% dplyr::filter(chromosome_name %in% chromosome_loci),
+                            ggplot2::aes(x = chromosome_name, xend = chromosome_name, y = 0, yend = 260000000, alpha = 1),
                    color = "white", size = 1, lineend = "butt") +
       #background for black line
-      geom_segment(data = pq %>% filter(chromosome_name %in% chromosome_loci),
-                   aes(x = chromosome_name, xend = chromosome_name, y = y_start, yend = y_end, alpha = 0.5),
+      ggplot2::geom_segment(data = pq %>% dplyr::filter(chromosome_name %in% chromosome_loci),
+                            ggplot2::aes(x = chromosome_name, xend = chromosome_name, y = y_start, yend = y_end, alpha = 0.5),
                    color = "black", size = 7, lineend = "round") +
       #chromosome
-      geom_segment(data = pq %>% filter(chromosome_name %in% chromosome_loci),
-                   aes(x = chromosome_name, xend = chromosome_name, y = y_start, yend = y_end),
+      ggplot2::geom_segment(data = pq %>% dplyr::filter(chromosome_name %in% chromosome_loci),
+                            ggplot2::aes(x = chromosome_name, xend = chromosome_name, y = y_start, yend = y_end),
                    color = "gray95", size = 6, lineend = "round") +
       #centromere
-      geom_point(data = pq %>% filter(chromosome_name %in% chromosome_loci,
+      ggplot2::geom_point(data = pq %>% dplyr::filter(chromosome_name %in% chromosome_loci,
                                       arm == "q"),
-                 aes(x = chromosome_name, y = y_end + n), #calculated 1/2 of distance between
+                          ggplot2::aes(x = chromosome_name, y = y_end + n), #calculated 1/2 of distance between
                  color = "gray90", size = 5.5) +
       #pq bands
-      geom_segment(data = band_boundaries %>% filter(alternate == 1, chromosome_name %in% chromosome_loci),
-                   aes(x = chromosome_name, xend = chromosome_name, y = min, yend = max),
+      ggplot2::geom_segment(data = band_boundaries %>% dplyr::filter(alternate == 1, chromosome_name %in% chromosome_loci),
+                            ggplot2::aes(x = chromosome_name, xend = chromosome_name, y = min, yend = max),
                    size = 6.5, color = "black", alpha = 0.5) +
       #gene points + labels
-      geom_point(data = gene_loci, aes(x = chromosome_name, y = start),  size = 6, color = ddh_pal_d(palette = "gene")(1), alpha = 1) +
-      ggrepel::geom_text_repel(data = gene_loci, aes(x = chromosome_name, y = start, label = approved_symbol), nudge_x = .2, min.segment.length = 1, family = "Chivo") +
-      scale_fill_manual(values = c("#FFFFFF", "#FFFFFF")) +
-      labs(y = NULL) +
+      ggplot2::geom_point(data = gene_loci, ggplot2::aes(x = chromosome_name, y = start),  size = 6, color = ddh_pal_d(palette = "gene")(1), alpha = 1) +
+      ggrepel::geom_text_repel(data = gene_loci, ggplot2::aes(x = chromosome_name, y = start, label = approved_symbol), nudge_x = .2, min.segment.length = 1, family = "Chivo") +
+      ggplot2::scale_fill_manual(values = c("#FFFFFF", "#FFFFFF")) +
+      ggplot2::labs(y = NULL) +
       theme_ddh(base_size = 16) +
-      theme_void() +
-      theme(legend.position = "none",
-            axis.text.x = element_text(size = 12)) +
+      ggplot2::theme_void() +
+      ggplot2::theme(legend.position = "none",
+            axis.text.x = ggplot2::element_text(size = 12)) +
       #clip height
-      coord_cartesian(ylim=c(0, clip_height)) +
+      ggplot2::coord_cartesian(ylim=c(0, clip_height)) +
       NULL
 
     if(card == TRUE){
       ideogram_plot <-
         ideogram_plot +
-        labs(x = "") + #, title = "Gene Information", caption = "more ...") +
+        ggplot2::labs(x = "") + #, title = "Gene Information", caption = "more ...") +
         NULL
     }
     return(ideogram_plot)
@@ -175,9 +177,12 @@ make_ideogram <- function(location_data = gene_location,
            error = function(x){make_bomb_plot()})
 }
 
-#figure legend
-plot_ideogram_title <- "Gene Location."
-plot_ideogram_legend <- paste0("Each point shows the location of the query gene(s) on human chromosomes.")
+make_ideogram_legend <- function() {
+  title <- "Gene Location."
+  legend <- "Each point shows the location of the query gene(s) on human chromosomes."
+
+  return(list(title, legend))
+}
 
 ## SIZE PLOT --------------------------------------------------------
 #' Protein Size Plot
@@ -189,6 +194,8 @@ plot_ideogram_legend <- paste0("Each point shows the location of the query gene(
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a proteinsize plot. If an error is thrown, then will return a bomb plot.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
@@ -250,49 +257,49 @@ make_proteinsize <- function(protein_data = proteins,
 
       base_plot <-
         proteins %>%
-        ggplot(aes(x = mass)) +
+        ggplot2::ggplot(ggplot2::aes(x = mass)) +
         ## draw distribution as colored strip
         ggdist::stat_interval(
-          aes(y = 1),
+          ggplot2::aes(y = 1),
           .width = w, size = 10
         ) +
         ## line locator
-        geom_linerange(
-          data = selected, aes(ymin = .9, ymax = 1.03),
+        ggplot2::geom_linerange(
+          data = selected, ggplot2::aes(ymin = .9, ymax = 1.03),
           color = "white", size = .8
         ) +
         ## add triangular locator symbol
-        geom_point(
-          data = selected, aes(y = triangle_y),
+        ggplot2::geom_point(
+          data = selected, ggplot2::aes(y = triangle_y),
           shape = 6, size = triangle_size, stroke = 1
         ) +
         ## add gene name label
-        {if(!card_var)geom_text( #| !moreThanFour
-          data = selected, aes(y = gene_y, label = gene_name),
+        {if(!card_var)ggplot2::geom_text( #| !moreThanFour
+          data = selected, ggplot2::aes(y = gene_y, label = gene_name),
           family = "Chivo", size = 5.2, vjust = 0
         )} +
         ## add mass label
-        {if(!card_var)geom_text( # | !moreThanThree
-          data = selected, aes(y = mass_y, label = paste(mass, "kDa")),
+        {if(!card_var)ggplot2::geom_text( # | !moreThanThree
+          data = selected, ggplot2::aes(y = mass_y, label = paste(mass, "kDa")),
           family = "Chivo", size = 4.3, vjust = 0
         )} +
-        scale_x_continuous(limits = c(0, max_mass*2),
+        ggplot2::scale_x_continuous(limits = c(0, max_mass*2),
                            labels = function(x) paste(x, "kDa")) +
-        coord_cartesian(ylim = c(.95, 1.2)) +
-        scale_y_continuous(expand = c(0, 0)) +
-        scale_color_manual(values = colors, guide = "none") +
+        ggplot2::coord_cartesian(ylim = c(.95, 1.2)) +
+        ggplot2::scale_y_continuous(expand = c(0, 0)) +
+        ggplot2::scale_color_manual(values = colors, guide = "none") +
         theme_ddh() +
-        theme_void() +
+        ggplot2::theme_void() +
         NULL
 
 
       if (var == last_gene) {
         base_plot <-
           base_plot +
-          labs(x = "Protein Size") +
-          theme(axis.text.x = element_text(family = "Roboto Slab", size = 14),
-                axis.title.x = element_text(family = "Nunito Sans", size = 18,
-                                            margin = margin(t = 12, b = 12)))
+          ggplot2::labs(x = "Protein Size") +
+          ggplot2::theme(axis.text.x = ggplot2::element_text(family = "Roboto Slab", size = 14),
+                axis.title.x = ggplot2::element_text(family = "Nunito Sans", size = 18,
+                                            margin = ggplot2::margin(t = 12, b = 12)))
       }
 
       return(base_plot)
@@ -306,18 +313,18 @@ make_proteinsize <- function(protein_data = proteins,
 
       mass <- #get mass to center clipping in next step
         proteins %>%
-        filter(gene_name %in% input$content) %>%
-        pull(mass) %>%
+        dplyr::filter(gene_name %in% input$content) %>%
+        dplyr::pull(mass) %>%
         median(na.rm = TRUE)
 
       plot_complete <-
         plot_complete +
-        coord_cartesian(ylim = c(.9, 1.1), xlim = c(mass - mass*.3, mass + mass*.3)) +
+        ggplot2::coord_cartesian(ylim = c(.9, 1.1), xlim = c(mass - mass*.3, mass + mass*.3)) +
         # plot_annotation(
         #   title = "Size Information",
         #   caption = "more ...") +
-        theme(axis.text.x = element_blank(),
-              axis.title.x = element_blank()
+        ggplot2::theme(axis.text.x = ggplot2::element_blank(),
+              axis.title.x = ggplot2::element_blank()
         )
     }
 
@@ -328,17 +335,12 @@ make_proteinsize <- function(protein_data = proteins,
            error = function(x){make_bomb_plot()})
 }
 
-#test
-# make_proteinsize(input = list(content = "ROCK1"))
-# make_proteinsize(input = list(content = "ROCK1"), card = TRUE)
-# make_proteinsize(input = list(content = c("ROCK1", "ROCK2")))
-# make_proteinsize(input = list(content = c("ROCK1", "ROCK2")), card = TRUE)
-# make_proteinsize(input = list(content = c("RDX", "ROCK2", "DTX3L", "MSN", "SORL1", "EZR")))
-# make_proteinsize(input = list(content = c("RDX", "ROCK2", "DTX3L", "MSN", "SORL1", "EZR")), card = TRUE)
+make_proteinsize_legend <- function() {
+  title <- "Protein Size."
+  legend <- "Mass compared to all protein masses. The colored strip visualizes the distribution of protein sizes. Each colored box is thus representing a decile of the full data. The triangle indicates where exactly the queried genes fall on this gradient of protein sizes."
 
-#figure legend
-plot_proteinsize_title <- "Protein Size."
-plot_proteinsize_legend <- paste0("Mass compared to all protein masses. The colored strip visualizes the distribution of protein sizes. Each colored box is thus representing a decile of the full data. The triangle indicates where exactly the queried genes fall on this gradient of protein sizes.")
+  return(list(title, legend))
+}
 
 ## SEQUENCE PLOT --------------------------------------------------------------------
 #' Sequence Plot
@@ -350,6 +352,8 @@ plot_proteinsize_legend <- paste0("Mass compared to all protein masses. The colo
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a sequence plot. If an error is thrown, then will return a bomb plot.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
@@ -391,34 +395,34 @@ make_sequence <- function(sequence_data = proteins,
     #get_subsequence(seq_string = sequence_string, seq_sub = 1, start_seq = 1)
 
     sequence_complete <-
-      map2(.x = sequence_vec,
-           .y = sequence_num,
-           .f = get_subsequence)
+      purrr::map2(.x = sequence_vec,
+                  .y = sequence_num,
+                  .f = get_subsequence)
 
-    sequence_font <- "Roboto Mono" #"Roboto Slab"
+    sequence_font <- "Roboto Slab"
     sequence_size <- 10
 
     plot_complete <-
-      ggplot() +
+      ggplot2::ggplot() +
       ## annotate with text
-      annotate("text", x = 0, y = 10, label = sequence_complete[1], family = sequence_font, size = sequence_size) +
-      annotate("text", x = 0, y = 9, label = sequence_complete[2], family = sequence_font, size = sequence_size) +
-      annotate("text", x = 0, y = 8, label = sequence_complete[3], family = sequence_font, size = sequence_size) +
-      annotate("text", x = 0, y = 7, label = sequence_complete[4], family = sequence_font, size = sequence_size) +
-      annotate("text", x = 0, y = 6, label = sequence_complete[5], family = sequence_font, size = sequence_size) +
-      annotate("text", x = 0, y = 5, label = sequence_complete[6], family = sequence_font, size = sequence_size) +
-      annotate("text", x = 0, y = 4, label = sequence_complete[7], family = sequence_font, size = sequence_size) +
-      annotate("text", x = 0, y = 3, label = sequence_complete[8], family = sequence_font, size = sequence_size) +
-      annotate("text", x = 0, y = 2, label = sequence_complete[9], family = sequence_font, size = sequence_size) +
-      annotate("text", x = 0, y = 1, label = sequence_complete[10], family = sequence_font, size = sequence_size) +
-      coord_cartesian(ylim = c(0.5, 10.5), clip = 'on') +
-      theme_void() +
+      ggplot2::annotate("text", x = 0, y = 10, label = sequence_complete[1], family = sequence_font, size = sequence_size) +
+      ggplot2::annotate("text", x = 0, y = 9, label = sequence_complete[2], family = sequence_font, size = sequence_size) +
+      ggplot2::annotate("text", x = 0, y = 8, label = sequence_complete[3], family = sequence_font, size = sequence_size) +
+      ggplot2::annotate("text", x = 0, y = 7, label = sequence_complete[4], family = sequence_font, size = sequence_size) +
+      ggplot2::annotate("text", x = 0, y = 6, label = sequence_complete[5], family = sequence_font, size = sequence_size) +
+      ggplot2::annotate("text", x = 0, y = 5, label = sequence_complete[6], family = sequence_font, size = sequence_size) +
+      ggplot2::annotate("text", x = 0, y = 4, label = sequence_complete[7], family = sequence_font, size = sequence_size) +
+      ggplot2::annotate("text", x = 0, y = 3, label = sequence_complete[8], family = sequence_font, size = sequence_size) +
+      ggplot2::annotate("text", x = 0, y = 2, label = sequence_complete[9], family = sequence_font, size = sequence_size) +
+      ggplot2::annotate("text", x = 0, y = 1, label = sequence_complete[10], family = sequence_font, size = sequence_size) +
+      ggplot2::coord_cartesian(ylim = c(0.5, 10.5), clip = 'on') +
+      ggplot2::theme_void() +
       NULL
 
     if(card == TRUE){
       plot_complete <-
         plot_complete +
-        labs(x = "") +#, title = "Sequence Information", caption = "more ...") +
+        ggplot2::labs(x = "") +#, title = "Sequence Information", caption = "more ...") +
         NULL
     }
 
@@ -428,10 +432,6 @@ make_sequence <- function(sequence_data = proteins,
   tryCatch(make_sequence_raw(),
            error = function(x){make_bomb_plot()})
 }
-
-#make_sequence(input = list(content = "ROCK2"))
-#make_sequence(input = list(content = c("ROCK1", "ROCK2")))
-#make_sequence(input = list(content = "ROCK2"), card = TRUE)
 
 ## PROTEIN DOMAIN PLOT --------------------------------------------------------
 #' Protein Domain Plot
@@ -565,7 +565,7 @@ make_protein_domain_plot <- function(input = list(),
       base_plot +
       theme(axis.text.x = element_text(family = "Roboto Slab", size = 14),
             axis.title.x = element_text(family = "Nunito Sans", size = 18,
-                                        margin = margin(t = 12, b = 12)),
+                                        margin = ggplot2::margin(t = 12, b = 12)),
             legend.position = "right") +
       scale_fill_ddh_d(palette = "protein")
 
@@ -1208,7 +1208,7 @@ make_pubmed <- function(pubmed_data = pubmed,
           size = 4, shape = 21, fill = "white", stroke = 2
         ) +
         theme(
-          plot.margin = margin(7, 180, 7, 7) #adds margin to right side of graph for label #adds margin to right side of graph for label
+          plot.margin = ggplot2::margin(7, 180, 7, 7) #adds margin to right side of graph for label #adds margin to right side of graph for label
         )
     } else {
       plot_complete <-
@@ -1239,7 +1239,7 @@ make_pubmed <- function(pubmed_data = pubmed,
     if(card == TRUE){
       plot_complete <-
         plot_complete +
-        theme(plot.margin = margin(5, 10, 5, 5),
+        theme(plot.margin = ggplot2::margin(5, 10, 5, 5),
               legend.position="none") +
         labs(x = "") +
         NULL
@@ -1303,7 +1303,7 @@ make_cellanatogram <- function(cellanatogram_data = subcell,
       theme_void(base_size = 14) +
       theme(
         text = element_text(family = "Nunito Sans"),
-        plot.margin = margin(5, 10, 5, 5)
+        plot.margin = ggplot2::margin(5, 10, 5, 5)
       ) +
       coord_fixed() +
       scale_fill_ddh_d(palette = "protein") +
@@ -1355,7 +1355,7 @@ make_cellanatogramfacet <- function(cellanatogram_data = subcell,
       theme_void(base_size = 14) +
       theme(
         text = element_text(family = "Nunito Sans", face = "bold"),
-        plot.margin = margin(5, 10, 5, 5),
+        plot.margin = ggplot2::margin(5, 10, 5, 5),
         panel.spacing.y = unit(1.2, "lines")
       ) +
       facet_wrap(~ type, ncol = 3, drop = FALSE) +
@@ -1524,7 +1524,7 @@ make_tissue <- function(tissue_data = tissue,
         geom_col(aes(fill = value), width = .82) +
         scale_fill_ddh_c(palette = "gene", guide = "none") +
         labs(x = paste0(str_c(input$content, collapse = ", "), " Normalized Expression")) +
-        theme(plot.margin = margin(0, 15, 0, 0)) # add some space to avoid cutting of labels
+        theme(plot.margin = ggplot2::margin(0, 15, 0, 0)) # add some space to avoid cutting of labels
     } else {
       plot_complete <-
         plot_draft +
