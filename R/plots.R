@@ -444,12 +444,14 @@ make_sequence <- function(sequence_data = proteins,
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a protein domain plot. If an error is thrown, then will return a bomb plot.
 #'
+#' @importFrom magrittr %>%
+#'
 #' @export
 #' @examples
-#' make_protein_domain_plot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-#' make_protein_domain_plot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+#' make_protein_domain_plot(input = list(content = "ROCK2"), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
+#' make_protein_domain_plot(input = list(content = c("ROCK1", "ROCK2")), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
 #' \dontrun{
-#' make_protein_domain_plot(input = list(type = 'gene', content = 'ROCK1'))
+#' make_protein_domain_plot(input = list(content = "ROCK2"), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
 #' }
 make_protein_domain_plot <- function(input = list(),
                                      domain_data = protein_domains,
@@ -459,31 +461,31 @@ make_protein_domain_plot <- function(input = list(),
   make_protein_domain_plot_raw <- function() {
 
     gene_symbol <- domain_data %>%
-      filter(gene_name %in% input$content) %>%
-      pull(gene_name) %>%
+      dplyr::filter(gene_name %in% input$content) %>%
+      dplyr::pull(gene_name) %>%
       unique()
 
     lengths_data <- domain_data %>%
-      filter(gene_name %in% input$content) %>%
-      filter(!duplicated(gene_name))
+      dplyr::filter(gene_name %in% input$content) %>%
+      dplyr::filter(!duplicated(gene_name))
 
     plot_data <- domain_data %>%
       dplyr::filter(gene_name %in% input$content) %>%
-      mutate(order = 1)
+      dplyr::mutate(order = 1)
 
     prots_dr <- plot_data %>%
-      filter(type %in% c("DOMAIN", "REGION")) %>%
-      drop_na(description)
+      dplyr::filter(type %in% c("DOMAIN", "REGION")) %>%
+      tidyr::drop_na(description)
 
     prots_ptm <- plot_data %>%
-      filter(category == "PTM") %>%
-      drop_na(description)
+      dplyr::filter(category == "PTM") %>%
+      tidyr::drop_na(description)
 
     # Plot
     base_plot <-
-      ggplot() +
-      geom_segment(data = plot_data,
-                   aes(x = 1,
+      ggplot2::ggplot() +
+      ggplot2::geom_segment(data = plot_data,
+                            ggplot2::aes(x = 1,
                        xend = seq_len,
                        y = order,
                        yend = order),
@@ -494,9 +496,9 @@ make_protein_domain_plot <- function(input = list(),
     if(nrow(prots_dr) != 0) {
       base_plot <-
         base_plot +
-        geom_rect(data = prots_dr %>%
-                    filter(description %in% dom_var),
-                  aes(xmin = begin,
+        ggplot2::geom_rect(data = prots_dr %>%
+                    dplyr::filter(description %in% dom_var),
+                    ggplot2::aes(xmin = begin,
                       xmax = end,
                       ymin = order - 1,
                       ymax = order + 1,
@@ -509,30 +511,30 @@ make_protein_domain_plot <- function(input = list(),
     if(nrow(prots_ptm) != 0) {
       base_plot <-
         base_plot +
-        geom_point(data = prots_ptm %>%
-                     filter(description %in% ptm_var),
-                   aes(x = begin,
+        ggplot2::geom_point(data = prots_ptm %>%
+                     dplyr::filter(description %in% ptm_var),
+                     ggplot2::aes(x = begin,
                        y = order + 3,
                        shape = description),
                    size = 8,
                    alpha = 1,
                    color = "black") +
-        geom_segment(data = prots_ptm %>%
-                       filter(description %in% ptm_var),
-                     aes(x = begin,
+        ggplot2::geom_segment(data = prots_ptm %>%
+                       dplyr::filter(description %in% ptm_var),
+                       ggplot2::aes(x = begin,
                          xend = begin,
                          y = order,
                          yend = order + 3),
                      size = 0.5,
                      linetype = 2,
                      color = "black") +
-        scale_y_continuous(limits=c(0,4.1)) + #should be a touch larger than yend
+        ggplot2::scale_y_continuous(limits=c(0,4.1)) + #should be a touch larger than yend
         NULL
     }
 
     wrapped_labels <- function(.seq_len) {
       fun <- function(labels) {
-        labels <- label_value(labels, multi_line = TRUE)
+        labels <- ggplot2::label_value(labels, multi_line = TRUE)
         lapply(labels, function(x) {
           x <- paste0(x, " (", .seq_len, " amino acids)")
           vapply(x, paste, character(1), collapse = "\n")
@@ -543,28 +545,28 @@ make_protein_domain_plot <- function(input = list(),
 
     base_plot <-
       base_plot +
-      labs(x = NULL,
+      ggplot2::labs(x = NULL,
            y = NULL) +
-      facet_wrap(~ gene_name, ncol = 1,
+      ggplot2::facet_wrap(~ gene_name, ncol = 1,
                  labeller = wrapped_labels(.seq_len = lengths_data$seq_len)
       ) +
       theme_ddh(base_size = 16) +
-      theme_void() +
-      theme(
-        legend.title = element_blank(),
-        strip.text = element_text(family = "Chivo", hjust = 0.5, size = 15),
-        plot.title = element_text(family = "Chivo", hjust = 0.5, size = 15),
-        text = element_text(family = "Nunito Sans"),
-        legend.text = element_text(size = 15),
-        axis.text = element_blank(),
-        axis.ticks = element_blank()
+      ggplot2::theme_void() +
+      ggplot2::theme(
+        legend.title = ggplot2::element_blank(),
+        strip.text = ggplot2::element_text(family = "Chivo", hjust = 0.5, size = 15),
+        plot.title = ggplot2::element_text(family = "Chivo", hjust = 0.5, size = 15),
+        text = ggplot2::element_text(family = "Nunito Sans"),
+        legend.text = ggplot2::element_text(size = 15),
+        axis.text = ggplot2::element_blank(),
+        axis.ticks = ggplot2::element_blank()
       ) +
       NULL
 
     plot_complete <-
       base_plot +
-      theme(axis.text.x = element_text(family = "Roboto Slab", size = 14),
-            axis.title.x = element_text(family = "Nunito Sans", size = 18,
+      ggplot2::theme(axis.text.x = ggplot2::element_text(family = "Roboto Slab", size = 14),
+            axis.title.x = ggplot2::element_text(family = "Nunito Sans", size = 18,
                                         margin = ggplot2::margin(t = 12, b = 12)),
             legend.position = "right") +
       scale_fill_ddh_d(palette = "protein")
@@ -578,13 +580,12 @@ make_protein_domain_plot <- function(input = list(),
            error = function(x){make_bomb_plot()})
 }
 
-# #figure legend
-plot_protein_domains_title <- "Protein Domain Plot."
-plot_protein_domains_legend <- "Rectangles represent the locations and size of named protein domains, while black shaped elements represent PTMs. Horizontal line(s) indicate the length of one or more selected proteins."
+make_protein_domain_plot_legend <- function() {
+  title <- "Protein Domain Plot."
+  legend <-  "Rectangles represent the locations and size of named protein domains, while black shaped elements represent PTMs. Horizontal line(s) indicate the length of one or more selected proteins."
 
-# testing
-# make_protein_domain_plot(input = list(content = "ROCK2"), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
-# make_protein_domain_plot(input = list(content = c("ROCK1", "ROCK2")), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
+  return(list(title, legend))
+}
 
 ## RADIAL PLOT -------------------------------------------------------------
 #' Radial Plot
