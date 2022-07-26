@@ -9,6 +9,8 @@
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a pathway list table. If an error is thrown, then will return an empty table.
 #'
+#' @importFrom magrittr %>%
+#'
 #' @export
 #' @examples
 #' make_pathway_list(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
@@ -31,6 +33,8 @@ make_pathway_list <- function(table_name = pathways,
 }
 
 #' Pathway Genes Table
+#'
+#' @importFrom magrittr %>%
 make_pathway_genes <- function(table_name = pathways,
                                table_join = gene_summary,
                                go_id) {
@@ -51,6 +55,8 @@ make_pathway_genes <- function(table_name = pathways,
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a compound Table. If an error is thrown, then will return an empty table.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
@@ -92,6 +98,8 @@ make_compound_table <- function(data_table = prism_cor_nest,
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a pubmed Table. If an error is thrown, then will return an empty table.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
@@ -142,6 +150,8 @@ make_pubmed_table <- function(pubmed_data = pubmed,
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a cellanatogram Table. If an error is thrown, then will return an empty table.
 #'
+#' @importFrom magrittr %>%
+#'
 #' @export
 #' @examples
 #' make_cellanatogram_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
@@ -175,6 +185,8 @@ make_cellanatogram_table <- function(cellanatogram_data = subcell,
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a expression Table. If an error is thrown, then will return an empty table.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
@@ -244,6 +256,8 @@ make_expression_table <- function(expression_data = expression_long,
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a human anatogram Table. If an error is thrown, then will return an empty table.
 #'
+#' @importFrom magrittr %>%
+#'
 #' @export
 #' @examples
 #' make_humananatogram_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
@@ -278,6 +292,8 @@ make_humananatogram_table <- function(humananatogram_data = tissue,
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a clustering Table. If an error is thrown, then will return an empty table.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
@@ -348,6 +364,8 @@ make_clustering_table <- function(cluster_data = sequence_clusters,
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a clustering enrichment Table. If an error is thrown, then will return an empty table.
 #'
+#' @importFrom magrittr %>%
+#'
 #' @export
 #' @examples
 #' make_clustering_enrichment_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
@@ -395,6 +413,9 @@ make_clustering_enrichment_table <- function(cluster_data = sequence_clusters,
 }
 
 ## 3D STRUCTURE TABLE --------------------------------------------------------------------
+#' Plot for 3D protein structure table
+#'
+#'  @importFrom magrittr %>%
 make_structure3d_table <- function(pdb_ids = uniprot_pdb_table,
                                    protein_data = proteins,
                                    input = list()
@@ -424,6 +445,8 @@ make_structure3d_table <- function(pdb_ids = uniprot_pdb_table,
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a dep Table. If an error is thrown, then will return an empty table.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
@@ -502,6 +525,8 @@ make_dep_table <- function(achilles_data = achilles_long,
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a top Table. If an error is thrown, then will return an empty table.
 #'
+#' @importFrom magrittr %>%
+#'
 #' @export
 #' @examples
 #' make_top_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
@@ -559,6 +584,8 @@ make_top_table <- function(toptable_data = master_top_table,
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a bottom Table. If an error is thrown, then will return an empty table.
 #'
+#' @importFrom magrittr %>%
+#'
 #' @export
 #' @examples
 #' make_bottom_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
@@ -609,7 +636,11 @@ make_bottom_table <- function(bottomtable_data = master_bottom_table,
 
 
 ##censor-----
-#censor is used to remove genes from similarity table that are garbage (too many associations)
+#' Censor
+#'
+#' Censor is used to remove genes from similarity table that are garbage (too many associations)
+#'
+#' @importFrom magrittr %>%
 censor <- function(top_table, censor_data = censor_genes, choice = FALSE, greater_than) {
   if(choice == TRUE){
     censor_data <-
@@ -634,6 +665,8 @@ censor <- function(top_table, censor_data = censor_genes, choice = FALSE, greate
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a enrichment top table. If an error is thrown, then will return an empty table.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
@@ -665,6 +698,8 @@ make_enrichment_top <- function(enrichmenttop_data = master_positive,
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a enrichment bottom table. If an error is thrown, then will return an empty table.
 #'
+#' @importFrom magrittr %>%
+#'
 #' @export
 #' @examples
 #' make_enrichment_bottom(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
@@ -687,6 +722,9 @@ make_enrichment_bottom <- function(enrichmentbottom_data = master_negative,
 }
 
 # CELL SUMMARY TABLE ------
+#' Cell Summary Table
+#'
+#' @importFrom magrittr %>%
 make_cell_line_table <- function(cell_data_meta = expression_meta,
                                  input = list()) {
 
@@ -724,6 +762,8 @@ make_cell_line_table <- function(cell_data_meta = expression_meta,
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a cell sim Table. If an error is thrown, then will return an empty table.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
@@ -795,6 +835,7 @@ make_cell_sim_table <- function(cell_sims_dep = cell_line_dep_sim,
 #' \code{make_drug_genes_cor_table} returns an image of ...
 #'
 #' This is a table function that takes a gene name and returns a drug genes cor Table
+#'  @importFrom magrittr %>%
 make_drug_genes_cor_table <- function(table_data = drug_genes_cor_table,
                                       drug) {
   make_drug_genes_cor_table_raw <- function() {
@@ -818,6 +859,8 @@ make_drug_genes_cor_table <- function(table_data = drug_genes_cor_table,
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a gene drugs cor Table. If an error is thrown, then will return an empty table.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
@@ -849,6 +892,8 @@ make_gene_drugs_cor_table <- function(table_data = gene_drugs_cor_table,
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a drug genes Table. If an error is thrown, then will return an empty table.
 #'
+#' @importFrom magrittr %>%
+#'
 #' @export
 #' @examples
 #' make_drug_genes_table(drug = "aspirin")
@@ -873,6 +918,21 @@ make_drug_genes_table <- function(table_data = drug_genes_table,
            error = function(x){make_empty_table()})
 }
 
+#' Gene Drugs Table
+#'
+#' This is a table function that takes a gene name and returns a drug genes Table
+#'
+#' @param input Expecting a list containing type and content variable.
+#' @return If no error, then returns a drug genes Table. If an error is thrown, then will return an empty table.
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' make_gene_drugs_table(inpuit = list(type = "gene", content = "ROCK1"))
+#' \dontrun{
+#' make_gene_drugs_table(inpuit = list(type = "gene", content = "ROCK1"))
+#' }
 make_gene_drugs_table <- function(table_data = gene_drugs_table,
                                   input = list()) {
   make_gene_drugs_table_raw <- function() {
@@ -889,6 +949,9 @@ make_gene_drugs_table <- function(table_data = gene_drugs_table,
            error = function(x){make_empty_table()})
 }
 
+#' Cell Drugs Table
+#'
+#' @importFrom magrittr %>%
 make_cell_drugs_table <- function(table_data = prism_long,
                                   cell_meta = expression_meta,
                                   input = list()) {
@@ -916,6 +979,8 @@ make_cell_drugs_table <- function(table_data = prism_long,
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a metabolite Table. If an error is thrown, then will return an empty table.
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
