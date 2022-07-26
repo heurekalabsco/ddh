@@ -27,7 +27,7 @@ This is a table function that takes a gene name and returns a metabolite Table
 make_metabolite_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 make_metabolite_table(input = list(type = "gene", content = "ROCK2"))
 make_metabolite_table(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
-make_metabolite_table(input = list(type = "compound", content = "aspirin")
+make_metabolite_table(input = list(type = "compound", content = "NAD"))
 make_metabolite_table(input = list(type = "cell", query = "HEPG2", content = "HEPG2"))
 \dontrun{
 make_metabolite_table(input = list(type = 'gene', content = 'ROCK1'))

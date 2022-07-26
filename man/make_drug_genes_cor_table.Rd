@@ -6,21 +6,10 @@
 \usage{
 make_drug_genes_cor_table(table_data = drug_genes_cor_table, drug)
 }
-\arguments{
-\item{input}{Expecting a list containing type and content variable.}
-}
-\value{
-If no error, then returns a drug genes cor Table. If an error is thrown, then will return an empty table.
-}
 \description{
 \code{make_drug_genes_cor_table} returns an image of ...
 }
 \details{
 This is a table function that takes a gene name and returns a drug genes cor Table
-}
-\examples{
-make_drug_genes_cor_table(input = list(content = "aspirin"))
-\dontrun{
-make_drug_genes_cor_table(input = list(content = "aspirin"))
-}
+ @importFrom magrittr %>%
 }
