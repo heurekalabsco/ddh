@@ -21,6 +21,16 @@ make_structure3d(
   elem = NULL
 )
 }
+\arguments{
+\item{input}{Expecting a list containing type and content variable.}
+}
 \description{
 Protein 3D predicted structure rendered in an interactive ribbon diagram.
+}
+\examples{
+make_structure3d(input = list(type = 'gene', content = 'ROCK1'))
+make_structure3d(input = list(type = 'gene', content = 'ROCK2'))
+\dontrun{
+make_structure3d(input = list(type = 'gene', content = 'ROCK1'))
+}
 }

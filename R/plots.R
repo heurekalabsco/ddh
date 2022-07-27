@@ -974,14 +974,17 @@ make_structure <- function(input = list(),
 #'
 #' Protein 3D predicted structure rendered in an interactive ribbon diagram.
 #'
+#' @param input Expecting a list containing type and content variable.
+#'
 #' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
-#' make_structure3d(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-#' make_structure3d(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+#' make_structure3d(input = list(type = 'gene', content = 'ROCK1'))
+#' make_structure3d(input = list(type = 'gene', content = 'ROCK2'))
 #' \dontrun{
 #' make_structure3d(input = list(type = 'gene', content = 'ROCK1'))
+#' }
 make_structure3d <- function(pdb_ids = uniprot_pdb_table,
                              protein_data = proteins,
                              app_data_dir = NULL,
@@ -1079,7 +1082,7 @@ make_structure3d <- function(pdb_ids = uniprot_pdb_table,
 #' @examples
 #' make_pubmed(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_pubmed(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
-#' make_pubmed(input = list(type = "compound", content = "aspirin"))
+#' make_pubmed(input = list(type = 'compound', content = 'aspirin'))
 #' \dontrun{
 #' make_pubmed(input = list(type = 'gene', content = 'ROCK1'))
 #' }
