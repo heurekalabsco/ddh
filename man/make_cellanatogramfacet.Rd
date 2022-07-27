@@ -10,5 +10,5 @@ make_cellanatogramfacet(cellanatogram_data = subcell, input = list())
 Cell Anatogram Facet
 }
 \examples{
-
+make_cellanatogramfacet(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 }
