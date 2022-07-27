@@ -1283,12 +1283,11 @@ make_cellanatogram <- function(cellanatogram_data = subcell,
 
 #' Cell Anatogram Facet
 #'
-#' @export
-#' @examples
-#'
 #' @import gganatogram
 #' @importFrom magrittr %>%
 #'
+#' @export
+#' @examples
 #' make_cellanatogramfacet(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 make_cellanatogramfacet <- function(cellanatogram_data = subcell,
                                     input = list()) {
@@ -1641,9 +1640,19 @@ make_cellexpression <- function(expression_data = expression_long,
 }
 
 # G-EXPvP-EXP ----------------------------------
-#' Gene versus protein in a cell
+#' Gene Expression versus Protein Expression
 #'
-#'  @importFrom magrittr %>%
+#' Each point shows the gene expression value compared to the protein expression value for gene within a given cell line. The Pearson correlation coefficient and the p-values are provided in the top-left corner of the plot.
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' make_cellgeneprotein(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_cellgeneprotein(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+#' \dontrun{
+#' make_cellgeneprotein(input = list(type = 'gene', content = 'ROCK1'))
+#' }
 make_cellgeneprotein <- function(expression_data = expression_long,
                                  expression_join = expression_names,
                                  input = list(),
@@ -1658,7 +1667,7 @@ make_cellgeneprotein <- function(expression_data = expression_long,
         dplyr::select(-X1) %>%
         dplyr::select(cell_line, lineage, lineage_subtype, everything()) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
-        ggplot(aes(x = gene_expression,
+        ggplot2::ggplot(ggplot2::aes(x = gene_expression,
                    y = protein_expression,
                    text = paste0("Cell Line: ", cell_line),
                    color = gene,
@@ -1673,7 +1682,7 @@ make_cellgeneprotein <- function(expression_data = expression_long,
         dplyr::filter(cell_line %in% input$content,
                       !is.na(gene_expression),
                       !is.na(protein_expression)) %>%
-        ggplot(aes(x = gene_expression,
+        ggplot2::ggplot(ggplot2::aes(x = gene_expression,
                    y = protein_expression,
                    text = paste0("Gene: ", gene),
                    color = cell_line,
@@ -1683,10 +1692,10 @@ make_cellgeneprotein <- function(expression_data = expression_long,
 
     plot_complete <-
       plot_initial +
-      geom_point(alpha = 0.4) +
+      ggplot2::geom_point(alpha = 0.4) +
       #add geom to drop linear regression line?
-      geom_hline(yintercept = 0, color = "lightgray") +
-      geom_vline(xintercept = 0, color = "lightgray") +
+      ggplot2::geom_hline(yintercept = 0, color = "lightgray") +
+      ggplot2::geom_vline(xintercept = 0, color = "lightgray") +
       # smooth line
       geom_smooth(method = "lm",
                   se = TRUE) +
@@ -1694,32 +1703,32 @@ make_cellgeneprotein <- function(expression_data = expression_long,
       {if(card == FALSE)ggpubr::stat_cor(digits = 3)} +
       scale_color_ddh_d(palette = input$type) +
       theme_ddh() +
-      theme(
-        text = element_text(family = "Nunito Sans"),
-        axis.text = element_text(family = "Roboto Slab")
+      ggplot2::theme(
+        text = ggplot2::element_text(family = "Nunito Sans"),
+        axis.text = ggplot2::element_text(family = "Roboto Slab")
       ) +
       NULL
 
     if(length(input$content) == 1){
       plot_complete  <-
         plot_complete +
-        labs(x = paste0(input$content, " Gene Expression"), y = paste0(input$content, " Protein Expression")) +
-        theme(legend.position = "none")
+        ggplot2::labs(x = paste0(input$content, " Gene Expression"), y = paste0(input$content, " Protein Expression")) +
+        ggplot2::theme(legend.position = "none")
     } else if(input$type == "gene") {
       plot_complete <-
         plot_complete +
-        labs(x = "Gene Expression", y = "Protein Expression", color = "Query \nGene")
+        ggplot2::labs(x = "Gene Expression", y = "Protein Expression", color = "Query \nGene")
     } else if(input$type == "cell") {
       plot_complete <-
         plot_complete +
-        labs(x = "Gene Expression", y = "Protein Expression", color = "Query \nCell Line")
+        ggplot2::labs(x = "Gene Expression", y = "Protein Expression", color = "Query \nCell Line")
     }
 
     if(card == TRUE){
       plot_complete <-
         plot_complete +
-        labs(x = "", y = "") +
-        theme(legend.position='none')
+        ggplot2::labs(x = "", y = "") +
+        ggplot2::theme(legend.position='none')
     }
     return(plot_complete)
   }
@@ -1728,15 +1737,10 @@ make_cellgeneprotein <- function(expression_data = expression_long,
            error = function(x){make_bomb_plot()})
 }
 
-plot_cellgeneprotein_title <- "Gene Expression versus Protein Expression."
-plot_cellgeneprotein_legend <- "Each point shows the gene expression value compared to the protein expression value for gene within a given cell line. The Pearson correlation coefficient and the p-values are provided in the top-left corner of the plot."
-
 ## CELL DEPS --------------------------------------------------------------------
-#' Cell Dependencies Plot
+#' Dependency Curve Plot
 #'
-#' \code{make_celldeps} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a celldeps plot
+#' Each point shows the ranked dependency score ordered from low to high scores. Dependency scores less than -1 indicate a gene that is essential within a cell line. Dependency scores close to 0 mean no changes in fitness when the gene is knocked out. Dependency scores greater than 1 indicate gene knockouts lead to a gain in fitness.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -1772,8 +1776,8 @@ make_celldeps <- function(celldeps_data = achilles_long,
         dplyr::select(-X1) %>%
         dplyr::group_by(gene) %>%
         dplyr::arrange(dep_score) %>%
-        dplyr:: mutate(
-          rank = 1:n(),
+        dplyr::mutate(
+          rank = 1:dplyr::n(),
           med = median(dep_score, na.rm= TRUE)
         ) %>%
         dplyr::ungroup() %>%
@@ -1812,7 +1816,7 @@ make_celldeps <- function(celldeps_data = achilles_long,
         dplyr::group_by(cell_line) %>%
         dplyr::arrange(dep_score) %>%
         dplyr:: mutate(
-          rank = 1:n(),
+          rank = 1:dplyr::n(),
           med = median(dep_score, na.rm= TRUE)
         ) %>%
         dplyr::ungroup() %>%
@@ -1822,7 +1826,7 @@ make_celldeps <- function(celldeps_data = achilles_long,
     if(!is.null(scale) & !card){
       plot_data <-
         plot_data %>%
-        slice_sample(prop = scale)
+        dplyr::slice_sample(prop = scale)
     }
 
     if(card) {
@@ -1831,44 +1835,44 @@ make_celldeps <- function(celldeps_data = achilles_long,
       }
       if(input$type == "gene") {
         plot_data <- plot_data %>%
-          group_by(name) %>%
-          sample_n(scale*n()) %>%
-          ungroup()
+          dplyr::group_by(name) %>%
+          dplyr::sample_n(scale*dplyr::n()) %>%
+          dplyr::ungroup()
       } else {
         plot_data <- plot_data %>%
-          group_by(cell_line) %>%
-          sample_n(scale*n()) %>%
-          ungroup()
+          dplyr::group_by(cell_line) %>%
+          dplyr::sample_n(scale*dplyr::n()) %>%
+          dplyr::ungroup()
       }
     }
 
     plot_complete <-
       plot_data %>%
-      ggplot(aes(x = rank,
+      ggplot2::ggplot(ggplot2::aes(x = rank,
                  y = dep_score,
                  text = glue::glue('{var_title}: {name}\nCell Line: {cell_line}'),
-                 color = fct_reorder(!!aes_var, med),
-                 fill = fct_reorder(!!aes_var, med)
+                 color = forcats::fct_reorder(!!aes_var, med),
+                 fill = forcats::fct_reorder(!!aes_var, med)
       )) +
       ## dot/line plot
-      {if(!card & !lineplot)geom_point(size = 1.1, stroke = .25, alpha = 0.6)} +
-      {if(input$type == "gene" & (card | lineplot))geom_line(aes(group = name))} +
-      {if(input$type == "cell" & (card | lineplot))geom_line(aes(group = cell_line))} +
+      {if(!card & !lineplot)ggplot2::geom_point(size = 1.1, stroke = .25, alpha = 0.6)} +
+      {if(input$type == "gene" & (card | lineplot))ggplot2::geom_line(ggplot2::aes(group = name))} +
+      {if(input$type == "cell" & (card | lineplot))ggplot2::geom_line(ggplot2::aes(group = cell_line))} +
       ## indicator lines dep. score
-      geom_hline(yintercept = mean) +
-      geom_hline(yintercept = 1, size = .2, color = "grey70", linetype = "dashed") +
-      geom_hline(yintercept = -1, size = .2, color = "grey70", linetype = "dashed") +
-      geom_hline(yintercept = 0, size = .2, color = "grey50") +
+      ggplot2::geom_hline(yintercept = mean) +
+      ggplot2::geom_hline(yintercept = 1, size = .2, color = "grey70", linetype = "dashed") +
+      ggplot2::geom_hline(yintercept = -1, size = .2, color = "grey70", linetype = "dashed") +
+      ggplot2::geom_hline(yintercept = 0, size = .2, color = "grey50") +
       ## scales + legends
       #scale_x_discrete(expand = expansion(mult = 0.02), na.translate = FALSE) +
       scale_color_ddh_d(palette = input$type) +
       scale_fill_ddh_d(palette = input$type) +
-      guides(
-        color = guide_legend(reverse = TRUE, override.aes = list(size = 4, stroke = .8)),
-        fill = guide_legend(reverse = TRUE, override.aes = list(size = 3.8, stroke = .8))
+      ggplot2::guides(
+        color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 4, stroke = .8)),
+        fill = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 3.8, stroke = .8))
       ) +
       ## titles
-      labs(
+      ggplot2::labs(
         x = NULL,
         y = ylab,
         color = "Query",
@@ -1876,12 +1880,12 @@ make_celldeps <- function(celldeps_data = achilles_long,
       ) +
       ## theme changes
       theme_ddh() +
-      theme(
-        text = element_text(family = "Nunito Sans"),
-        axis.text = element_text(family = "Roboto Slab"),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        axis.line.x = element_blank()
+      ggplot2::theme(
+        text = ggplot2::element_text(family = "Nunito Sans"),
+        axis.text = ggplot2::element_text(family = "Roboto Slab"),
+        axis.text.x = ggplot2::element_blank(),
+        axis.ticks.x = ggplot2::element_blank(),
+        axis.line.x = ggplot2::element_blank()
       ) +
       NULL
 
@@ -1889,7 +1893,7 @@ make_celldeps <- function(celldeps_data = achilles_long,
     if(length(input$content) == 1){
       plot_complete  <-
         plot_complete +
-        theme(legend.position = "none")
+        ggplot2::theme(legend.position = "none")
       plot_complete
     } else {
       plot_complete
@@ -1898,8 +1902,8 @@ make_celldeps <- function(celldeps_data = achilles_long,
     if(card == TRUE){
       plot_complete <-
         plot_complete +
-        labs(x = "") +
-        theme(legend.position = "none")
+        ggplot2::labs(x = "") +
+        ggplot2::theme(legend.position = "none")
     }
 
     return(plot_complete)
@@ -1909,28 +1913,10 @@ make_celldeps <- function(celldeps_data = achilles_long,
            error = function(x){make_bomb_plot()})
 }
 
-#figure legend
-plot_celldeps_title <- "Dependency Curve."
-plot_celldeps_legend <- "Each point shows the ranked dependency score ordered from low to high scores. Dependency scores less than -1 indicate a gene that is essential within a cell line. Dependency scores close to 0 mean no changes in fitness when the gene is knocked out. Dependency scores greater than 1 indicate gene knockouts lead to a gain in fitness."
-
-#test
-#make_celldeps(input = list(type = "gene", query = "ROCK1", content = c("ROCK1", "ROCK2")), mean = mean_virtual_achilles)
-#make_celldeps(input = list(type = "gene", query = "ROCK1", content = c("ROCK1")), mean = mean_virtual_achilles, card = TRUE)
-#make_celldeps(input = list(type = "compound", query = "aspirin", content = "aspirin"), mean = mean_virtual_achilles_cell_line)
-#make_celldeps(input = list(type = "cell", query = "HEPG2", content = "HEPG2"), card = TRUE)
-#make_celldeps(input = list(type = "cell", query = "HEPG2", content = "HEPG2"), scale = 0.5)
-#make_celldeps() #error
-
-# tic()
-# make_celldeps(input = list(type = "cell", query = "HEPG2", content = "HEPG2"), scale = 0.01)
-# toc()
-
 ## BAR PLOT --------------------------------------------------------------------
 #' Cell Dependencies Bar Plot
 #'
-#' \code{make_cellbar} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a cellbar plot
+#' Each bar shows the dependency scores of the queried genes in a cell line. Dependency scores less than -1 indicate a gene that is essential within a cell line. Dependency scores close to 0 mean no changes in fitness when the gene is knocked out. Dependency scores greater than 1 indicate gene knockouts lead to a gain in fitness.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -1949,7 +1935,6 @@ make_cellbar <- function(celldeps_data = achilles_long,
                          prism_data = prism_long,
                          expression_data = expression_names,
                          input = list(),
-                         mean,
                          card = FALSE,
                          scale = NULL) {
   make_cellbar_raw <- function() {
@@ -1966,13 +1951,13 @@ make_cellbar <- function(celldeps_data = achilles_long,
         dplyr::select(-X1) %>%
         dplyr::group_by(gene) %>%
         dplyr::arrange(dep_score) %>%
-        dplyr:: mutate(
-          rank = 1:n(),
+        dplyr::mutate(
+          rank = 1:dplyr::n(),
           med = median(dep_score, na.rm= TRUE)
         ) %>%
         dplyr::ungroup() %>%
         dplyr::rename(name = gene) %>%
-        mutate(rank = as.integer(fct_reorder(cell_line, dep_score)))
+        dplyr::mutate(rank = as.integer(forcats::fct_reorder(cell_line, dep_score)))
 
     } else if(input$type == "compound") {
       aes_var <- rlang::sym("name")
@@ -1987,13 +1972,13 @@ make_cellbar <- function(celldeps_data = achilles_long,
         dplyr::select(-1) %>%
         dplyr::group_by(name) %>%
         dplyr::arrange(log2fc) %>%
-        dplyr:: mutate(
-          rank = 1:n(),
+        dplyr::mutate(
+          rank = 1:dplyr::n(),
           med = median(log2fc, na.rm= TRUE)
         ) %>%
         dplyr::ungroup() %>%
         dplyr::rename(dep_score = log2fc) %>% #rename for graph
-        mutate(rank = as.integer(fct_reorder(name, dep_score)))
+        dplyr::mutate(rank = as.integer(forcats::fct_reorder(name, dep_score)))
 
     } else { #cell lines
       aes_var <- rlang::sym("cell_line")
@@ -2008,13 +1993,13 @@ make_cellbar <- function(celldeps_data = achilles_long,
         dplyr::select(-X1) %>%
         dplyr::group_by(cell_line) %>%
         dplyr::arrange(dep_score) %>%
-        dplyr:: mutate(
-          rank = 1:n(),
+        dplyr::mutate(
+          rank = 1:dplyr::n(),
           med = median(dep_score, na.rm= TRUE)
         ) %>%
         dplyr::ungroup() %>%
         dplyr::rename(name = gene) %>%
-        mutate(rank = as.integer(fct_reorder(name, dep_score)))
+        dplyr::mutate(rank = as.integer(forcats::fct_reorder(name, dep_score)))
 
     }
 
@@ -2024,42 +2009,42 @@ make_cellbar <- function(celldeps_data = achilles_long,
       }
       if(input$type == "gene") {
         plot_data <- plot_data %>%
-          group_by(name) %>%
-          sample_n(scale*n()) %>%
-          ungroup()
+          dplyr::group_by(name) %>%
+          dplyr::sample_n(scale*dplyr::n()) %>%
+          dplyr::ungroup()
       } else {
         plot_data <- plot_data %>%
-          group_by(cell_line) %>%
-          sample_n(scale*n()) %>%
-          ungroup()
+          dplyr::group_by(cell_line) %>%
+          dplyr::sample_n(scale*dplyr::n()) %>%
+          dplyr::ungroup()
       }
     }
 
     plot_complete <-
       plot_data %>%
-      ggplot(aes(x = rank,
+      ggplot2::ggplot(ggplot2::aes(x = rank,
                  y = dep_score,
                  text = glue::glue('{var_title}: {name}\nCell Line: {cell_line}'),
-                 color = fct_reorder(!!aes_var, med),
-                 fill = fct_reorder(!!aes_var, med)
+                 color = forcats::fct_reorder(!!aes_var, med),
+                 fill = forcats::fct_reorder(!!aes_var, med)
       )) +
       ## bar plot
-      geom_bar(stat = "identity", width = 0.5) +
+      ggplot2::geom_bar(stat = "identity", width = 0.5) +
       ## indicator lines dep. score
-      geom_hline(yintercept = mean) +
-      geom_hline(yintercept = 1, size = .2, color = "grey70", linetype = "dashed") +
-      geom_hline(yintercept = -1, size = .2, color = "grey70", linetype = "dashed") +
-      geom_hline(yintercept = 0, size = .2, color = "grey50") +
+      ggplot2::geom_hline(yintercept = mean) +
+      ggplot2::geom_hline(yintercept = 1, size = .2, color = "grey70", linetype = "dashed") +
+      ggplot2::geom_hline(yintercept = -1, size = .2, color = "grey70", linetype = "dashed") +
+      ggplot2::geom_hline(yintercept = 0, size = .2, color = "grey50") +
       ## scales + legends
-      scale_x_discrete(expand = expansion(mult = 0.02), na.translate = FALSE) +
+      ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = 0.02), na.translate = FALSE) +
       scale_color_ddh_d(palette = input$type) +
       scale_fill_ddh_d(palette = input$type) +
-      guides(
-        color = guide_legend(reverse = TRUE, override.aes = list(size = 4, stroke = .8)),
-        fill = guide_legend(reverse = TRUE, override.aes = list(size = 3.8, stroke = .8))
+      ggplot2::guides(
+        color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 4, stroke = .8)),
+        fill = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 3.8, stroke = .8))
       ) +
       ## titles
-      labs(
+      ggplot2::labs(
         x = NULL,
         y = ylab,
         color = "Query",
@@ -2067,12 +2052,12 @@ make_cellbar <- function(celldeps_data = achilles_long,
       ) +
       ## theme changes
       theme_ddh() + #base_size = 15 default
-      theme(
-        text = element_text(family = "Nunito Sans"),
-        axis.text = element_text(family = "Roboto Slab"),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        axis.line.x = element_blank()
+      ggplot2::theme(
+        text = ggplot2::element_text(family = "Nunito Sans"),
+        axis.text = ggplot2::element_text(family = "Roboto Slab"),
+        axis.text.x = ggplot2::element_blank(),
+        axis.ticks.x = ggplot2::element_blank(),
+        axis.line.x = ggplot2::element_blank()
       ) +
       NULL
 
@@ -2080,14 +2065,14 @@ make_cellbar <- function(celldeps_data = achilles_long,
     if(length(input$content) == 1){
       plot_complete  <-
         plot_complete +
-        theme(legend.position = "none")
+        ggplot2::theme(legend.position = "none")
     }
 
     if(card == TRUE){
       plot_complete <-
         plot_complete +
-        labs(x = "") +
-        theme(legend.position = "none")
+        ggplot2::labs(x = "") +
+        ggplot2::theme(legend.position = "none")
     }
 
     return(plot_complete)
@@ -2097,20 +2082,10 @@ make_cellbar <- function(celldeps_data = achilles_long,
            error = function(x){make_bomb_plot()})
 }
 
-#figure legend
-plot_cellbar_title <- "Dependency Bar Plot."
-plot_cellbar_legend <- "Each bar shows the dependency scores of the queried genes in a cell line. Dependency scores less than -1 indicate a gene that is essential within a cell line. Dependency scores close to 0 mean no changes in fitness when the gene is knocked out. Dependency scores greater than 1 indicate gene knockouts lead to a gain in fitness."
-
-#test
-# make_cellbar(input = list(type = "gene", query = "ROCK1", content = c("ROCK1", "ROCK2")), mean = mean_virtual_achilles)
-
-
 ## DENSITY PLOT ----------------------------------------------------------------
 #' Cell Dependencies Density Plot
 #'
-#' \code{make_cellbins} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a cellbins plot
+#' Kernel density estimate of dependency scores. Dependency scores across all cell lines for queried genes, revealing overall influence of a gene on cellular fitness. The interval indicates the 95% quantile of the data, the dot indicates the median dependency score. The gray background highlights weak dependency values between -1 and 1.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -2120,6 +2095,7 @@ plot_cellbar_legend <- "Each bar shows the dependency scores of the queried gene
 #'
 #' @export
 #' @examples
+#'
 #' make_cellbins(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_cellbins(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' \dontrun{
@@ -2158,8 +2134,8 @@ make_cellbins <- function(cellbins_data = achilles_long,
         dplyr::select(-1) %>%
         dplyr::group_by(name) %>%
         dplyr::arrange(log2fc) %>%
-        dplyr:: mutate(
-          rank = 1:n(),
+        dplyr::mutate(
+          rank = 1:dplyr::n(),
           med = median(log2fc, na.rm= TRUE)
         ) %>%
         dplyr::ungroup() %>%
@@ -2190,72 +2166,72 @@ make_cellbins <- function(cellbins_data = achilles_long,
     plot_complete <-
       plot_data %>%
       dplyr::filter(!is.na(dep_score)) %>%
-      ggplot() +
+      ggplot2::ggplot() +
       ## annotation range -1 to 1
-      geom_rect(
+      ggplot2::geom_rect(
         xmin = -1, xmax = 1,
         ymin = -Inf, ymax = Inf,
         fill = "grey95",
         show.legend = FALSE
       ) +
       ## indicator line y axis
-      geom_linerange(
-        aes(xmin = -Inf, xmax = med,
-            y = fct_reorder(!!aes_var, -med),
+      ggplot2::geom_linerange(
+        ggplot2::aes(xmin = -Inf, xmax = med,
+            y = forcats::fct_reorder(!!aes_var, -med),
             color = med < -1),
         linetype = "dotted",
         size = .2,
         show.legend = FALSE
       ) +
       ## density curves via {ggdist}
-      stat_halfeye(aes(x = dep_score,
-                       y = fct_reorder(!!aes_var, -med),
+      ggdist::stat_halfeye(ggplot2::aes(x = dep_score,
+                       y = forcats::fct_reorder(!!aes_var, -med),
                        fill = stat(abs(x) > 1),
-                       point_fill = after_scale(fill)),
+                       point_fill = ggplot2::after_scale(fill)),
                    .width = c(.025, .975),
                    color = "black",
                    shape = 21,
                    stroke = .7,
                    point_size = 2) +
       ## zero line
-      geom_vline(
+      ggplot2::geom_vline(
         xintercept = 0,
         color = "grey80",
         linetype = "dashed",
         show.legend = FALSE
       ) +
       ## titles
-      labs(
+      ggplot2::labs(
         x = xlab,
         y = NULL,
         color = "Query",
         fill = "Query"
       ) +
       ## scales + legends
-      scale_y_discrete(expand = c(.03, .03)) +
-      scale_color_manual(values = c("grey70", colors)) +
-      scale_fill_manual(values = c("grey70", colors)) +
-      guides(
-        color = guide_legend(size = 1, reverse = TRUE),
-        fill = guide_legend(size = 1, reverse = TRUE)
+      ggplot2::scale_y_discrete(expand = c(.03, .03)) +
+      ggplot2::scale_color_manual(values = c("grey70", colors)) +
+      ggplot2::scale_fill_manual(values = c("grey70", colors)) +
+      ggplot2::guides(
+        color = ggplot2::guide_legend(size = 1, reverse = TRUE),
+        fill = ggplot2::guide_legend(size = 1, reverse = TRUE)
       ) +
       ## theme changes
       theme_ddh() +
-      theme(
-        text = element_text(family = "Nunito Sans"),
+      ggplot2::theme(
+        text = ggplot2::element_text(family = "Nunito Sans"),
         legend.position = "none",
-        axis.line.y = element_blank(),
-        axis.ticks.y = element_blank(),
-        axis.text = element_text(family = "Roboto Slab", size = 18),
-        axis.text.x = element_text(size = 12, color = "grey30"),
-        axis.title = element_text(size = 15)
+        axis.line.y = ggplot2::element_blank(),
+        axis.ticks.y = ggplot2::element_blank(),
+        axis.text = ggplot2::element_text(family = "Roboto Slab", size = 18),
+        axis.text.x = ggplot2::element_text(size = 12, color = "grey30"),
+        axis.title = ggplot2::element_text(size = 15)
       ) +
       NULL
 
     if(card) {
       plot_complete <-
         plot_complete +
-        labs(x = "") + #too long of a xlabel
+        ggplot2::labs(x = "") + #too long of a xlabel
         NULL
     }
     return(plot_complete)
@@ -2265,21 +2241,10 @@ make_cellbins <- function(cellbins_data = achilles_long,
            error = function(x){make_bomb_plot()})
 }
 
-#figure legend
-plot_cellbins_title <- "Computed Densities."
-plot_cellbins_legend <- "Kernel density estimate of dependency scores. Dependency scores across all cell lines for queried genes, revealing overall influence of a gene on cellular fitness. The interval indicates the 95% quantile of the data, the dot indicates the median dependency score. The gray background highlights weak dependency values between -1 and 1."
-
-#test
-#make_cellbins(input = list(type = "gene", query = "ROCK1", content = c("ROCK1", "ROCK2")))
-#make_cellbins(input = list(type = "compound", query = "aspirin", content = "aspiri"))
-#make_cellbins(input = list(type = "cell", query = "HEPG2", content = "HEPG2"))
-
 ## LINEAGE LINERANGE PLOT ------------------------------------------------------
 #' Dependency Lineage Plot
 #'
-#' \code{make_lineage} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a lineage plot
+#' Each point shows the mean dependency score for the gene query within a given cell lineage. The intervals show the 5% quantiles centered on the median, the interquartile ranges, and the 95% quantiles. The gray background highlights weak dependency values between -1 and 1.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -2290,6 +2255,7 @@ plot_cellbins_legend <- "Kernel density estimate of dependency scores. Dependenc
 #' @export
 #' @examples
 #' make_lineage(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_lineage(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), highlight = TRUE)
 #' make_lineage(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' \dontrun{
 #' make_lineage(input = list(type = 'gene', content = 'ROCK1'))
@@ -2303,7 +2269,7 @@ make_lineage <- function(celldeps_data = achilles_long,
   make_lineage_raw <- function() {
     if(input$type == "gene" ) {
       xlab <- "Dependency Score"
-      title_var <- glue::glue('Cell lineage dependencies for {str_c(input$content, collapse = ", ")}')
+      title_var <- glue::glue('Cell lineage dependencies for {stringr::str_c(input$content, collapse = ", ")}')
 
       data_full <-
         celldeps_data %>% #plot setup
@@ -2311,8 +2277,8 @@ make_lineage <- function(celldeps_data = achilles_long,
         dplyr::left_join(expression_data, by = "X1") %>%
         dplyr::select(-X1) %>%
         dplyr::mutate_at("lineage", function(str) {
-          str <- str_replace_all(str, "\\_", " ")
-          str <- str_to_title(str)
+          str <- stringr::str_replace_all(str, "\\_", " ")
+          str <- stringr::str_to_title(str)
           return(str)
         }) %>%
         tidyr::drop_na(lineage) %>%
@@ -2320,7 +2286,7 @@ make_lineage <- function(celldeps_data = achilles_long,
         dplyr::group_by(lineage) %>%
         dplyr::mutate(mean = mean(dep_score)) %>%
         dplyr::ungroup() %>%
-        dplyr::mutate(lineage = fct_reorder(lineage, -mean))
+        dplyr::mutate(lineage = forcats::fct_reorder(lineage, -mean))
 
       data_mean <- data_full %>%
         dplyr::group_by(lineage) %>%
@@ -2328,7 +2294,7 @@ make_lineage <- function(celldeps_data = achilles_long,
 
     } else if(input$type == "compound") {
       xlab <- "Log2FC"
-      title_var <- glue::glue('Cell lineage dependencies for {str_c(input$content, collapse = ", ")}')
+      title_var <- glue::glue('Cell lineage dependencies for {stringr::str_c(input$content, collapse = ", ")}')
 
       data_full <-
         prism_data %>% #plot setup
@@ -2336,8 +2302,8 @@ make_lineage <- function(celldeps_data = achilles_long,
         dplyr::left_join(expression_data, by = c("x1" = "X1")) %>%
         dplyr::select(-1) %>%
         dplyr::mutate_at("lineage", function(str) {
-          str <- str_replace_all(str, "\\_", " ")
-          str <- str_to_title(str)
+          str <- stringr::str_replace_all(str, "\\_", " ")
+          str <- stringr::str_to_title(str)
           return(str)
         }) %>%
         tidyr::drop_na(lineage) %>%
@@ -2345,7 +2311,7 @@ make_lineage <- function(celldeps_data = achilles_long,
         dplyr::group_by(lineage) %>%
         dplyr::mutate(mean = mean(log2fc)) %>%
         dplyr::ungroup() %>%
-        dplyr::mutate(lineage = fct_reorder(lineage, -mean)) %>%
+        dplyr::mutate(lineage = forcats::fct_reorder(lineage, -mean)) %>%
         dplyr::rename(dep_score = log2fc) #rename for graph
 
       data_mean <-
@@ -2360,12 +2326,12 @@ make_lineage <- function(celldeps_data = achilles_long,
 
     if(highlight) {
       stats_data <- data_full %>%
-        group_by(lineage) %>%
-        filter(n() > 1) %>%
-        ungroup() %>%
+        dplyr::group_by(lineage) %>%
+        dplyr::filter(dplyr::n() > 1) %>%
+        dplyr::ungroup() %>%
         ggpubr::compare_means(dep_score ~ lineage, data = .,
                               ref.group = ".all.", method = "t.test") %>%
-        filter(p.adj < 0.05)
+        dplyr::filter(p.adj < 0.05)
     }
 
     if(card) {
@@ -2378,7 +2344,7 @@ make_lineage <- function(celldeps_data = achilles_long,
     plot_complete <-
       data_mean %>%
       {if(card)dplyr::filter(., lineage %in% most_negative) else .} %>%
-      ggplot(aes(dep_score, lineage)) +
+      ggplot2::ggplot(aes(dep_score, lineage)) +
       ## annotation range -1 to 1
       # geom_rect(
       #   xmin = -1, xmax = 1,
@@ -2386,32 +2352,32 @@ make_lineage <- function(celldeps_data = achilles_long,
       #   fill = "grey95"
       # ) +
       ## zero line
-      geom_vline(
+      ggplot2::geom_vline(
         xintercept = 0,
         color = "grey80",
         linetype = "dashed"
       ) +
       ## indicator lines lineages
-      geom_linerange(
-        aes(xmin = -Inf, xmax = dep_score),
+      ggplot2::geom_linerange(
+        ggplot2::aes(xmin = -Inf, xmax = dep_score),
         color = "grey60",
         linetype = "dotted"
       ) +
       ## lineranges as "boxplots"
-      stat_interval(
+      ggdist::stat_interval(
         data = data_full %>% {if(card)dplyr::filter(., lineage %in% most_negative) else .},
         orientation = "horizontal",
         .width = c(.05, .5, .95)
       ) +
       ## dot indicating mean
-      geom_point(
+      ggplot2::geom_point(
         color = "black", fill = "white",
         shape = 21, stroke = .5,
         size = 1.8
       ) +
       ## scales + legends
-      scale_x_continuous(
-        sec.axis = dup_axis()
+      ggplot2::scale_x_continuous(
+        sec.axis = ggplot2::dup_axis()
       ) +
       scale_color_ddh_d(
         palette = input$type,
@@ -2419,24 +2385,24 @@ make_lineage <- function(celldeps_data = achilles_long,
         labels = c("95%", "50%", "5%"),#of the data fall in these ranges
         name = ""
       ) +
-      guides(color = guide_legend(reverse = TRUE)) +
+      ggplot2::guides(color = ggplot2::guide_legend(reverse = TRUE)) +
       ## titles
-      labs(
+      ggplot2::labs(
         x = xlab,
         y = NULL #,
         #title = title_var
       ) +
-      {if(highlight)gghighlight(lineage %in% stats_data$group2, use_direct_label = FALSE)} + # toggle
+      {if(highlight)gghighlight::gghighlight(lineage %in% stats_data$group2, use_direct_label = FALSE)} + # toggle
       ## theme changes
       theme_ddh(grid = "none") +
-      theme(
+      ggplot2::theme(
         legend.position = "top",
-        axis.line.y = element_blank(),
-        axis.ticks.y = element_blank(),
-        axis.text = element_text(family = "Roboto Slab"),
-        axis.text.x = element_text(size = 12, color = "grey30"),
-        axis.title = element_text(size = 15),
-        axis.title.x.bottom = element_blank(),
+        axis.line.y = ggplot2::element_blank(),
+        axis.ticks.y = ggplot2::element_blank(),
+        axis.text = ggplot2::element_text(family = "Roboto Slab"),
+        axis.text.x = ggplot2::element_text(size = 12, color = "grey30"),
+        axis.title = ggplot2::element_text(size = 15),
+        axis.title.x.bottom = ggplot2::element_blank(),
         plot.title.position = "plot"
       ) +
       NULL
@@ -2444,9 +2410,9 @@ make_lineage <- function(celldeps_data = achilles_long,
     if(card) {
       plot_complete <-
         plot_complete +
-        scale_y_discrete(labels = scales::label_wrap(10)) + #to prevent long lines and squished plots
-        scale_x_continuous(breaks = scales::breaks_extended(n = 3)) +
-        theme(plot.title = element_blank())
+        ggplot2::scale_y_discrete(labels = scales::label_wrap(10)) + #to prevent long lines and squished plots
+        ggplot2::scale_x_continuous(breaks = scales::breaks_extended(n = 3)) +
+        ggplot2::theme(plot.title = ggplot2::element_blank())
     }
     return(plot_complete)
   }
@@ -2455,21 +2421,10 @@ make_lineage <- function(celldeps_data = achilles_long,
            error = function(x){make_bomb_plot()})
 }
 
-#figure legend
-plot_celllin_title <- "Cell Line Lineage Dependencies."
-plot_celllin_legend <- "Each point shows the mean dependency score for the gene query within a given cell lineage. The intervals show the 5% quantiles centered on the median, the interquartile ranges, and the 95% quantiles. The gray background highlights weak dependency values between -1 and 1."
-
-#make_lineage(input = list(type = "gene", content = c("ROCK2")))
-#make_lineage(input = list(type = "gene", content = c("ROCK2")), card = TRUE)
-#make_lineage(input = list(type = "gene", query = "ROCK1", content = c("ROCK1", "ROCK2")))
-#make_lineage(input = list(type = "compound", query = "aspirin", content = "aspirin"))
-
 ## SUBLINE RANGE PLOT ---------------------------------------------------
 #' Cell Dependency Sublineage Plot
 #'
-#' \code{make_sublineage} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a sublineage plot
+#' Each point shows the mean dependency score for the gene query within a given cell lineage. The intervals show the 5% quantiles centered on the median, the interquartile ranges, and the 95% quantiles. The gray background highlights weak dependency values between -1 and 1.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -2480,6 +2435,7 @@ plot_celllin_legend <- "Each point shows the mean dependency score for the gene 
 #' @export
 #' @examples
 #' make_sublineage(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_sublineage(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), highlight = TRUE)
 #' make_sublineage(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' \dontrun{
 #' make_sublineage(input = list(type = 'gene', content = 'ROCK1'))
@@ -2493,7 +2449,7 @@ make_sublineage <- function(celldeps_data = achilles_long,
   make_sublineage_raw <- function() {
     if(input$type == "gene") {
       xlab <- "Dependency Score"
-      title_var <- glue::glue('Cell sub-lineage dependencies for {str_c(input$content, collapse = ", ")}')
+      title_var <- glue::glue('Cell sub-lineage dependencies for {stringr::str_c(input$content, collapse = ", ")}')
 
       data_full <-
         celldeps_data %>% #plot setup
@@ -2501,8 +2457,8 @@ make_sublineage <- function(celldeps_data = achilles_long,
         dplyr::left_join(expression_data, by = "X1") %>%
         dplyr::select(-X1) %>%
         dplyr::mutate_at("lineage_subtype", function(str) {
-          str <- str_replace_all(str, "\\_", " ")
-          str <- if_else(str_detect(str, "^[:lower:]"), str_to_title(str), str)
+          str <- stringr::str_replace_all(str, "\\_", " ")
+          str <- dplyr::if_else(stringr::str_detect(str, "^[:lower:]"), stringr::str_to_title(str), str)
           return(str)
         })  %>%
         tidyr::drop_na(lineage_subtype) %>%
@@ -2510,7 +2466,7 @@ make_sublineage <- function(celldeps_data = achilles_long,
         dplyr::group_by(lineage_subtype) %>%
         dplyr::mutate(mean = mean(dep_score)) %>%
         dplyr::ungroup() %>%
-        dplyr::mutate(lineage_subtype = fct_reorder(lineage_subtype, -mean))
+        dplyr::mutate(lineage_subtype = forcats::fct_reorder(lineage_subtype, -mean))
 
       data_mean <- data_full %>%
         dplyr::group_by(lineage_subtype) %>%
@@ -2518,7 +2474,7 @@ make_sublineage <- function(celldeps_data = achilles_long,
 
     } else if(input$type == "compound") {
       xlab <- "Log2FC"
-      title_var <- glue::glue('Cell sub-lineage dependencies for {str_c(input$content, collapse = ", ")}')
+      title_var <- glue::glue('Cell sub-lineage dependencies for {stringr::str_c(input$content, collapse = ", ")}')
 
       data_full <-
         prism_data %>% #plot setup
@@ -2526,8 +2482,8 @@ make_sublineage <- function(celldeps_data = achilles_long,
         dplyr::left_join(expression_data, by = c("x1" = "X1")) %>%
         dplyr::select(-1) %>%
         dplyr::mutate_at("lineage_subtype", function(str) {
-          str <- str_replace_all(str, "\\_", " ")
-          str <- if_else(str_detect(str, "^[:lower:]"), str_to_title(str), str)
+          str <- stringr::str_replace_all(str, "\\_", " ")
+          str <- dplyr::if_else(stringr::str_detect(str, "^[:lower:]"), stringr::str_to_title(str), str)
           return(str)
         })  %>%
         tidyr::drop_na(lineage_subtype) %>%
@@ -2535,7 +2491,7 @@ make_sublineage <- function(celldeps_data = achilles_long,
         dplyr::group_by(lineage_subtype) %>%
         dplyr::mutate(mean = mean(log2fc)) %>%
         dplyr::ungroup() %>%
-        dplyr::mutate(lineage_subtype = fct_reorder(lineage_subtype, -mean)) %>%
+        dplyr::mutate(lineage_subtype = forcats::fct_reorder(lineage_subtype, -mean)) %>%
         dplyr::rename(dep_score = log2fc) #rename for graph
 
       data_mean <- data_full %>%
@@ -2549,12 +2505,12 @@ make_sublineage <- function(celldeps_data = achilles_long,
 
     if(highlight) {
       stats_data <- data_full %>%
-        group_by(lineage_subtype) %>%
-        filter(n() > 1) %>%
-        ungroup() %>%
+        dplyr::group_by(lineage_subtype) %>%
+        dplyr::filter(dplyr::n() > 1) %>%
+        dplyr::ungroup() %>%
         ggpubr::compare_means(dep_score ~ lineage_subtype, data = .,
                               ref.group = ".all.", method = "t.test") %>%
-        filter(p.adj < 0.05)
+        dplyr::filter(p.adj < 0.05)
     }
 
     if(card) {
@@ -2567,7 +2523,7 @@ make_sublineage <- function(celldeps_data = achilles_long,
     plot_complete <-
       data_mean %>%
       {if(card)dplyr::filter(., lineage_subtype %in% most_negative) else .} %>%
-      ggplot(aes(dep_score, lineage_subtype)) +
+      ggplot2::ggplot(ggplot2::aes(dep_score, lineage_subtype)) +
       ## annotation range -1 to 1
       # geom_rect(
       #   xmin = -1, xmax = 1,
@@ -2575,32 +2531,32 @@ make_sublineage <- function(celldeps_data = achilles_long,
       #   fill = "grey95"
       # ) +
       ## zero line
-      geom_vline(
+      ggplot2::geom_vline(
         xintercept = 0,
         color = "grey80",
         linetype = "dashed"
       ) +
       ## indicator lines sublineages
-      geom_linerange(
+      ggplot2::geom_linerange(
         aes(xmin = -Inf, xmax = dep_score),
         color = "grey60",
         linetype = "dotted"
       ) +
       ## lineranges as "boxplots"
-      stat_interval(
+      ggdist::stat_interval(
         data = data_full %>% {if(card)dplyr::filter(., lineage_subtype %in% most_negative) else .},
         orientation = "horizontal",
         .width = c(.05, .5, .95)
       ) +
       ## dot indicating mean
-      geom_point(
+      ggplot2::geom_point(
         color = "black", fill = "white",
         shape = 21, stroke = .5,
         size = 1.8
       ) +
       ## scales + legends
-      scale_x_continuous(
-        sec.axis = dup_axis()
+      ggplot2::scale_x_continuous(
+        sec.axis = ggplot2::dup_axis()
       ) +
       scale_color_ddh_d(
         palette = input$type,
@@ -2608,24 +2564,24 @@ make_sublineage <- function(celldeps_data = achilles_long,
         labels = c("95%", "50%", "5%"), #of the data fall in these ranges
         name = ""
       ) +
-      guides(color = guide_legend(reverse = TRUE)) +
+      ggplot2::guides(color = ggplot2::guide_legend(reverse = TRUE)) +
       ## titles
-      labs(
+      ggplot2::labs(
         x = xlab,
         y = NULL #,
         #title = title_var
       ) +
-      {if(highlight)gghighlight(lineage_subtype %in% stats_data$group2, use_direct_label = FALSE)} + # toggle
+      {if(highlight)gghighlight::gghighlight(lineage_subtype %in% stats_data$group2, use_direct_label = FALSE)} + # toggle
       ## theme changes
       theme_ddh(grid = "none") +
-      theme(
+      ggplot2::theme(
         legend.position = "top",
-        axis.line.y = element_blank(),
-        axis.ticks.y = element_blank(),
-        axis.text = element_text(family = "Roboto Slab"),
-        axis.text.x = element_text(size = 12, color = "grey30"),
-        axis.title = element_text(size = 15),
-        axis.title.x.bottom = element_blank(),
+        axis.line.y = ggplot2::element_blank(),
+        axis.ticks.y = ggplot2::element_blank(),
+        axis.text = ggplot2::element_text(family = "Roboto Slab"),
+        axis.text.x = ggplot2::element_text(size = 12, color = "grey30"),
+        axis.title = ggplot2::element_text(size = 15),
+        axis.title.x.bottom = ggplot2::element_blank(),
         plot.title.position = "plot"
       ) +
       NULL
@@ -2633,9 +2589,9 @@ make_sublineage <- function(celldeps_data = achilles_long,
     if(card == TRUE) {
       plot_complete <-
         plot_complete +
-        scale_y_discrete(labels = scales::label_wrap(10)) + #to prevent long lines and squished plots
-        scale_x_continuous(breaks = scales::breaks_extended(n = 3)) +
-        theme(plot.title = element_blank())
+        ggplot2::scale_y_discrete(labels = scales::label_wrap(10)) + #to prevent long lines and squished plots
+        ggplot2::scale_x_continuous(breaks = scales::breaks_extended(n = 3)) +
+        ggplot2::theme(plot.title = ggplot2::element_blank())
     }
 
     return(plot_complete)
@@ -2644,10 +2600,6 @@ make_sublineage <- function(celldeps_data = achilles_long,
   tryCatch(make_sublineage_raw(),
            error = function(x){make_bomb_plot()})
 }
-
-#figure legend
-plot_cellsublin_title <- "Cell Line Sub-Lineage Dependencies."
-plot_cellsublin_legend <- "Each point shows the mean dependency score for the gene query within a given cell lineage. The intervals show the 5% quantiles centered on the median, the interquartile ranges, and the 95% quantiles. The gray background highlights weak dependency values between -1 and 1."
 
 ## CORRELATION PLOT FOR CELL DEPS--------------------------------------------------------
 #' Co-essentiality Correlation Plot
