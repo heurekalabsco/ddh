@@ -9,7 +9,6 @@ make_cellbar(
   prism_data = prism_long,
   expression_data = expression_names,
   input = list(),
-  mean,
   card = FALSE,
   scale = NULL
 )
@@ -23,10 +22,7 @@ make_cellbar(
 If no error, then returns a cellbar plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-\code{make_cellbar} returns an image of ...
-}
-\details{
-This is a plot function that takes a gene name and returns a cellbar plot
+Each bar shows the dependency scores of the queried genes in a cell line. Dependency scores less than -1 indicate a gene that is essential within a cell line. Dependency scores close to 0 mean no changes in fitness when the gene is knocked out. Dependency scores greater than 1 indicate gene knockouts lead to a gain in fitness.
 }
 \examples{
 make_cellbar(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

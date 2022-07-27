@@ -22,13 +22,11 @@ make_sublineage(
 If no error, then returns a sublineage plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-\code{make_sublineage} returns an image of ...
-}
-\details{
-This is a plot function that takes a gene name and returns a sublineage plot
+Each point shows the mean dependency score for the gene query within a given cell lineage. The intervals show the 5% quantiles centered on the median, the interquartile ranges, and the 95% quantiles. The gray background highlights weak dependency values between -1 and 1.
 }
 \examples{
 make_sublineage(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_sublineage(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), highlight = TRUE)
 make_sublineage(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 \dontrun{
 make_sublineage(input = list(type = 'gene', content = 'ROCK1'))

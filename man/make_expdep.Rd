@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{make_expdep}
 \alias{make_expdep}
-\title{Cell Expression v. Cell Dependency Plot}
+\title{Gene Dependency versus Expression}
 \usage{
 make_expdep(
   expression_data = expression_long,
@@ -22,10 +22,7 @@ make_expdep(
 If no error, then returns a expdep plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-\code{make_expdep} returns an image of ...
-}
-\details{
-This is a plot function that takes a gene name and returns a expdep plot
+Each point shows the dependency value compared to the expression value for gene within a given cell line. Gray area indicates dependency values that are between -1 and 1.
 }
 \examples{
 make_expdep(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

@@ -22,10 +22,7 @@ make_correlation(
 If no error, then returns a correlation plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-\code{make_correlation} returns an image of ...
-}
-\details{
-This is a plot function that takes a gene name and returns a correlation plot
+Each point shows the ranked correlation value ordered from high to low for each query. Correlation values outside the solid gray lines indicate the gene has a correlation value greater than the mean.
 }
 \examples{
 make_correlation(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

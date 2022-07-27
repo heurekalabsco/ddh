@@ -22,15 +22,12 @@ make_cell_similarity(
 If no error, then returns a cell similarity plot If an error is thrown, then will return a bomb plot.
 }
 \description{
-\code{make_cell_similarity_plot} returns an image of ...
-}
-\details{
-This is a plot function that takes a gene name and returns a cell similarity plot plot
+Each point shows the ranked linear model coefficient estimate value ordered from high to low for each query.
 }
 \examples{
-make_cell_similarity_plot(cell1 = "HEL", cell2 = "HEL9217")
-make_cell_similarity_plot(cell1 = "HEL", cell2 = "KLE")
+make_cell_similarity(input = list(type = "cell", query = "HEPG2", content = "HEPG2"))
+make_cell_similarity(input = list(type = "cell", query = "HEPG2", content = "HEPG2"), similarity = "expression")
 \dontrun{
-make_cell_similarity_plot(cell1 = "HEL", cell2 = "HEPG2")
+make_cell_similarity(input = list(type = "cell", query = "HEPG2", content = "HEPG2"))
 }
 }
