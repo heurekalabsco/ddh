@@ -23,7 +23,7 @@ This is a plot function that takes a gene name and returns a pubmed plot
 \examples{
 make_pubmed(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 make_pubmed(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
-make_pubmed(input = list(type = "compound", content = "aspirin"))
+make_pubmed(input = list(type = 'compound', content = 'aspirin'))
 \dontrun{
 make_pubmed(input = list(type = 'gene', content = 'ROCK1'))
 }
