@@ -15,10 +15,7 @@ make_proteinsize(protein_data = proteins, input = list(), card = FALSE)
 If no error, then returns a proteinsize plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-\code{make_proteinsize} returns an image of ...
-}
-\details{
-This is a plot function that takes a gene name and returns a proteinsize plot
+Mass compared to all protein masses. The colored strip visualizes the distribution of protein sizes. Each colored box is thus representing a decile of the full data. The triangle indicates where exactly the queried genes fall on this gradient of protein sizes.
 }
 \examples{
 make_proteinsize(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

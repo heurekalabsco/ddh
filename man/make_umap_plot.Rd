@@ -20,10 +20,7 @@ make_umap_plot(
 If no error, then returns a umap plot plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-\code{make_umap_plot} returns an image of ...
-}
-\details{
-This is a plot function that takes a gene name and returns a umap plot plot
+Amino acid signature (percentage of each amino acid in a protein) UMAP embeddings (2D) colored by the cluster to which they belong (N = 20375).
 }
 \examples{
 make_umap_plot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
