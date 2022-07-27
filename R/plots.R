@@ -902,11 +902,9 @@ make_cluster_enrich <- function(input = list(),
 }
 
 ## STRUCTURE PLOT --------------------------------------------------------------------
-#' Structure Plot
+#' Protein Structure Plot
 #'
-#' \code{make_structure} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a structure plot
+#' Alpha Fold predicted structure rendered in a ribbon diagram.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -955,19 +953,19 @@ make_structure <- function(input = list(),
       width_offset <- glue::glue('{width}x+{offset_x}')
       height_offset <- glue::glue('x{height}+{offset_y}')
       #perform scaling
-      if(image_details$width < 1080) {protein_image <- image_scale(protein_image, width_offset)}
-      if(image_details$height < 1080) {protein_image <- image_scale(protein_image, height_offset)}
+      if(image_details$width < 1080) {protein_image <- magick::image_scale(protein_image, width_offset)}
+      if(image_details$height < 1080) {protein_image <- magick::image_scale(protein_image, height_offset)}
 
       protein_image <-
         protein_image %>%
-        image_crop("1080x1080")
+        magick::image_crop("1080x1080")
 
       #place image on ggplot
       plot_complete <-
-        ggplot() +
+        ggplot2::ggplot() +
         ggpubr::background_image(protein_image) +
-        labs(x = "") + #, title = "Structure Information", caption = "more ...") +
-        theme_void()
+        ggplot2::labs(x = "") + #, title = "Structure Information", caption = "more ...") +
+        ggplot2::theme_void()
 
       return(plot_complete)
     }
@@ -980,18 +978,22 @@ make_structure <- function(input = list(),
            error = function(x){make_bomb_plot()})
 }
 
-#make_structure(input = list(content = "ROCK1"))
-#make_structure(input = list(content = "ROCK1"), card = TRUE)
-
-protein_structure_title <- "Predicted Structure."
-protein_structure_legend <- "Alpha Fold predicted structure rendered in a ribbon diagram."
-
 ## 3D STRUCTURE PLOT --------------------------------------------------------------------
-#' 3D Protein Structure Plot
+#' Protein 3D Structure Plot
 #'
-#'  @importFrom magrittr %>%
+#' Protein 3D predicted structure rendered in an interactive ribbon diagram.
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' make_structure3d(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_structure3d(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+#' \dontrun{
+#' make_structure3d(input = list(type = 'gene', content = 'ROCK1'))
 make_structure3d <- function(pdb_ids = uniprot_pdb_table,
                              protein_data = proteins,
+                             app_data_dir = NULL,
                              gene_id = NULL,
                              pdb_id = NULL,
                              input = list(),
@@ -1014,17 +1016,18 @@ make_structure3d <- function(pdb_ids = uniprot_pdb_table,
       }
     }
 
-    pdb_path <- load_pdb(input = list(content = gene_id))
+    pdb_path <- load_pdb(input = list(content = gene_id),
+                         app_data_dir = app_data_dir)
 
     if(!is.null(pdb_path) & is.null(pdb_id)) {
-      plot_data <- read.pdb(pdb_path)
+      plot_data <- bio3d::read.pdb(pdb_path)
     } else {
       plot_data <- protein_data %>%
-        filter(gene_name %in% gene_id) %>%
-        left_join(pdb_ids, by = c("uniprot_id" = "uniprot")) %>%
-        unnest(data) %>%
-        {if (is.null(pdb_id)) dplyr::slice(., 1) else filter(., pdb == pdb_id)} %>%
-        pull(pdb) %>%
+        dplyr::filter(gene_name %in% gene_id) %>%
+        dplyr::left_join(pdb_ids, by = c("uniprot_id" = "uniprot")) %>%
+        tidyr::unnest(data) %>%
+        {if (is.null(pdb_id)) dplyr::slice(., 1) else dplyr::filter(., pdb == pdb_id)} %>%
+        dplyr::pull(pdb) %>%
         r3dmol::m_fetch_pdb()
     }
 
@@ -1044,12 +1047,12 @@ make_structure3d <- function(pdb_ids = uniprot_pdb_table,
 
     if(selection) {
       plot_complete <- plot_complete %>%
-        m_add_style(
+        r3dmol::m_add_style(
           style = c(
-            m_style_stick(),
-            m_style_sphere(scale = 0.3)
+            r3dmol::m_style_stick(),
+            r3dmol::m_style_sphere(scale = 0.3)
           ),
-          sel = m_sel(resi =  eval(parse(text = resi)),
+          sel = r3dmol::m_sel(resi =  eval(parse(text = resi)),
                       chain = chain,
                       resn = resn,
                       invert = invert,
@@ -1068,11 +1071,6 @@ make_structure3d <- function(pdb_ids = uniprot_pdb_table,
            error = function(x){make_bomb_plot()})
 }
 
-# make_structure3d(input = list(content = "ROCK1"))
-
-protein_structure_title3d <- "Predicted 3D Structure."
-protein_structure_legend3d <- "Interactive 3D predicted structure."
-
 ## PUBMED PLOT ------------------------------------------
 #' Pubmed Plot
 #'
@@ -1090,6 +1088,7 @@ protein_structure_legend3d <- "Interactive 3D predicted structure."
 #' @examples
 #' make_pubmed(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_pubmed(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+#' make_pubmed(input = list(type = "compound", content = "aspirin"))
 #' \dontrun{
 #' make_pubmed(input = list(type = 'gene', content = 'ROCK1'))
 #' }
@@ -1103,7 +1102,7 @@ make_pubmed <- function(pubmed_data = pubmed,
       tidyr::unnest(data) %>%
       dplyr::ungroup() %>%
       dplyr::group_by(name, year) %>%
-      dplyr::summarize(n = n()) %>%
+      dplyr::summarize(n = dplyr::n()) %>%
       dplyr::mutate(cumsum = cumsum(n)) %>%
       dplyr::arrange(year)
 
@@ -1113,26 +1112,26 @@ make_pubmed <- function(pubmed_data = pubmed,
       dplyr::filter(cumsum == max(cumsum))
 
     plot_step <-
-      ggplot(plot_data) +
-      geom_step(
-        aes(x = year,
+      ggplot2::ggplot(plot_data) +
+      ggplot2::geom_step(
+        ggplot2::aes(x = year,
             y = cumsum,
             group = name,
-            color = fct_reorder2(name, year, cumsum)),
+            color = forcats::fct_reorder2(name, year, cumsum)),
         size = 1.2
       ) +
-      coord_cartesian(clip = "off") + #allows points & labels to fall off plotting area
-      scale_x_continuous(breaks = scales::breaks_pretty(4),
+      ggplot2::coord_cartesian(clip = "off") + #allows points & labels to fall off plotting area
+      ggplot2::scale_x_continuous(breaks = scales::breaks_pretty(4),
                          expand = c(0, 0)) +
-      scale_y_continuous(expand = c(.01, .01), limits = c(0, max(plot_max$cumsum))) +
+      ggplot2::scale_y_continuous(expand = c(.01, .01), limits = c(0, max(plot_max$cumsum))) +
       scale_color_ddh_d(palette = input$type) +
-      labs(x = "Year of Publication", y = "Cumulative Sum") +
+      ggplot2::labs(x = "Year of Publication", y = "Cumulative Sum") +
       theme_ddh(base_size = 16,
                 margin = 20) +
-      theme(
+      ggplot2::theme(
         #text = element_text(family = "Nunito Sans"),
         #axis.text.y = element_text(family = "Roboto Slab"),
-        panel.grid.major.y = element_line(color = "grey75", size = .5, linetype = "15")
+        panel.grid.major.y = ggplot2::element_line(color = "grey75", size = .5, linetype = "15")
       ) +
       NULL
 
@@ -1141,9 +1140,9 @@ make_pubmed <- function(pubmed_data = pubmed,
       plot_complete <-
         plot_step +
         {if(card == FALSE)
-          geom_text_repel(
+          ggrepel::geom_text_repel(
             data = plot_max,
-            aes(x = year,
+            ggplot2::aes(x = year,
                 y = cumsum,
                 #label = name),
                 label = paste0(name, " (", cumsum, ")")),
@@ -1165,26 +1164,26 @@ make_pubmed <- function(pubmed_data = pubmed,
             box.padding = .2
           )
         } +
-        geom_point(
+        ggplot2::geom_point(
           data = plot_max,
-          aes(x = year,
+          ggplot2::aes(x = year,
               y = cumsum,
               group = name,
-              color = fct_reorder2(name, year, cumsum)),
+              color = forcats::fct_reorder2(name, year, cumsum)),
           size = 4, shape = 21, fill = "white", stroke = 2
         ) +
-        theme(
+        ggplot2::theme(
           plot.margin = ggplot2::margin(7, 180, 7, 7) #adds margin to right side of graph for label #adds margin to right side of graph for label
         )
     } else {
       plot_complete <-
         plot_step +
-        geom_point(
+        ggplot2::geom_point(
           data = plot_max,
-          aes(x = year,
+          ggplot2::aes(x = year,
               y = cumsum,
               group = name,
-              color = fct_reorder2(name, year, cumsum)),
+              color = forcats::fct_reorder2(name, year, cumsum)),
           size = 4, shape = 21, fill = "white", stroke = 2
         )
     }
@@ -1192,9 +1191,9 @@ make_pubmed <- function(pubmed_data = pubmed,
     if(length(input$content) == 1){ #Fix this when data()$content is updated (need to be generic to handle multiple data types)
       plot_complete  <-
         plot_complete +
-        labs(y = "Cumulative Publications",
+        ggplot2::labs(y = "Cumulative Publications",
              color = "") +
-        guides(color = "none")
+        ggplot2::guides(color = "none")
     } else {
       plot_complete <-
         plot_complete +
@@ -1205,9 +1204,9 @@ make_pubmed <- function(pubmed_data = pubmed,
     if(card == TRUE){
       plot_complete <-
         plot_complete +
-        theme(plot.margin = ggplot2::margin(5, 10, 5, 5),
+        ggplot2::theme(plot.margin = ggplot2::margin(5, 10, 5, 5),
               legend.position="none") +
-        labs(x = "") +
+        ggplot2::labs(x = "") +
         NULL
     }
 
@@ -1217,14 +1216,6 @@ make_pubmed <- function(pubmed_data = pubmed,
   tryCatch(make_pubmed_raw(),
            error = function(x){make_bomb_plot()})
 }
-
-# make_pubmed(input = list(type = "gene", query = "ROCK1", content = "ROCK1"))
-# make_pubmed(input = list(type = "gene", query = "ROCK1", content = "ROCK1"), card = TRUE)
-# make_pubmed(input = list(type = "gene", query = "custom_gene_list", content = c("ROCK1", "ROCK2")), card = TRUE)
-# make_pubmed(input = list(type = "gene", query = "custom_gene_list", content = c("RDX", "ROCK2", "DTX3L", "MSN", "SORL1", "EZR")), card = TRUE)
-# make_pubmed(input = list(type = "pathway", query = "0060148", content = c("FXR1", "ZFP36", "DHX9", "XPO5", "FMR1", "STAT3", "WTIP", "PUM2", "AJUBA", "PUM1", "LIMD1")))
-# make_pubmed(input = list(type = "compound", content = "aspirin"))
-# make_pubmed(input = list(type = "gene", query = "ROCK1", content = "ROCK1"), card = TRUE)
 
 ## CELL ANATOGRAM -------------------------------------------------------------------
 #' Cellanatogram Plot
@@ -1237,6 +1228,7 @@ make_pubmed <- function(pubmed_data = pubmed,
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a cellanatogram plot. If an error is thrown, then will return a bomb plot.
 #'
+#' @import gganatogram
 #' @importFrom magrittr %>%
 #'
 #' @export
@@ -1253,42 +1245,42 @@ make_cellanatogram <- function(cellanatogram_data = subcell,
   make_cellanatogram_raw <- function() {
     plot_data <-
       cellanatogram_data %>%
-      dplyr::filter_all(any_vars(gene_name %in% input$content)) %>%
+      dplyr::filter_all(dplyr::any_vars(gene_name %in% input$content)) %>%
       dplyr::filter(!is.na(type)) %>%
       dplyr::select(-value) %>%
       dplyr::add_count(main_location) %>%
-      dplyr::mutate(value = as_factor(n)) %>%
+      dplyr::mutate(value = forcats::as_factor(n)) %>%
       #dplyr::arrange(desc(row_number())) ## not sure this always works...
       dplyr::mutate(
         organ = stringr::str_replace_na(organ, "cytosol"),
         type = factor(gene_name),
-        organ = fct_rev(organ)
+        organ = forcats::fct_rev(organ)
       )
 
     plot_complete <-
       plot_data %>%
       gganatogram(outline = TRUE, fillOutline = 'grey95', organism = "cell", fill = "value") +
-      theme_void(base_size = 14) +
-      theme(
-        text = element_text(family = "Nunito Sans"),
+      ggplot2::theme_void(base_size = 14) +
+      ggplot2::theme(
+        text = ggplot2::element_text(family = "Nunito Sans"),
         plot.margin = ggplot2::margin(5, 10, 5, 5)
       ) +
-      coord_fixed() +
+      ggplot2::coord_fixed() +
       scale_fill_ddh_d(palette = "protein") +
-      labs(fill = "Count") +
+      ggplot2::labs(fill = "Count") +
       NULL
 
     if(length(input$content) == 1){
       plot_complete  <-
         plot_complete +
-        guides(fill = "none")
+        ggplot2::guides(fill = "none")
     }
 
     if(card == TRUE){
       plot_complete <-
         plot_complete +
-        labs(x = "") +
-        guides(fill = "none") +
+        ggplot2::labs(x = "") +
+        ggplot2::guides(fill = "none") +
         NULL
     }
     return(plot_complete)
@@ -1298,14 +1290,15 @@ make_cellanatogram <- function(cellanatogram_data = subcell,
            error = function(x){make_bomb_plot()})
 }
 
-# make_cellanatogram(input = list(type = "gene", content = c("ROCK2")))
-# make_cellanatogram(input = list(type = "gene", content = c("ROCK2")), card = TRUE)
-# make_cellanatogram(input = list(type = "gene", query = "ROCK1", content = c("ROCK1", "ROCK2")))
-
-
 #' Cell Anatogram Facet
 #'
-#'  @importFrom magrittr %>%
+#' @export
+#' @examples
+#'
+#' @import gganatogram
+#' @importFrom magrittr %>%
+#'
+#' make_cellanatogramfacet(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 make_cellanatogramfacet <- function(cellanatogram_data = subcell,
                                     input = list()) {
   make_cellanatogramfacet_raw <- function() {
@@ -1314,25 +1307,25 @@ make_cellanatogramfacet <- function(cellanatogram_data = subcell,
       dplyr::filter(gene_name %in% input$content,
                     !is.na(type)) %>%
       dplyr::mutate(colour = scales::alpha(ddh_pal_d(palette = "protein")(1), .75)) %>%
-      full_join(tibble(gene_name = input$content)) %>%
+      dplyr::full_join(tibble(gene_name = input$content)) %>%
       dplyr::mutate(
         #colour = if_else(is.na(organ), "grey92", scales::alpha(ddh_pal_d(palette = "gene")(1), .75)),
         organ = stringr::str_replace_na(organ, "cytosol"),
         type = factor(gene_name),
-        organ = fct_rev(organ)
+        organ = forcats::fct_rev(organ)
       ) %>%
       gganatogram(outline = TRUE, fillOutline = 'grey95', organism = "cell", fill = "colour") +
-      theme_void(base_size = 14) +
-      theme(
-        text = element_text(family = "Nunito Sans", face = "bold"),
+      ggplot2::theme_void(base_size = 14) +
+      ggplot2::theme(
+        text = ggplot2::element_text(family = "Nunito Sans", face = "bold"),
         plot.margin = ggplot2::margin(5, 10, 5, 5),
-        panel.spacing.y = unit(1.2, "lines")
+        panel.spacing.y = ggplot2::unit(1.2, "lines")
       ) +
-      facet_wrap(~ type, ncol = 3, drop = FALSE) +
-      coord_fixed() +
-      labs(fill = "Count") +
-      theme(panel.spacing.y = unit(1.2, "lines"),
-            strip.text = element_text(size = 18, family = "Roboto Slab", face = "plain")) +
+      ggplot2::facet_wrap(~ type, ncol = 3, drop = FALSE) +
+      ggplot2::coord_fixed() +
+      ggplot2::labs(fill = "Count") +
+      ggplot2::theme(panel.spacing.y = ggplot2::unit(1.2, "lines"),
+            strip.text = ggplot2::element_text(size = 18, family = "Roboto Slab", face = "plain")) +
       NULL
 
     return(plot_complete)
@@ -1341,8 +1334,6 @@ make_cellanatogramfacet <- function(cellanatogram_data = subcell,
   tryCatch(make_cellanatogramfacet_raw(),
            error = function(x){make_bomb_plot()})
 }
-
-# make_cellanatogramfacet(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 
 ## HUMAN BODY ANATOGRAMS --------------------------------------------------------
 #' Female Anatogram Plot
@@ -1355,6 +1346,7 @@ make_cellanatogramfacet <- function(cellanatogram_data = subcell,
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a female anatogram plot. If an error is thrown, then will return a bomb plot.
 #'
+#' @import gganatogram
 #' @importFrom magrittr %>%
 #'
 #' @export
@@ -1377,7 +1369,7 @@ make_female_anatogram <- function(anatogram = "female",
     }
     body_data <-
       raw_body_data %>%
-      dplyr::filter_all(any_vars(gene_name %in% input$content)) %>%
+      dplyr::filter_all(dplyr::any_vars(gene_name %in% input$content)) %>%
       dplyr::filter(!is.na(type)) %>%
       dplyr::arrange(dplyr::desc(-value))
 
@@ -1386,24 +1378,24 @@ make_female_anatogram <- function(anatogram = "female",
     if(length(input$content) > 1){
       body_data <-
         body_data %>%
-        group_by(organ) %>%
-        mutate(value=sum(value)) %>%
-        arrange(desc(-value))
+        dplyr::group_by(organ) %>%
+        dplyr::mutate(value=sum(value)) %>%
+        dplyr::arrange(dplyr::desc(-value))
     }
 
     body_plot <-
       body_data %>%
       gganatogram(outline = TRUE, fillOutline='grey95', organism = "human", sex = anatogram, fill = 'value') +
-      coord_fixed() +
+      ggplot2::coord_fixed() +
       scale_fill_ddh_c(palette = "gene", breaks = break_points, name = NULL) +
-      guides(fill = guide_colorsteps(show.limits = TRUE)) +
-      theme_void(base_size = 16, base_family = "Chivo") +
+      ggplot2::guides(fill = ggplot2::guide_colorsteps(show.limits = TRUE)) +
+      ggplot2::theme_void(base_size = 16, base_family = "Chivo") +
       NULL
 
     if(card == TRUE){
       body_plot <-
         body_plot +
-        labs(x = "") + #, title = "Tissue Distribution", caption = "more ...") +
+        ggplot2::labs(x = "") + #, title = "Tissue Distribution", caption = "more ...") +
         NULL
     }
 
@@ -1414,11 +1406,25 @@ make_female_anatogram <- function(anatogram = "female",
            error = function(x){make_bomb_plot()})
 }
 
-# make_female_anatogram(input = list(type = "gene", content = c("ROCK1")))
-# make_female_anatogram(input = list(type = "gene", content = c("ROCK1")), card = TRUE)
-# make_female_anatogram(input = list(type = "gene", query = "ROCK1", content = c("ROCK1", "ROCK2")))
-
-
+#' Male Anatogram Plot
+#'
+#' This is a plot function that takes a gene name and returns a male anatogram plot
+#'
+#' @param input Expecting a list containing type and content variable.
+#' @param card A boolean that sets whether the plot should be scaled down to be a card
+#'
+#' @return
+#'
+#' @import gganatogram
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' make_male_anatogram(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_male_anatogram(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+#' \dontrun{
+#' make_male_anatogram(input = list(type = 'gene', content = 'ROCK1'))
+#' }
 make_male_anatogram <- function(anatogram = "male",
                                 input = list(),
                                 card = FALSE){
@@ -1427,9 +1433,6 @@ make_male_anatogram <- function(anatogram = "male",
                                           card)
   return(male_anatogram)
 }
-
-# make_male_anatogram(input = list(type = "gene", content = c("ROCK1")))
-# make_male_anatogram(input = list(type = "gene", content = c("ROCK1")), card = TRUE)
 
 ##TISSUE GEOM_COL ------------------------------------------
 #' Tissue Plot
@@ -1457,63 +1460,63 @@ make_tissue <- function(tissue_data = tissue,
   make_tissue_raw <- function() {
     plot_data <-
       tissue_data %>%
-      dplyr::filter_all(any_vars(gene_name %in% input$content)) %>%
-      group_by(organ) %>%
+      dplyr::filter_all(dplyr::any_vars(gene_name %in% input$content)) %>%
+      dplyr::group_by(organ) %>%
       dplyr::mutate(sum_value = sum(value),
                     organ = stringr::str_replace_all(organ, "_", " "),
                     organ = stringr::str_to_title(organ)) %>%
-      arrange(desc(sum_value))
+      dplyr::arrange(dplyr::desc(sum_value))
 
     if(nrow(plot_data) == 0){return(NULL)}
 
     if(card == TRUE){
       #get distinct
       top_organs <- plot_data %>%
-        distinct(organ) %>%
-        ungroup() %>%
-        slice_head(n = 10) %>%
-        pull()
+        dplyr::distinct(organ) %>%
+        dplyr::ungroup() %>%
+        dplyr::slice_head(n = 10) %>%
+        dplyr::pull()
       plot_data <-
         plot_data %>%
         dplyr::filter(organ %in% top_organs)
     }
 
     plot_draft <-
-      ggplot(plot_data,
-             aes(x = value,
-                 y = fct_reorder(organ, sum_value))) +
-      coord_cartesian(clip = "off") +
-      scale_x_continuous(expand = c(0, 0), sec.axis = dup_axis()) +
-      scale_y_discrete(expand = c(.01, .01)) +
+      ggplot2::ggplot(plot_data,
+                      ggplot2::aes(x = value,
+                 y = forcats::fct_reorder(organ, sum_value))) +
+      ggplot2::coord_cartesian(clip = "off") +
+      ggplot2::scale_x_continuous(expand = c(0, 0), sec.axis = ggplot2::dup_axis()) +
+      ggplot2::scale_y_discrete(expand = c(.01, .01)) +
       theme_ddh() +
-      theme(axis.text.y = element_text(angle = 0, family = "Roboto Slab"),
-            axis.ticks.y = element_blank(),
-            axis.line.y = element_blank()) +
-      labs(y = NULL)
+      ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, family = "Roboto Slab"),
+            axis.ticks.y = ggplot2::element_blank(),
+            axis.line.y = ggplot2::element_blank()) +
+      ggplot2::labs(y = NULL)
 
     ## Version with color mapped to count for single gene queries
     if(length(input$content) == 1){
       plot_complete <-
         plot_draft +
-        geom_col(aes(fill = value), width = .82) +
+        ggplot2::geom_col(ggplot2::aes(fill = value), width = .82) +
         scale_fill_ddh_c(palette = "gene", guide = "none") +
-        labs(x = paste0(str_c(input$content, collapse = ", "), " Normalized Expression")) +
-        theme(plot.margin = ggplot2::margin(0, 15, 0, 0)) # add some space to avoid cutting of labels
+        ggplot2::labs(x = paste0(stringr::str_c(input$content, collapse = ", "), " Normalized Expression")) +
+        ggplot2::theme(plot.margin = ggplot2::margin(0, 15, 0, 0)) # add some space to avoid cutting of labels
     } else {
       plot_complete <-
         plot_draft +
-        geom_col(aes(fill = gene_name), width = .82) +
+        ggplot2::geom_col(ggplot2::aes(fill = gene_name), width = .82) +
         scale_fill_ddh_d(palette = "gene", shuffle = TRUE, seed = 5L) +
-        labs(x = "Sum of Normalized Expression",
+        ggplot2::labs(x = "Sum of Normalized Expression",
              fill = "Query\nGene") +
-        theme(legend.justification = "top")
+        ggplot2::theme(legend.justification = "top")
     }
 
     if(card == TRUE){
       plot_complete <-
         plot_complete +
-        labs(x = "") +
-        theme(axis.text.x=element_blank(),
+        ggplot2::labs(x = "") +
+        ggplot2::theme(axis.text.x=ggplot2::element_blank(),
               legend.position='none') +
         NULL
     }
@@ -1524,15 +1527,6 @@ make_tissue <- function(tissue_data = tissue,
   tryCatch(make_tissue_raw(),
            error = function(x){make_bomb_plot()})
 }
-
-# make_tissue(input = list(type = "gene", content = c("ROCK1")))
-# make_tissue(input = list(type = "gene", content = c("ROCK1")), card = TRUE)
-# make_tissue(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
-# make_tissue(input = list(type = "gene", content = c("ROCK1", "ROCK2")), card = TRUE)
-# make_tissue(input = list(type = "gene", content = c("RDX", "ROCK2", "DTX3L", "MSN", "SORL1", "EZR")), card = TRUE)
-
-
-
 
 ## EXPRESSION PLOT --------------------------------------------------------
 #' Cell Expression Plot

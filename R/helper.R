@@ -791,3 +791,18 @@ make_empty_graph <- function(type = "gene") {
               borderWidth = 2)
 }
 
+load_pdb <- function(app_data_dir = NULL,
+                     input = list(),
+                     ...) {
+  name <- stringr::str_c(input$content, collapse = "-")
+  file_name <- glue::glue('{name}.pdb')
+  path <- here::here(app_data_dir, "images/gene", name)
+
+  #check to see if file exists
+  if(file.exists(glue::glue('{path}/{file_name}'))) {
+    return(glue::glue('{path}/{file_name}'))
+  } else {
+    return(NULL)
+  }
+}
+
