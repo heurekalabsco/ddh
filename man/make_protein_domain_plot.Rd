@@ -20,15 +20,12 @@ make_protein_domain_plot(
 If no error, then returns a protein domain plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-\code{make_protein_domain_plot} returns an image of ...
-}
-\details{
-This is a plot function that takes a gene name and returns a protein domain plot plot
+Rectangles represent the locations and size of named protein domains, while black shaped elements represent PTMs. Horizontal line(s) indicate the length of one or more selected proteins.
 }
 \examples{
-make_protein_domain_plot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-make_protein_domain_plot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+make_protein_domain_plot(input = list(content = "ROCK2"), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
+make_protein_domain_plot(input = list(content = c("ROCK1", "ROCK2")), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
 \dontrun{
-make_protein_domain_plot(input = list(type = 'gene', content = 'ROCK1'))
+make_protein_domain_plot(input = list(content = "ROCK2"), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
 }
 }

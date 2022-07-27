@@ -24,7 +24,7 @@ If no error, then returns a cellexpression plot. If an error is thrown, then wil
 \code{make_cellexpression} returns an image of ...
 }
 \details{
-This is a plot function that takes a gene name and returns a cell expression "rug" plot
+Each point shows the ranked expression value across CCLE cell lines.
 }
 \examples{
 make_cellexpression(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

@@ -178,10 +178,7 @@ make_ideogram <- function(location_data = gene_location,
 ## SIZE PLOT --------------------------------------------------------
 #' Protein Size Plot
 #'
-#' Mass compared to all protein masses. The colored strip visualizes the
-#' distribution of protein sizes. Each colored box is thus representing a
-#' decile of the full data. The triangle indicates where exactly the queried
-#' genes fall on this gradient of protein sizes.
+#' Mass compared to all protein masses. The colored strip visualizes the distribution of protein sizes. Each colored box is thus representing a decile of the full data. The triangle indicates where exactly the queried genes fall on this gradient of protein sizes.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -421,9 +418,7 @@ make_sequence <- function(sequence_data = proteins,
 ## PROTEIN DOMAIN PLOT --------------------------------------------------------
 #' Protein Domain Plot
 #'
-#' Rectangles represent the locations and size of named protein domains, while black
-#' shaped elements represent PTMs. Horizontal line(s) indicate the length of one or
-#' more selected proteins.
+#' Rectangles represent the locations and size of named protein domains, while black shaped elements represent PTMs. Horizontal line(s) indicate the length of one or more selected proteins.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -568,8 +563,7 @@ make_protein_domain_plot <- function(input = list(),
 ## RADIAL PLOT -------------------------------------------------------------
 #' Amino Acid Radial and Bar Plots
 #'
-#' Amino acid signature/s (percentage of each amino acid in a protein) of the queried gene/clusters
-#' versus the mean amino acid signature of all the other proteins in the dataset (N = 20375).
+#' Amino acid signature/s (percentage of each amino acid in a protein) of the queried gene/clusters versus the mean amino acid signature of all the other proteins in the dataset (N = 20375).
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -762,8 +756,7 @@ make_radial <- function(cluster_data = sequence_clusters,
 ## UMAP PLOT --------------------------------------------------------
 #' UMAP Plot
 #'
-#' Amino acid signature (percentage of each amino acid in a protein) UMAP embeddings (2D)
-#' colored by the cluster to which they belong (N = 20375).
+#' Amino acid signature (percentage of each amino acid in a protein) UMAP embeddings (2D) colored by the cluster to which they belong (N = 20375).
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -841,9 +834,7 @@ make_umap_plot <- function(cluster_data = sequence_clusters,
 ## CLUSTER ENRICHMENT PLOT --------------------------------------------------------
 #' Cluster Enrichment Plot
 #'
-#' Enriched GO terms (BP, MF, and CC) by all genes in the selected amino acid signature cluster.
-#' The x-axis shows the number of genes in the cluster that belong to each term while the color
-#' scale represents the p-values of each enriched term.
+#' Enriched GO terms (BP, MF, and CC) by all genes in the selected amino acid signature cluster. The x-axis shows the number of genes in the cluster that belong to each term while the color scale represents the p-values of each enriched term.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -1533,7 +1524,7 @@ make_tissue <- function(tissue_data = tissue,
 #'
 #' \code{make_cellexpression} returns an image of ...
 #'
-#' This is a plot function that takes a gene name and returns a cell expression "rug" plot
+#' Each point shows the ranked expression value across CCLE cell lines.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -1557,7 +1548,7 @@ make_cellexpression <- function(expression_data = expression_long,
     if (var == "gene") {
       plot_initial <-
         expression_data %>%
-        dplyr::select(any_of(c("X1", "gene", "gene_expression"))) %>%
+        dplyr::select(dplyr::any_of(c("X1", "gene", "gene_expression"))) %>%
         dplyr::rename("expression_var" = "gene_expression")
       mean <- mean_virtual_gene_expression
       upper_limit <- gene_expression_upper
@@ -1583,7 +1574,7 @@ make_cellexpression <- function(expression_data = expression_long,
         dplyr::select(cell_line, lineage, lineage_subtype, everything()) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
         #dplyr::mutate(gene_fct = fct_reorder(gene, expression_var, .fun = max, .desc = TRUE)) %>%
-        dplyr::mutate(gene_fct = fct_inorder(gene)) %>%
+        dplyr::mutate(gene_fct = forcats::fct_inorder(gene)) %>%
         ggplot(aes(y = gene_fct,
                    x = expression_var,
                    text = paste0("Cell Line: ", cell_line),
@@ -1597,8 +1588,8 @@ make_cellexpression <- function(expression_data = expression_long,
         dplyr::filter(cell_line %in% input$content,
                       !is.na(expression_var)) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
-        dplyr::mutate(cell_fct = fct_inorder(cell_line)) %>%
-        ggplot(aes(y = cell_fct,
+        dplyr::mutate(cell_fct = forcats::fct_inorder(cell_line)) %>%
+        ggplot2::ggplot(ggplot2::aes(y = cell_fct,
                    x = expression_var,
                    text = paste0("Gene: ", gene),
                    color = cell_line
@@ -1607,21 +1598,21 @@ make_cellexpression <- function(expression_data = expression_long,
 
     plot_complete <-
       plot_data +
-      geom_point(alpha = 0.1, shape = "|", size = 12) +
-      geom_vline(xintercept = 0, color = "lightgray") + #3SD is below zero
-      geom_vline(xintercept = mean) +
-      geom_vline(xintercept = upper_limit, color = "lightgray") +#3SD
-      scale_x_continuous(expand = expansion(mult = 0.01)) +
-      scale_y_discrete(expand = expansion(mult = 1 / length(input$content)), na.translate = FALSE) +
+      ggplot2::geom_point(alpha = 0.1, shape = "|", size = 12) +
+      ggplot2::geom_vline(xintercept = 0, color = "lightgray") + #3SD is below zero
+      ggplot2::geom_vline(xintercept = mean) +
+      ggplot2::geom_vline(xintercept = upper_limit, color = "lightgray") +#3SD
+      ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = 0.01)) +
+      ggplot2::scale_y_discrete(expand = ggplot2::expansion(mult = 1 / length(input$content)), na.translate = FALSE) +
       scale_color_ddh_d(palette = input$type) +
       theme_ddh() +
-      theme(
-        text = element_text(family = "Nunito Sans"),
-        axis.text = element_text(family = "Roboto Slab"),
-        axis.text.y = element_text(size = 18),
-        axis.ticks.y = element_blank(),
-        axis.line.y = element_blank(),
-        axis.title.y = element_blank(),
+      ggplot2::theme(
+        text = ggplot2::element_text(family = "Nunito Sans"),
+        axis.text = ggplot2::element_text(family = "Roboto Slab"),
+        axis.text.y = ggplot2::element_text(size = 18),
+        axis.ticks.y = ggplot2::element_blank(),
+        axis.line.y = ggplot2::element_blank(),
+        axis.title.y = ggplot2::element_blank(),
         legend.position = "none"
       ) +
       NULL
@@ -1629,18 +1620,18 @@ make_cellexpression <- function(expression_data = expression_long,
     if(length(input$content) == 1){
       plot_complete  <-
         plot_complete +
-        theme(axis.text.y = element_blank()) +
-        labs(x = paste0(str_c(input$content, collapse = ", "), " ", var, " levels"))
+        ggplot2::theme(axis.text.y = ggplot2::element_blank()) +
+        ggplot2::labs(x = paste0(stringr::str_c(input$content, collapse = ", "), " ", var, " levels"))
     } else {
       plot_complete <-
         plot_complete +
-        labs(x = paste0(var, " levels"), color = "Query")
+        ggplot2::labs(x = paste0(var, " levels"), color = "Query")
     }
 
     if(card == TRUE){
       plot_complete <-
         plot_complete +
-        labs(x = "")
+        ggplot2::labs(x = "")
     }
     return(plot_complete)
   }
@@ -1648,23 +1639,6 @@ make_cellexpression <- function(expression_data = expression_long,
   tryCatch(print(make_cellexpression_raw()),
            error = function(x){make_bomb_plot()})
 }
-
-# make_cellexpression(input = list(type = "gene", content = c("ROCK1")))
-# make_cellexpression(input = list(type = "gene", content = c("ROCK1")), var = "protein")
-# make_cellexpression(input = list(type = "gene", content = c("ROCK1")), var = "protein")
-# make_cellexpression(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
-# make_tissue(input = list(type = "gene", content = c("ROCK1")), card = TRUE)
-# make_cellexpression(input = list(type = "gene", content = c("HSP90B1")))
-
-
-#figure legend
-plot_cellexp_title <- "Expression Values."
-#plot_cellexp_legend <- paste0("Each point shows the ranked expression value across ", n_distinct(expression_long$X1)," cell lines.")
-plot_cellexp_legend <- "Each point shows the ranked expression value across CCLE cell lines."
-plot_cellLineexp_title <- "Expression Values."
-#plot_cellLineexp_legend <- paste0("Each point shows the ranked expression value across ", n_distinct(expression_long$gene)," genes.")
-plot_cellLineexp_legend <- "Each point shows the ranked expression value across genes."
-#If present, black line indicates resampled mean expression value (", round(mean_virtual_expression, 2), "). If present, gray line indicates 3 standard deviations away from the resampled mean (", round(expression_upper, 2), ").
 
 # G-EXPvP-EXP ----------------------------------
 #' Gene versus protein in a cell

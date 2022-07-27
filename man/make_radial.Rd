@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{make_radial}
 \alias{make_radial}
-\title{Radial Plot}
+\title{Amino Acid Radial and Bar Plots}
 \usage{
 make_radial(
   cluster_data = sequence_clusters,
@@ -23,13 +23,11 @@ make_radial(
 If no error, then returns a radial plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-\code{make_radial} returns an image of ...
-}
-\details{
-This is a plot function that takes a gene name and returns a radial plot
+Amino acid signature/s (percentage of each amino acid in a protein) of the queried gene/clusters versus the mean amino acid signature of all the other proteins in the dataset (N = 20375).
 }
 \examples{
 make_radial(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_radial(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), cluster = TRUE)
 make_radial(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 \dontrun{
 make_radial(input = list(type = 'gene', content = 'ROCK1'))

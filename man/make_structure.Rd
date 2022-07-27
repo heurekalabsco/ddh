@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{make_structure}
 \alias{make_structure}
-\title{Structure Plot}
+\title{Protein Structure Plot}
 \usage{
 make_structure(input = list(), card = FALSE)
 }
@@ -15,10 +15,7 @@ make_structure(input = list(), card = FALSE)
 If no error, then returns a structure plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-\code{make_structure} returns an image of ...
-}
-\details{
-This is a plot function that takes a gene name and returns a structure plot
+Alpha Fold predicted structure rendered in a ribbon diagram.
 }
 \examples{
 make_structure(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

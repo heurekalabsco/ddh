@@ -20,10 +20,7 @@ make_ideogram(
 If no error, then returns an ideogram plot. If an error is thrown, then will return a bomb plot
 }
 \description{
-\code{make_ideogram} returns an image of a chromosome with a gene position annotated.
-}
-\details{
-This is a plotting function that takes a gene name and returns
+Each point shows the location of the query gene(s) on human chromosomes.
 }
 \examples{
 sum(1:10)
