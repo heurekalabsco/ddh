@@ -806,3 +806,58 @@ load_pdb <- function(app_data_dir = NULL,
   }
 }
 
+#' Extract Documentation Sections
+#'
+#' Extract parts of a function help documentation.
+#'
+#' @param fun Function name.
+#' @param section Help section to extract.
+#'
+#' @examples
+#' help_extract(make_radial, package = ddh, section = "Description")
+#' help_extract(make_radial, package = ddh, section = "Examples")
+help_extract <- function(fun,
+                         section = "Description",
+                         ...) {
+  fun <- deparse(substitute(fun))
+  x <- capture.output(tools:::Rd2txt(utils:::.getHelpFile(help(fun, ...)),
+                                     options = list(sectionIndent = 0)))
+  B <- grep("^_", x)
+  x <- gsub("_\b", "", x, fixed = TRUE)
+  X <- rep(FALSE, length(x))
+  X[B] <- 1
+  out <- split(x, cumsum(X))
+  out <- out[[which(sapply(out, function(x)
+    grepl(section, x[1], fixed = TRUE)))]][-c(1, 2)]
+  while(TRUE) {
+    out <- out[-length(out)]
+    if (out[length(out)] != "") { break }
+  }
+
+  if(section == "Description") {
+    out <- paste0(out, collapse = " ")
+  }
+
+  return(out)
+}
+
+#' Extract Title Function
+#'
+#' Extract function title from documentation.
+#'
+#' @param fun Function name.
+#'
+#' @examples
+#' title_extract(make_radial, package = ddh)
+#' title_extract(make_umap_plot, package = ddh)
+title_extract <- function(fun,
+                          ...) {
+  fun <- deparse(substitute(fun))
+  x <- capture.output(tools:::Rd2txt(utils:::.getHelpFile(help(fun, ...)),
+                                     options = list(sectionIndent = 0)))
+  x <- gsub("_\b", "", x, fixed = TRUE)
+  title <- x[1]
+
+  return(title)
+}
+
