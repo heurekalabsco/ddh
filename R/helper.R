@@ -813,6 +813,7 @@ load_pdb <- function(app_data_dir = NULL,
 #' @param fun Function name.
 #' @param section Help section to extract.
 #'
+#' @export
 #' @examples
 #' help_extract(make_radial, package = ddh, section = "Description")
 #' help_extract(make_radial, package = ddh, section = "Examples")
@@ -847,6 +848,7 @@ help_extract <- function(fun,
 #'
 #' @param fun Function name.
 #'
+#' @export
 #' @examples
 #' title_extract(make_radial, package = ddh)
 #' title_extract(make_umap_plot, package = ddh)
