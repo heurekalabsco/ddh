@@ -22,13 +22,11 @@ make_lineage(
 If no error, then returns a lineage plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-\code{make_lineage} returns an image of ...
-}
-\details{
-This is a plot function that takes a gene name and returns a lineage plot
+Each point shows the mean dependency score for the gene query within a given cell lineage. The intervals show the 5% quantiles centered on the median, the interquartile ranges, and the 95% quantiles. The gray background highlights weak dependency values between -1 and 1.
 }
 \examples{
 make_lineage(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_lineage(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), highlight = TRUE)
 make_lineage(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 \dontrun{
 make_lineage(input = list(type = 'gene', content = 'ROCK1'))

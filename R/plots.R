@@ -2604,9 +2604,7 @@ make_sublineage <- function(celldeps_data = achilles_long,
 ## CORRELATION PLOT FOR CELL DEPS--------------------------------------------------------
 #' Co-essentiality Correlation Plot
 #'
-#' \code{make_correlation} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a correlation plot
+#' Each point shows the ranked correlation value ordered from high to low for each query. Correlation values outside the solid gray lines indicate the gene has a correlation value greater than the mean.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -2642,9 +2640,9 @@ make_correlation <- function(table_data = achilles_cor_nest,
         dplyr::filter(fav_gene %in% input$content) %>%
         tidyr::unnest(data) %>%
         dplyr::group_by(fav_gene) %>%
-        dplyr::arrange(desc(r2)) %>%
+        dplyr::arrange(dplyr::desc(r2)) %>%
         dplyr::mutate(
-          rank = 1:n(),
+          rank = 1:dplyr::n(),
           med = median(r2, na.rm= TRUE)
         ) %>%
         dplyr::ungroup() %>%
@@ -2664,9 +2662,9 @@ make_correlation <- function(table_data = achilles_cor_nest,
         dplyr::filter(fav_drug %in% input$content) %>%
         tidyr::unnest(data) %>%
         dplyr::group_by(fav_drug) %>%
-        dplyr::arrange(desc(r2)) %>%
+        dplyr::arrange(dplyr::desc(r2)) %>%
         dplyr::mutate(
-          rank = 1:n(),
+          rank = 1:dplyr::n(),
           med = median(r2, na.rm= TRUE)
         ) %>%
         dplyr::ungroup()
@@ -2698,7 +2696,7 @@ make_correlation <- function(table_data = achilles_cor_nest,
     if(!is.null(scale) & !card){
       plot_data <-
         plot_data %>%
-        slice_sample(prop = scale)
+        dplyr::slice_sample(prop = scale)
     }
 
     if(card) {
@@ -2706,37 +2704,37 @@ make_correlation <- function(table_data = achilles_cor_nest,
         scale <- 0.3
       }
       plot_data <- plot_data %>%
-        group_by(name) %>%
-        sample_n(scale*n()) %>% # scale is also used here
-        ungroup()
+        dplyr::group_by(name) %>%
+        dplyr::sample_n(scale*dplyr::n()) %>% # scale is also used here
+        dplyr::ungroup()
     }
 
     plot_complete <-
       plot_data %>%
-      ggplot() +
+      ggplot2::ggplot() +
       ## sd square
-      geom_hline(yintercept = upper_limit, color = "gray80") +
-      geom_hline(yintercept = 0, color = "gray80", linetype = "dashed") +
-      geom_hline(yintercept = lower_limit, color = "gray80") +
-      annotate("text", x = Inf, y = 0.005, label = label_var, color = "gray40", hjust = 1.15 ,vjust = 0) +
+      ggplot2::geom_hline(yintercept = upper_limit, color = "gray80") +
+      ggplot2::geom_hline(yintercept = 0, color = "gray80", linetype = "dashed") +
+      ggplot2::geom_hline(yintercept = lower_limit, color = "gray80") +
+      ggplot2::annotate("text", x = Inf, y = 0.005, label = label_var, color = "gray40", hjust = 1.15 ,vjust = 0) +
       ## dot plot
-      geom_point(aes(x = rank,
+      ggplot2::geom_point(ggplot2::aes(x = rank,
                      y = r2,
                      text = glue::glue('{text_var}: {name}'),
-                     color = fct_reorder(!!var, med), #from https://rlang.r-lib.org/reference/quasiquotation.html
-                     fill = fct_reorder(!!var, med) #from https://rlang.r-lib.org/reference/quasiquotation.html
+                     color = forcats::fct_reorder(!!var, med), #from https://rlang.r-lib.org/reference/quasiquotation.html
+                     fill = forcats::fct_reorder(!!var, med) #from https://rlang.r-lib.org/reference/quasiquotation.html
       ),
       size = 1.1, stroke = .1, alpha = 0.4) +
       ## scales + legends
-      scale_x_discrete(expand = expansion(mult = 0.02), na.translate = FALSE) +
+      ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = 0.02), na.translate = FALSE) +
       scale_color_ddh_d(palette = input$type) +
       scale_fill_ddh_d(palette = input$type) +
-      guides(
-        color = guide_legend(reverse = TRUE, override.aes = list(size = 5)),
-        fill = guide_legend(reverse = TRUE, override.aes = list(size = 5))
+      ggplot2::guides(
+        color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 5)),
+        fill = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 5))
       ) +
       ## labels
-      labs(
+      ggplot2::labs(
         x = NULL,
         y = glue::glue("{text_var} correlations with {content_var}"),
         color = glue::glue("Query {text_var}"),
@@ -2744,12 +2742,12 @@ make_correlation <- function(table_data = achilles_cor_nest,
       ) +
       ## theme changes
       theme_ddh() +
-      theme(
-        text = element_text(family = "Nunito Sans"),
-        axis.text = element_text(family = "Roboto Slab"),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        axis.line.x = element_blank()
+      ggplot2::theme(
+        text = ggplot2::element_text(family = "Nunito Sans"),
+        axis.text = ggplot2::element_text(family = "Roboto Slab"),
+        axis.text.x = ggplot2::element_blank(),
+        axis.ticks.x = ggplot2::element_blank(),
+        axis.line.x = ggplot2::element_blank()
       ) +
       NULL
 
@@ -2757,7 +2755,7 @@ make_correlation <- function(table_data = achilles_cor_nest,
     if(length(input$content) == 1){ #fix me
       plot_complete  <-
         plot_complete +
-        guides(color = "none",
+        ggplot2::guides(color = "none",
                fill = "none")
     }
 
@@ -2768,22 +2766,10 @@ make_correlation <- function(table_data = achilles_cor_nest,
            error = function(x){make_bomb_plot()})
 }
 
-#figure legend
-plot_genecorrelations_title <- "Correlation Curve."
-#plot_genecorrelations_legend <- glue::glue("Each point shows the ranked correlation value ordered from high to low for each query. Correlation values outside the solid gray lines indicate the gene has a correlation value greater than {sd_threshold} standard deviations away from the mean.")
-plot_genecorrelations_legend <- "Each point shows the ranked correlation value ordered from high to low for each query. Correlation values outside the solid gray lines indicate the gene has a correlation value greater than the mean."
-
-#test
-#make_correlation(input = list(type = "gene", query = "ROCK1", content = c("ROCK1")))
-#make_correlation(input = list(type = "compound", query = "aspirin", content = "aspirin"))
-#make_correlation(input = list(type = "cell", query = "HEPG2", content = "HEPG2"))
-
 ## EXPvDEP PLOT --------------------------------------------------------
-#' Cell Expression v. Cell Dependency Plot
+#' Gene Dependency versus Expression
 #'
-#' \code{make_expdep} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a expdep plot
+#' Each point shows the dependency value compared to the expression value for gene within a given cell line. Gray area indicates dependency values that are between -1 and 1.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -2819,7 +2805,7 @@ make_expdep <- function(expression_data = expression_long,
       combined_data <-
         exp_data %>%
         dplyr::inner_join(dep_data, by = c("X1", "gene")) %>%
-        filter(!is.na(dep_score),
+        dplyr::filter(!is.na(dep_score),
                !is.na(gene_expression)) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
         dplyr::mutate(med = median(dep_score, na.rm = TRUE)) %>%
@@ -2842,7 +2828,7 @@ make_expdep <- function(expression_data = expression_long,
       combined_data <-
         exp_data %>%
         dplyr::inner_join(dep_data, by = c("cell_line", "gene")) %>%
-        filter(!is.na(dep_score),
+        dplyr::filter(!is.na(dep_score),
                !is.na(gene_expression)) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
         dplyr::mutate(med = median(dep_score, na.rm = TRUE)) %>%
@@ -2851,38 +2837,38 @@ make_expdep <- function(expression_data = expression_long,
 
     plot_complete <-
       combined_data %>%
-      ggplot(aes(dep_score, gene_expression)) +
+      ggplot2::ggplot(ggplot2::aes(dep_score, gene_expression)) +
       ## gray background
       ## dot plot
-      {if(input$type == "gene")geom_point(aes(color = fct_reorder(gene, med),
-                                              fill = fct_reorder(gene, med)),
+      {if(input$type == "gene")ggplot2::geom_point(ggplot2::aes(color = forcats::fct_reorder(gene, med),
+                                              fill = forcats::fct_reorder(gene, med)),
                                           size = 2, stroke = .1, alpha = 0.4)} +
-      {if(input$type == "cell")geom_point(aes(color = fct_reorder(cell_line, med),
-                                              fill = fct_reorder(cell_line, med)),
+      {if(input$type == "cell")ggplot2::geom_point(ggplot2::aes(color = forcats::fct_reorder(cell_line, med),
+                                              fill = forcats::fct_reorder(cell_line, med)),
                                           size = 2, stroke = .1, alpha = 0.4)} +
       # smooth line
-      {if(input$type == "gene")geom_smooth(aes(color = fct_reorder(gene, med),
-                                               fill = fct_reorder(gene, med)),
+      {if(input$type == "gene")ggplot2::geom_smooth(ggplot2::aes(color = forcats::fct_reorder(gene, med),
+                                               fill = forcats::fct_reorder(gene, med)),
                                            method = "lm",
                                            se = plot_se)} +
-      {if(input$type == "cell")geom_smooth(aes(color = fct_reorder(cell_line, med),
-                                               fill = fct_reorder(cell_line, med)),
+      {if(input$type == "cell")ggplot2::geom_smooth(ggplot2::aes(color = forcats::fct_reorder(cell_line, med),
+                                               fill = forcats::fct_reorder(cell_line, med)),
                                            method = "lm",
                                            se = plot_se)} +
       # R coefs
-      {if(card == FALSE & input$type == "gene")ggpubr::stat_cor(aes(color = fct_reorder(gene, med)),
+      {if(card == FALSE & input$type == "gene")ggpubr::stat_cor(ggplot2::aes(color = forcats::fct_reorder(gene, med)),
                                                                 digits = 3)} +
-      {if(card == FALSE & input$type == "cell")ggpubr::stat_cor(aes(color = fct_reorder(cell_line, med)),
+      {if(card == FALSE & input$type == "cell")ggpubr::stat_cor(ggplot2::aes(color = forcats::fct_reorder(cell_line, med)),
                                                                 digits = 3)} +
       ## scales + legends
       scale_color_ddh_d(palette = input$type) +
       scale_fill_ddh_d(palette = input$type) +
-      guides(
-        color = guide_legend(reverse = TRUE, override.aes = list(size = 5)),
-        fill = guide_legend(reverse = TRUE, override.aes = list(size = 5))
+      ggplot2::guides(
+        color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 5)),
+        fill = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 5))
       ) +
       ## titles
-      labs(
+      ggplot2::labs(
         x = "Dependency",
         y = "Expression",
         color = ifelse(input$type == "gene", "Query Gene", "Query Cell Line"),
@@ -2890,26 +2876,26 @@ make_expdep <- function(expression_data = expression_long,
       ) +
       ## theme changes
       theme_ddh() +
-      theme(
-        text = element_text(family = "Nunito Sans"),
-        axis.text = element_text(family = "Roboto Slab")
+      ggplot2::theme(
+        text = ggplot2::element_text(family = "Nunito Sans"),
+        axis.text = ggplot2::element_text(family = "Roboto Slab")
       ) +
       NULL
 
     if(length(input$content) == 1){
       plot_complete  <-
         plot_complete +
-        guides(color = "none",
+        ggplot2::guides(color = "none",
                fill = "none") +
-        labs(x = paste0(input$content, " Dependency"),
+        ggplot2::labs(x = paste0(input$content, " Dependency"),
              y = paste0(input$content, " Expression"))
     }
 
     if(card == TRUE) {
       plot_complete <-
         plot_complete +
-        labs(x = "", y = "") +
-        theme(legend.position='none') +
+        ggplot2::labs(x = "", y = "") +
+        ggplot2::theme(legend.position='none') +
         NULL
     }
     return(plot_complete)
@@ -2919,17 +2905,16 @@ make_expdep <- function(expression_data = expression_long,
            error = function(x){make_bomb_plot()})
 }
 
-#test
-#make_expdep(input = list(type = "gene", content = c("ROCK1")))
-#make_expdep(input = list(type = "gene", content = c("ROCK1")), card = TRUE)
-#make_expdep(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
-#make_expdep(input = list(type = "gene", content = c("ROCK1", "ROCK2")), card = TRUE)
-
-#figure legend
-plot_expdep_title <- "Gene Dependency versus Expression."
-plot_expdep_legend <- paste0("Each point shows the dependency value compared to the expression value for gene within a given cell line. Gray area indicates dependency values that are between -1 and 1.")
-
 #CELL --------------------------------------------------------------------
+#' Cell Images
+#'
+#' Cells image shown at low (top) and high (bottom) growth density.
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' make_cell_image(input = list(content = "HEPG2"))
 make_cell_image <- function(input = list()) {
   make_cell_image_raw <- function() {
     #if multiple, then pull single "rep" image; consider pulling >1 and using patchwork, eg.
@@ -2950,18 +2935,10 @@ make_cell_image <- function(input = list()) {
            error = function(x){make_bomb_plot()})
 }
 
-#figure legend
-plot_cellimage_title <- "Cell Images. "
-plot_cellimage_legend <- "Cells image shown at low (top) and high (bottom) growth density."
-
-#make_cell_image(input = list(content = "HEPG2"))
-
 ## CO-ESSENTIALITY CELL LINE PLOT --------------------------------------------------------
 #' Cell Similarity Plot
 #'
-#' \code{make_cell_similarity_plot} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a cell similarity plot plot
+#' Each point shows the ranked linear model coefficient estimate value ordered from high to low for each query.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -2971,10 +2948,10 @@ plot_cellimage_legend <- "Cells image shown at low (top) and high (bottom) growt
 #'
 #' @export
 #' @examples
-#' make_cell_similarity_plot(cell1 = "HEL", cell2 = "HEL9217")
-#' make_cell_similarity_plot(cell1 = "HEL", cell2 = "KLE")
+#' make_cell_similarity(input = list(type = "cell", query = "HEPG2", content = "HEPG2"))
+#' make_cell_similarity(input = list(type = "cell", query = "HEPG2", content = "HEPG2"), similarity = "expression")
 #' \dontrun{
-#' make_cell_similarity_plot(cell1 = "HEL", cell2 = "HEPG2")
+#' make_cell_similarity(input = list(type = "cell", query = "HEPG2", content = "HEPG2"))
 #' }
 make_cell_similarity <- function(cell_sims_dep = cell_line_dep_sim,
                                  cell_sims_exp = cell_line_exp_sim,
@@ -3003,9 +2980,9 @@ make_cell_similarity <- function(cell_sims_dep = cell_line_dep_sim,
     plot_data <-
       cell_sim_table %>%
       dplyr::group_by(cell1_name) %>%
-      dplyr::arrange(desc(coef)) %>%
+      dplyr::arrange(dplyr::desc(coef)) %>%
       dplyr::mutate(
-        rank = 1:n(),
+        rank = 1:dplyr::n(),
         med = median(coef, na.rm = TRUE)
       ) %>%
       dplyr::ungroup() %>%
@@ -3015,7 +2992,7 @@ make_cell_similarity <- function(cell_sims_dep = cell_line_dep_sim,
     if(!is.null(scale) & !card){
       plot_data <-
         plot_data %>%
-        slice_sample(prop = scale)
+        dplyr::slice_sample(prop = scale)
     }
 
     if(card) {
@@ -3023,34 +3000,35 @@ make_cell_similarity <- function(cell_sims_dep = cell_line_dep_sim,
         scale <- 0.3
       }
       plot_data <- plot_data %>%
-        group_by(name) %>%
-        sample_n(scale*n()) %>% # scale is also used here
-        ungroup()
+        dplyr::group_by(name) %>%
+        dplyr::sample_n(scale*dplyr::n()) %>% # scale is also used here
+        dplyr::ungroup()
     }
 
     plot_complete <-
       plot_data %>%
-      ggplot() +
-      geom_hline(yintercept = 0, color = "gray80", linetype = "dashed") +
-      annotate("text", x = Inf, y = 0.005, label = "Cell Rank", color = "gray40", hjust = 1.15 ,vjust = 0) +
+      ggplot2::ggplot() +
+      ggplot2::geom_hline(yintercept = 0, color = "gray80", linetype = "dashed") +
+      ggplot2::annotate("text", x = Inf, y = 0.005, label = "Cell Rank",
+                        color = "gray40", hjust = 1.15 ,vjust = 0) +
       ## dot plot
-      geom_point(aes(x = rank,
+      ggplot2::geom_point(ggplot2::aes(x = rank,
                      y = coef,
                      text = glue::glue('Cell: {name}'),
-                     color = fct_reorder(name, med),
-                     fill = fct_reorder(name, med)
+                     color = forcats::fct_reorder(name, med),
+                     fill = forcats::fct_reorder(name, med)
       ),
       size = 1.1, stroke = .1, alpha = 0.4) +
       ## scales + legends
-      scale_x_discrete(expand = expansion(mult = 0.02), na.translate = FALSE) +
+      ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = 0.02), na.translate = FALSE) +
       scale_color_ddh_d(palette = input$type) +
       scale_fill_ddh_d(palette = input$type) +
-      guides(
-        color = guide_legend(reverse = TRUE, override.aes = list(size = 5)),
-        fill = guide_legend(reverse = TRUE, override.aes = list(size = 5))
+      ggplot2::guides(
+        color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 5)),
+        fill = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 5))
       ) +
       ## labels
-      labs(
+      ggplot2::labs(
         x = NULL,
         y = glue::glue("Cell coefficient estimates with {content_var}"),
         color = "Query Cell",
@@ -3058,12 +3036,12 @@ make_cell_similarity <- function(cell_sims_dep = cell_line_dep_sim,
       ) +
       ## theme changes
       theme_ddh() +
-      theme(
-        text = element_text(family = "Nunito Sans"),
-        axis.text = element_text(family = "Roboto Slab"),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        axis.line.x = element_blank()
+      ggplot2::theme(
+        text = ggplot2::element_text(family = "Nunito Sans"),
+        axis.text = ggplot2::element_text(family = "Roboto Slab"),
+        axis.text.x = ggplot2::element_blank(),
+        axis.ticks.x = ggplot2::element_blank(),
+        axis.line.x = ggplot2::element_blank()
       ) +
       NULL
 
@@ -3071,7 +3049,7 @@ make_cell_similarity <- function(cell_sims_dep = cell_line_dep_sim,
     if(length(input$content) == 1){ #fix me
       plot_complete  <-
         plot_complete +
-        guides(color = "none",
+        ggplot2::guides(color = "none",
                fill = "none")
     }
 
@@ -3082,16 +3060,21 @@ make_cell_similarity <- function(cell_sims_dep = cell_line_dep_sim,
            error = function(x){make_bomb_plot()})
 }
 
-#figure legend
-make_cell_coessentiality_title <- "Cell Line Co-dependencies."
-make_cell_coessentiality_legend <- glue::glue("Each point shows the ranked linear model coefficient estimate value ordered from high to low for each query.")
-
-make_cell_coexpression_title <- "Cell Line Co-expressions."
-
-# testing
-# make_cell_similarity(input = list(type = "cell", query = "HEPG2", content = "HEPG2"))
-
 # FUNCTIONAL PLOT ------------------------------------------
+#' Differential Pathway Expression Plot
+#'
+#' The colored vertical bars indicate the pathway median expression for the queried cell line/s while the background grey points indicate the pathway median expression of all the other cell lines. If the query includes only one cell line, the difference between the median pathway expression of that cell line and the median pathway expression of all the other cell lines will be computed and the pathways with higher differences will appear first in the plot. Otherwise, the biggest difference between pathway medians of the queried cell lines will be used to rank the pathways in the plot. Those pathways with higher differences will appear first in the plot.
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' make_functional_cell(input = list(type = "cell", query = "HEPG2", content = "HEPG2"))
+#' make_functional_cell(input = list(type = "cell", query = c("HEPG2", "HEL"), content = c("HEPG2", "HEL")))
+#' make_functional_cell(input = list(type = "cell", query = "HEPG2", content = "HEPG2"), card = TRUE)
+#' \dontrun{
+#' make_functional_cell(input = list(type = "cell", query = "HEPG2", content = "HEPG2"))
+#' }
 make_functional_cell <- function(pathway_data = pathways,
                                  expression_data = expression_long,
                                  expression_metadata = expression_meta,
@@ -3104,130 +3087,130 @@ make_functional_cell <- function(pathway_data = pathways,
   make_functional_cell_raw <- function() {
 
     plot_data <- pathway_data %>%
-      unnest(data) %>%
-      left_join(expression_data, by = "gene") %>%
+      tidyr::unnest(data) %>%
+      dplyr::left_join(expression_data, by = "gene") %>%
       dplyr::select(pathway, go, gene, gene_expression, X1) %>%
-      drop_na() %>%
-      left_join(expression_metadata %>%
+      tidyr::drop_na() %>%
+      dplyr::left_join(expression_metadata %>%
                   dplyr::select(X1, cell_line), by = "X1") %>%
       dplyr::select(-X1) %>%
-      mutate(pathway_short = ifelse(str_count(pathway) >= nwords,
+      dplyr::mutate(pathway_short = ifelse(stringr::str_count(pathway) >= nwords,
                                     paste0(gsub(paste0("^((\\w+\\W+){", nwords, "}\\w+).*$"), "\\1", pathway), " ..."),
                                     pathway)
       )
 
     med_cell <- plot_data %>%
-      filter(cell_line %in% input$content) %>%
-      group_by(go, cell_line) %>%
-      mutate(genes_num = n()) %>%
-      filter(genes_num >= num_genes) %>%
-      ungroup() %>%
-      group_by(cell_line, go) %>%
-      summarise(med = median(gene_expression)) %>%
-      ungroup() %>%
-      filter(med != 0) %>% # decide if filter zero expressions
-      left_join(plot_data %>%
+      dplyr::filter(cell_line %in% input$content) %>%
+      dplyr::group_by(go, cell_line) %>%
+      dplyr::mutate(genes_num = dplyr::n()) %>%
+      dplyr::filter(genes_num >= num_genes) %>%
+      dplyr::ungroup() %>%
+      dplyr::group_by(cell_line, go) %>%
+      dplyr::summarise(med = median(gene_expression)) %>%
+      dplyr::ungroup() %>%
+      dplyr::filter(med != 0) %>% # decide if filter zero expressions
+      dplyr::left_join(plot_data %>%
                   dplyr::select(go, pathway_short) %>%
-                  filter(!duplicated(go)),
+                    dplyr::filter(!duplicated(go)),
                 by = "go")
 
     if(remove_equivalent_pathways) {
       med_cell <- med_cell %>%
-        filter(!duplicated(med))
+        dplyr::filter(!duplicated(med))
     }
 
     if(length(input$content) == 1) {
       diff_cell <- plot_data %>%
-        filter(!cell_line %in% input$content) %>%
-        group_by(go) %>%
-        mutate(genes_num = n()) %>%
-        filter(genes_num > num_genes) %>%
-        ungroup() %>%
-        group_by(go) %>%
-        summarise(med = median(gene_expression)) %>%
-        ungroup() %>%
-        filter(med != 0) %>% # decide if filter zero expressions
-        bind_rows(med_cell) %>%
-        group_by(go) %>%
-        summarise(diff = abs(diff(med))) %>%
-        ungroup() %>%
+        dplyr::filter(!cell_line %in% input$content) %>%
+        dplyr::group_by(go) %>%
+        dplyr::mutate(genes_num = dplyr::n()) %>%
+        dplyr::filter(genes_num > num_genes) %>%
+        dplyr::ungroup() %>%
+        dplyr::group_by(go) %>%
+        dplyr::summarise(med = median(gene_expression)) %>%
+        dplyr::ungroup() %>%
+        dplyr::filter(med != 0) %>% # decide if filter zero expressions
+        dplyr::bind_rows(med_cell) %>%
+        dplyr::group_by(go) %>%
+        dplyr::summarise(diff = abs(diff(med))) %>%
+        dplyr::ungroup() %>%
         dplyr::arrange(-diff) %>%
         dplyr::slice(1:num_pathways) %>%
-        left_join(plot_data %>%
+        dplyr::left_join(plot_data %>%
                     dplyr::select(go, pathway_short) %>%
-                    filter(!duplicated(go)),
+                      dplyr::filter(!duplicated(go)),
                   by = "go")
     } else {
       diff_cell <- med_cell %>%
-        group_by(go) %>%
-        summarise(diff = abs(diff(med))) %>%
-        ungroup() %>%
+        dplyr::group_by(go) %>%
+        dplyr::summarise(diff = abs(diff(med))) %>%
+        dplyr::ungroup() %>%
         dplyr::arrange(-diff) %>%
         dplyr::slice(1:num_pathways) %>%
-        left_join(plot_data %>%
+        dplyr::left_join(plot_data %>%
                     dplyr::select(go, pathway_short) %>%
-                    filter(!duplicated(go)),
+                      dplyr::filter(!duplicated(go)),
                   by = "go")
     }
 
     med_cell <- med_cell %>%
-      filter(go %in% diff_cell$go) %>%
-      left_join(diff_cell %>%
+      dplyr::filter(go %in% diff_cell$go) %>%
+      dplyr::left_join(diff_cell %>%
                   dplyr::select(-pathway_short) %>%
-                  filter(!duplicated(go)),
+                  dplyr::filter(!duplicated(go)),
                 by = "go")
 
     background <- plot_data %>%
-      filter(go %in% diff_cell$go) %>%
-      filter(!cell_line %in% input$content) %>%
-      group_by(cell_line, go) %>%
-      summarise(med = median(gene_expression)) %>%
-      ungroup() %>%
-      filter(med != 0) %>% # decide if filter zero expressions
-      left_join(diff_cell, by = "go")
+      dplyr::filter(go %in% diff_cell$go) %>%
+      dplyr::filter(!cell_line %in% input$content) %>%
+      dplyr::group_by(cell_line, go) %>%
+      dplyr::summarise(med = median(gene_expression)) %>%
+      dplyr::ungroup() %>%
+      dplyr::filter(med != 0) %>% # decide if filter zero expressions
+      dplyr::left_join(diff_cell, by = "go")
 
-    plot_complete <- ggplot() +
-      geom_jitter(data = background, aes(reorder(pathway_short, diff), med), color = "gray69", alpha = 0.5, width = 0.25) +
-      geom_crossbar(data = med_cell,
-                    aes(reorder(pathway_short, diff), med, ymin = med, ymax = med, color = cell_line)) +
-      geom_point(data = med_cell, aes(reorder(pathway_short, diff), med, color = cell_line), size = 3) +
-      labs(x = NULL,
+    plot_complete <- ggplot2::ggplot() +
+      ggplot2::geom_jitter(data = background, ggplot2::aes(reorder(pathway_short, diff), med), color = "gray69", alpha = 0.5, width = 0.25) +
+      ggplot2::geom_crossbar(data = med_cell,
+                             ggplot2::aes(reorder(pathway_short, diff), med, ymin = med, ymax = med, color = cell_line)) +
+      ggplot2::geom_point(data = med_cell, ggplot2::aes(reorder(pathway_short, diff), med, color = cell_line), size = 3) +
+      ggplot2::labs(x = NULL,
            y = "Gene Expression",
            color = "Query Cell") +
-      coord_flip() +
+      ggplot2::coord_flip() +
       scale_color_ddh_d(palette = input$type) +
-      guides(
-        color = guide_legend(reverse = TRUE, override.aes = list(size = 5))
+      ggplot2::guides(
+        color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 5))
       ) +
       ## theme changes
       theme_ddh() +
-      theme(
-        text = element_text(family = "Nunito Sans"),
-        axis.text = element_text(family = "Roboto Slab"),
-        legend.title = element_blank()
+      ggplot2::theme(
+        text = ggplot2::element_text(family = "Nunito Sans"),
+        axis.text = ggplot2::element_text(family = "Roboto Slab"),
+        legend.title = ggplot2::element_blank()
       ) +
       NULL
 
     if(length(input$content) == 1){
       plot_complete  <-
         plot_complete +
-        ylab(paste0(str_c(input$content, collapse = ", "), " Gene Expression")) +
-        theme(
+        ggplot2::ylab(paste0(stringr::str_c(input$content, collapse = ", "), " Gene Expression")) +
+        ggplot2::theme(
           legend.position = "none"
         )
     } else {
       plot_complete <- plot_complete +
-        theme(legend.title = element_blank())
+        ggplot2::theme(legend.title = ggplot2::element_blank())
     }
 
     if(card == TRUE){
       plot_complete <-
         plot_complete +
-        theme(axis.title.x = element_blank(),
-              axis.title.y = element_blank(),
-              axis.text.y = element_blank(),
-              axis.ticks.y = element_blank(),
-              axis.line.y = element_blank(),
+        ggplot2::theme(axis.title.x = ggplot2::element_blank(),
+              axis.title.y = ggplot2::element_blank(),
+              axis.text.y = ggplot2::element_blank(),
+              axis.ticks.y = ggplot2::element_blank(),
+              axis.line.y = ggplot2::element_blank(),
               legend.position = "none"
         )
     }
@@ -3240,14 +3223,23 @@ make_functional_cell <- function(pathway_data = pathways,
            error = function(x){make_bomb_plot()})
 }
 
-functional_plot_title <- "Differential Pathway Expression Plot."
-functional_plot_legend <- "The colored vertical bars indicate the pathway median expression for the queried cell line/s while the background grey points indicate the pathway median expression of all the other cell lines. If the query includes only one cell line, the difference between the median pathway expression of that cell line and the median pathway expression of all the other cell lines will be computed and the pathways with higher differences will appear first in the plot. Otherwise, the biggest difference between pathway medians of the queried cell lines will be used to rank the pathways in the plot. Those pathways with higher differences will appear first in the plot."
-
-# testing
-# make_functional_cell(input = list(type = "cell", content = c("HEL")))
-# make_functional_cell(input = list(type = "cell", content = c("HEPG2", "HEL")))
-
 # CELL METADATA PLOT ------------------------------------------
+#' Lineage Similarity Plot
+#'
+#' Similar and dissimilar lineages (and sublineages) associated with the queried cell line/s.
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' make_metadata_cell(input = list(type = "cell", content = c("HEPG2")))
+#' make_metadata_cell(input = list(type = "cell", content = c("HEPG2")), cell_line_similarity = "expression")
+#' make_metadata_cell(input = list(type = "cell", content = c("HEPG2")), metadata = "sublineage")
+#' make_metadata_cell(input = list(type = "cell", content = c("HEPG2", "HEL")))
+#' make_metadata_cell(input = list(type = "cell", content = c("HEPG2")), card = TRUE)
+#' \dontrun{
+#' make_metadata_cell(input = list(type = "cell", content = c("HEPG2")))
+#' }
 make_metadata_cell <- function(input = list(),
                                cell_line_similarity = "dependency",
                                metadata = "lineage",
@@ -3258,29 +3250,29 @@ make_metadata_cell <- function(input = list(),
     plot_data <- make_cell_sim_table(similarity = cell_line_similarity,
                                      bonferroni_cutoff = 1.1, # to include bonf == 1
                                      input = input) %>%
-      bind_rows() %>%
-      mutate(group = case_when(bonferroni > bonferroni_cutoff ~ "None",
+      dplyr::bind_rows() %>%
+      dplyr::mutate(group = dplyr::case_when(bonferroni > bonferroni_cutoff ~ "None",
                                bonferroni < bonferroni_cutoff & coef > 0 ~ "Similar",
                                bonferroni < bonferroni_cutoff & coef < 0 ~ "Dissimilar"),
-             group = as_factor(group)
+             group = forcats::as_factor(group)
       ) %>%
-      as_tibble()
+      dplyr::as_tibble()
 
     if(metadata == "lineage") {
 
       siglin <- plot_data %>%
-        filter(bonferroni < bonferroni_cutoff) %>%
-        pull(lineage) %>%
+        dplyr::filter(bonferroni < bonferroni_cutoff) %>%
+        dplyr::pull(lineage) %>%
         unique()
 
       plot_data <- plot_data %>%
-        filter(lineage %in% siglin)
+        dplyr::filter(lineage %in% siglin)
 
       if(card & nrow(plot_data) > 6) {
         most_associated <-
           plot_data %>%
-          arrange(pval) %>%
-          filter(!duplicated(lineage)) %>%
+          dplyr::arrange(pval) %>%
+          dplyr::filter(!duplicated(lineage)) %>%
           dplyr::slice(1:6) %>%
           dplyr::pull(lineage)
 
@@ -3289,45 +3281,45 @@ make_metadata_cell <- function(input = list(),
       }
 
       plot_complete <- plot_data %>%
-        filter(!is.na(lineage)) %>%
-        group_by(lineage, group) %>%
-        count() %>%
-        ungroup() %>%
-        ggplot(aes(x = n, y = lineage, fill = group, group = group))
+        dplyr::filter(!is.na(lineage)) %>%
+        dplyr::group_by(lineage, group) %>%
+        dplyr::count() %>%
+        dplyr::ungroup() %>%
+        ggplot2::ggplot(ggplot2::aes(x = n, y = lineage, fill = group, group = group))
     }
     else if (metadata == "sublineage") {
 
       sigsublin <- plot_data %>%
-        filter(bonferroni < bonferroni_cutoff) %>%
-        pull(lineage_subtype) %>%
+        dplyr::filter(bonferroni < bonferroni_cutoff) %>%
+        dplyr::pull(lineage_subtype) %>%
         unique()
 
       plot_data <- plot_data %>%
-        filter(lineage_subtype %in% sigsublin)
+        dplyr::filter(lineage_subtype %in% sigsublin)
 
       plot_complete <- plot_data %>%
-        filter(!is.na(lineage_subtype)) %>%
-        group_by(lineage_subtype, group) %>%
-        count() %>%
-        ungroup() %>%
-        ggplot(aes(x = n, y = lineage_subtype, fill = group, group = group))
+        dplyr::filter(!is.na(lineage_subtype)) %>%
+        dplyr::group_by(lineage_subtype, group) %>%
+        dplyr::count() %>%
+        dplyr::ungroup() %>%
+        ggplot2::ggplot(ggplot2::aes(x = n, y = lineage_subtype, fill = group, group = group))
     }
 
     plot_complete <- plot_complete +
-      geom_col() +
-      labs(x = "# Cell Lines",
+      ggplot2::geom_col() +
+      ggplot2::labs(x = "# Cell Lines",
            y = NULL) +
       # scale_x_continuous(labels = scales::percent_format()) +
       scale_fill_ddh_d(palette = input$type) +
-      guides(
-        color = guide_legend(reverse = TRUE, override.aes = list(size = 5))
+      ggplot2::guides(
+        color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 5))
       ) +
       ## theme changes
       theme_ddh() +
-      theme(
-        text = element_text(family = "Nunito Sans"),
-        axis.text = element_text(family = "Roboto Slab"),
-        legend.title = element_blank(),
+      ggplot2::theme(
+        text = ggplot2::element_text(family = "Nunito Sans"),
+        axis.text = ggplot2::element_text(family = "Roboto Slab"),
+        legend.title = ggplot2::element_blank(),
         legend.position = "top"
       ) +
       NULL
@@ -3335,10 +3327,10 @@ make_metadata_cell <- function(input = list(),
     if(card) {
       plot_complete <-
         plot_complete +
-        scale_y_discrete(labels = scales::label_wrap(10)) + #to prevent long lines and squished plots
-        theme(axis.title.x = element_blank(),
-              axis.title.y = element_blank(),
-              plot.title = element_blank(),
+        ggplot2::scale_y_discrete(labels = scales::label_wrap(10)) + #to prevent long lines and squished plots
+        ggplot2::theme(axis.title.x = ggplot2::element_blank(),
+              axis.title.y = ggplot2::element_blank(),
+              plot.title = ggplot2::element_blank(),
               legend.position = "none"
         )
     }
@@ -3350,13 +3342,6 @@ make_metadata_cell <- function(input = list(),
   tryCatch(make_metadata_cell_raw(),
            error = function(x){make_bomb_plot()})
 }
-
-cell_metadata_plot_title <- "Lineage Similarity Plot."
-cell_metadata_plot_legend <- "Similar and dissimilar lineages (and sublineages) associated with the queried cell line/s."
-
-# testing
-# make_metadata_cell(input = list(type = "cell", content = c("HEL")))
-# make_metadata_cell(input = list(type = "cell", content = c("HEPG2", "HEL")))
 
 #COMPOUND --------------------------------------------------------------------
 #' Molecule Structure Plot
@@ -3402,7 +3387,7 @@ make_molecule_structure <- function(input = list(),
       molecule <-
         molecule +
         #annotate with image magick?
-        labs(x = "")#, title = "Gene Information", caption = "more ...")
+        ggplot2::labs(x = "")#, title = "Gene Information", caption = "more ...")
     }
 
     return(molecule)
@@ -3411,9 +3396,4 @@ make_molecule_structure <- function(input = list(),
   tryCatch(make_molecule_structure_raw(),
            error = function(x){make_bomb_plot()})
 }
-
-#make_molecule_structure(input = list(content = "aspirin"))
-#make_molecule_structure(content = 2244)
-#make_molecule_structure(content = "ibuprofen")
-#make_molecule_structure(content = "ibuprofe")
 

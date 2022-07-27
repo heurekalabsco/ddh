@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{make_celldeps}
 \alias{make_celldeps}
-\title{Cell Dependencies Plot}
+\title{Dependency Curve Plot}
 \usage{
 make_celldeps(
   celldeps_data = achilles_long,
@@ -23,10 +23,7 @@ make_celldeps(
 If no error, then returns a celldeps plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-\code{make_celldeps} returns an image of ...
-}
-\details{
-This is a plot function that takes a gene name and returns a celldeps plot
+Each point shows the ranked dependency score ordered from low to high scores. Dependency scores less than -1 indicate a gene that is essential within a cell line. Dependency scores close to 0 mean no changes in fitness when the gene is knocked out. Dependency scores greater than 1 indicate gene knockouts lead to a gain in fitness.
 }
 \examples{
 make_celldeps(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
