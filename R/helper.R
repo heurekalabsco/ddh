@@ -815,12 +815,11 @@ load_pdb <- function(app_data_dir = NULL,
 #'
 #' @export
 #' @examples
-#' help_extract(make_radial, package = ddh, section = "Description")
-#' help_extract(make_radial, package = ddh, section = "Examples")
+#' help_extract("make_radial", package = ddh, section = "Description")
+#' help_extract("make_radial", package = ddh, section = "Examples")
 help_extract <- function(fun,
                          section = "Description",
                          ...) {
-  fun <- deparse(substitute(fun))
   x <- capture.output(tools:::Rd2txt(utils:::.getHelpFile(help(fun, ...)),
                                      options = list(sectionIndent = 0)))
   B <- grep("^_", x)
@@ -850,11 +849,10 @@ help_extract <- function(fun,
 #'
 #' @export
 #' @examples
-#' title_extract(make_radial, package = ddh)
-#' title_extract(make_umap_plot, package = ddh)
+#' title_extract("make_radial", package = ddh)
+#' title_extract("make_umap_plot", package = ddh)
 title_extract <- function(fun,
                           ...) {
-  fun <- deparse(substitute(fun))
   x <- capture.output(tools:::Rd2txt(utils:::.getHelpFile(help(fun, ...)),
                                      options = list(sectionIndent = 0)))
   x <- gsub("_\b", "", x, fixed = TRUE)
@@ -872,8 +870,6 @@ title_extract <- function(fun,
 #' make_legend(fun = "make_radial")
 make_legend <- function(fun,
                         ...) {
-  fun <- rlang::sym(fun)
-
   description <- help_extract(fun, package = ddh, section = "Description")
   title <- title_extract(fun, package = ddh)
 

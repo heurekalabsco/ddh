@@ -13,6 +13,6 @@ title_extract(fun, ...)
 Extract function title from documentation.
 }
 \examples{
-title_extract(make_radial, package = ddh)
-title_extract(make_umap_plot, package = ddh)
+title_extract("make_radial", package = ddh)
+title_extract("make_umap_plot", package = ddh)
 }
