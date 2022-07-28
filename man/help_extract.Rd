@@ -15,6 +15,6 @@ help_extract(fun, section = "Description", ...)
 Extract parts of a function help documentation.
 }
 \examples{
-help_extract(make_radial, package = ddh, section = "Description")
-help_extract(make_radial, package = ddh, section = "Examples")
+help_extract("make_radial", package = ddh, section = "Description")
+help_extract("make_radial", package = ddh, section = "Examples")
 }
