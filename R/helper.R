@@ -872,6 +872,8 @@ title_extract <- function(fun,
 #' make_legend(fun = make_radial)
 make_legend <- function(fun,
                         ...) {
+  fun <- deparse(substitute(fun))
+
   description <- help_extract(fun, package = ddh, section = "Description")
   title <- title_extract(fun, package = ddh)
 
