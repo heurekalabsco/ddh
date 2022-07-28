@@ -1,9 +1,8 @@
 # ddh <img src="man/figures/hex_ddh.png" align="right" height="120" />
 
 <!-- badges: start -->
-[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![R-CMD-check](https://github.com/matthewhirschey/ddh/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/matthewhirschey/ddh/actions/workflows/R-CMD-check.yaml)
-[![Codecov test coverage](https://codecov.io/gh/matthewhirschey/ddh/branch/main/graph/badge.svg)](https://app.codecov.io/gh/matthewhirschey/ddh?branch=main)
 <!-- badges: end -->
 
 This package contains functions for data analysis and graphing, data sets, and supporting materials for the [ddh web app](https://www.datadrivenhypothesis.com).
