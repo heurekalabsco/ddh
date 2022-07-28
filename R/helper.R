@@ -863,6 +863,23 @@ title_extract <- function(fun,
   return(title)
 }
 
+#' Make Legend
+#'
+#' @param fun Function name.
+#'
+#' @export
+#' @examples
+#' make_legend(fun = make_radial)
+make_legend <- function(fun,
+                        ...) {
+  description <- help_extract(fun, package = ddh, section = "Description")
+  title <- title_extract(fun, package = ddh)
+
+  legend <- paste0(title, ". ", description)
+
+  return(legend)
+}
+
 #' Send Report Message
 #'
 #' \code{send_report_message} generates a message that gets sent to the AWS simple queue service (SQS) for report generation
