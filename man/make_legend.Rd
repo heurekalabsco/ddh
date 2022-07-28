@@ -13,5 +13,5 @@ make_legend(fun, ...)
 Make Legend
 }
 \examples{
-make_legend(fun = make_radial)
+make_legend(fun = "make_radial")
 }
