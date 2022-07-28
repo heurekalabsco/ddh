@@ -560,8 +560,8 @@ make_protein_domain_plot <- function(input = list(),
            error = function(x){make_bomb_plot()})
 }
 
-## RADIAL PLOT -------------------------------------------------------------
-#' Amino Acid Radial and Bar Plots
+## AA RADIAL PLOT -------------------------------------------------------------
+#' Amino Acid Radial Plot
 #'
 #' Amino acid signature/s (percentage of each amino acid in a protein) of the queried gene/clusters versus the mean amino acid signature of all the other proteins in the dataset (N = 20375).
 #'
@@ -750,6 +750,43 @@ make_radial <- function(cluster_data = sequence_clusters,
 
   #error handling
   tryCatch(make_radial_raw(),
+           error = function(x){make_bomb_plot()})
+}
+
+## AA BAR PLOT -------------------------------------------------------------
+#' Amino Acid Bar Plot
+#'
+#' Amino acid signature/s (percentage of each amino acid in a protein) of the queried gene/clusters versus the mean amino acid signature of all the other proteins in the dataset (N = 20375).
+#'
+#' @param input Expecting a list containing type and content variable.
+#' @param card A boolean that sets whether the plot should be scaled down to be a card
+#' @return If no error, then returns a bar plot. If an error is thrown, then will return a bomb plot.
+#'
+#' @importFrom magrittr %>%
+#' @export
+#' @examples
+#' make_radial_bar(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_radial_bar(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), cluster = TRUE)
+#' make_radial_bar(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+#' \dontrun{
+#' make_radial_bar(input = list(type = 'gene', content = 'ROCK1'))
+#' }
+make_radial_bar <- function(input = list(),
+                            relative = TRUE,
+                            cluster = FALSE,
+                            card = FALSE) {
+  make_radial_bar_raw <- function() {
+    plot_complete <- make_radial(input = input,
+                                 relative = relative,
+                                 cluster = cluster,
+                                 barplot = TRUE,
+                                 card = card)
+
+    return(plot_complete)
+  }
+
+  #error handling
+  tryCatch(make_radial_bar_raw(),
            error = function(x){make_bomb_plot()})
 }
 
