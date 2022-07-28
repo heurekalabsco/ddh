@@ -872,7 +872,7 @@ title_extract <- function(fun,
 #' make_legend(fun = "make_radial")
 make_legend <- function(fun,
                         ...) {
-  fun <- noquote(fun)
+  fun <- rlang::sym(fun)
 
   description <- help_extract(fun, package = ddh, section = "Description")
   title <- title_extract(fun, package = ddh)
