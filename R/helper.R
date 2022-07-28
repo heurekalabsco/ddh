@@ -864,16 +864,22 @@ title_extract <- function(fun,
 #' Make Legend
 #'
 #' @param fun Function name.
+#' @param html Boolean indicating HTML format or not. Default is FALSE.
 #'
 #' @export
 #' @examples
 #' make_legend(fun = "make_radial")
 make_legend <- function(fun,
+                        html = FALSE,
                         ...) {
   description <- help_extract(fun, package = ddh, section = "Description")
   title <- title_extract(fun, package = ddh)
 
-  legend <- paste0(title, ". ", description)
+  if(html) {
+    legend <- paste0("<b>", title, ".</b> ", description)
+  } else {
+    legend <- paste0(title, ". ", description)
+  }
 
   return(legend)
 }

@@ -4,10 +4,12 @@
 \alias{make_legend}
 \title{Make Legend}
 \usage{
-make_legend(fun, ...)
+make_legend(fun, html = FALSE, ...)
 }
 \arguments{
 \item{fun}{Function name.}
+
+\item{html}{Boolean indicating HTML format or not. Default is FALSE.}
 }
 \description{
 Make Legend

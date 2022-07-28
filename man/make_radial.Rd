@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{make_radial}
 \alias{make_radial}
-\title{Amino Acid Radial and Bar Plots}
+\title{Amino Acid Radial Plot}
 \usage{
 make_radial(
   cluster_data = sequence_clusters,
