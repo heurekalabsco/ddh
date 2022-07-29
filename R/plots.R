@@ -1260,6 +1260,8 @@ make_pubmed <- function(pubmed_data = pubmed,
 #' @return If no error, then returns a cellanatogram plot. If an error is thrown, then will return a bomb plot.
 #'
 #' @import gganatogram
+#' @import ggpolypath
+#' @import ggplot2
 #' @importFrom magrittr %>%
 #'
 #' @export
