@@ -926,8 +926,13 @@ send_report_message <- function(first_name,
 }
 
 #DATA GENERATION----
+#' Fix names
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 fix_names <- function(wrong_name) {
-  var <- str_which(gene_summary$aka, paste0("(?<![:alnum:])", wrong_name, "(?![:alnum:]|\\-)")) #finds index
+  var <- stringr::str_which(gene_summary$aka, paste0("(?<![:alnum:])", wrong_name, "(?![:alnum:]|\\-)")) #finds index
   df <- gene_summary[var,]
   right_name <- df$approved_symbol
   if (length(var) == 1) {
@@ -938,6 +943,11 @@ fix_names <- function(wrong_name) {
   #fixes 251, leaves 11
 }
 
+#' Clean colnames
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 clean_colnames <- function(dataset) {
   for (name in names(dataset)) {
     if (name %in% gene_summary$approved_symbol == FALSE) {
@@ -951,15 +961,24 @@ clean_colnames <- function(dataset) {
 }
 
 #CARD HELPERS----
-#this script loads the function for use in the shiny app
-
-#load single card
-load_image <- function(input = list(),
+#' Load single card
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' load_image(input = list(type = "gene", content = c("ROCK3")), fun_name = "make_female_anatogram")
+#' load_image(input = list(type = "gene", content = c("ROCK1")), fun_name = "make_female_anatogram", image_type = "plot")
+#' load_image(input = list(type = "gene", content = c("ROCK1", "ROCK2")), fun_name = "make_female_anatogram")
+#' load_image(input = list(type = "compound", content = c("aspirin")), fun_name = "make_celldeps")
+#' load_image(input = list(type = "compound", content = c("aspirin")), fun_name = "make_molecule_structure")
+load_image <- function(app_data_dir,
+                       input = list(),
                        fun_name,
                        image_type = "card") { #type is either card or plot
   #build the input for the raw fun() & call function
-  name <- str_c(input$content, collapse="-") #intended to fail with multigene query to return NULL
-  fun <- str_remove(fun_name, "make_")
+  name <- stringr::str_c(input$content, collapse="-") #intended to fail with multigene query to return NULL
+  fun <- stringr::str_remove(fun_name, "make_")
   file_name <- glue::glue('{name}_{fun}_{image_type}.jpeg')
   path <- here::here(app_data_dir, "images", input$type, name)
 
@@ -971,23 +990,19 @@ load_image <- function(input = list(),
   }
 }
 
-#testing
-#single
-# gene_symbol = "ROCK1"
-# fun_name = "make_ideogram"
-#input = list(type = "gene", content = c("ROCK1", "ROCK2"))
-
-#any
-#load_image(input = list(type = "gene", content = c("ROCK3")), fun_name = "make_female_anatogram")
-#load_image(input = list(type = "gene", content = c("ROCK1")), fun_name = "make_female_anatogram", image_type = "plot")
-#load_image(input = list(type = "gene", content = c("ROCK1", "ROCK2")), fun_name = "make_female_anatogram")
-#load_image(input = list(type = "compound", content = c("aspirin")), fun_name = "make_celldeps")
-#load_image(input = list(type = "compound", content = c("aspirin")), fun_name = "make_molecule_structure")
-
-#load single pdb
-load_pdb <- function(input = list()
-) {
-  name <- str_c(input$content, collapse = "-") #intended to fail with multigene query to return NULL
+#' Load single PDB
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' load_pdb(input = list(content = c("ROCK1")))
+#' load_pdb(input = list(content = c("ROCK3")))
+#' load_pdb(input = list(content = c("ROCK1", "ROCK2")))
+load_pdb <- function(app_data_dir,
+                     input = list()
+                     ) {
+  name <- stringr::str_c(input$content, collapse = "-") #intended to fail with multigene query to return NULL
   file_name <- glue::glue('{name}.pdb')
   path <- here::here(app_data_dir, "images/gene", name)
 
@@ -999,20 +1014,22 @@ load_pdb <- function(input = list()
   }
 }
 
-#load_pdb(input = list(content = c("ROCK1")))
-#load_pdb(input = list(content = c("ROCK3")))
-#load_pdb(input = list(content = c("ROCK1", "ROCK2")))
-
-#used in generate_cards.R
+#' Format Path Part
+#'
+#' @export
 format_path_part <- function(key) {
   # formats part of an image path replacing invalid characters slashes with "_"
   gsub("[/]", "_", key)
 }
 
-#REPORT HELPER----
-#If file found, return file, else, make it & ggsave (to make standard format?)
-
 #QUARTO HELPER----
+#' Make Quarto
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' make_quarto("Gene Information")
 make_quarto <- function(title){
   file_name <- janitor::make_clean_names(title) %>%
     stringr::str_replace_all(pattern = "_", replacement = "-")
@@ -1029,14 +1046,13 @@ make_quarto <- function(title){
 
   return(glue::glue("{file_name}.qmd"))
 }
-#make_quarto("Gene Information") #"Downloads"
-#gene_page_list <- c("Gene Information", "Protein Information", "Gene Publications", "Gene Subcellular Location", "Cell Line Expression", "Gene Tissue Distribution", "Targeted Drugs", "Associated Metabolites", "Gene-Metabolite Network", "Gene Dependencies", "Gene Co-Essentiality", "Gene Dependency Network")
-#gene_page_list <- c("Gene Information", "Gene Expression", "Gene Compounds", "Gene Dependencies", "Pathway Query", "Custom Gene Query")
-#cell_page_list <- c("Cell Line Information", "Cell Expression", "Cell Compounds", "Cell Dependencies", "Cell Lineage Query", "Custom Cells Query")
-#compound_page_list <- c("Compound Information", "Compound Expression", "Compound Metabolites", "Compound Dependencies", "MOA Query", "Custom Compound Query")
-#map(.x = compound_page_list, .f = make_quarto)
 
 #INTERNAL LINKS----
+#' Internal link
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 internal_link <- function(query, linkout_img=FALSE) {
   hrefr <- function(x, linkout_img) {
     paste0('<a href="?show=gene&query=',
@@ -1062,6 +1078,11 @@ internal_link <- function(query, linkout_img=FALSE) {
   return(query_link)
 }
 
+#' Internal link cell
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 internal_link_cell <- function(query) {
   query_link <-
     paste0('<a href="?show=cell&cell_line=',
@@ -1073,6 +1094,11 @@ internal_link_cell <- function(query) {
   return(query_link)
 }
 
+#' PubMed Linkr
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 pubmed_linkr <- function(query, number_only = FALSE) { #add for make_pubmed_table()
   if (stringr::str_detect(query, "PubMed:[:digit:]{1,9}|PubMed=[:digit:]{1,9}") == TRUE) {
     num <- stringr::str_extract(query, "[:digit:]{1,9}")
@@ -1099,6 +1125,11 @@ pubmed_linkr <- function(query, number_only = FALSE) { #add for make_pubmed_tabl
   }
 }
 
+#' PMC Linkr
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 pmc_linkr <- function(query) { #add for make_pubmed_table()
   link <- paste0("https://www.ncbi.nlm.nih.gov/pmc/articles/", query)
   href_link <- paste0('<a href="',
@@ -1110,6 +1141,11 @@ pmc_linkr <- function(query) { #add for make_pubmed_table()
   return(query_link)
 }
 
+#' Uniprot Linkr
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 uniprot_linkr <- function(query) {
   if (stringr::str_detect(query, "UniProtKB:[:alnum:]{1,6}") == TRUE) {
     num <- stringr::str_extract(query, "UniProtKB:[:alnum:]{1,6}") %>%
@@ -1128,6 +1164,11 @@ uniprot_linkr <- function(query) {
   }
 }
 
+#' Uniprot Linkr 2
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 uniprot_linkr2 <- function(query) {
   link <- paste0("https://www.uniprot.org/uniprot/", query)
   query_link <- paste0('<a href="',
@@ -1138,6 +1179,11 @@ uniprot_linkr2 <- function(query) {
   return(query_link)
 }
 
+#' PDB Linkr
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 pdb_linkr <- function(query) {
   link <- paste0("https://www.rcsb.org/structure/", query)
   query_link <- paste0('<a href="',
@@ -1148,6 +1194,11 @@ pdb_linkr <- function(query) {
   return(query_link)
 }
 
+#' Eco Zapr
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 eco_zapr <- function(query) {
   if (stringr::str_detect(query, "ECO:[:digit:]{1,7}") == TRUE) {
     query_zap <- stringr::str_remove_all(query, "ECO:[:digit:]{1,7}\\|")
@@ -1159,6 +1210,11 @@ eco_zapr <- function(query) {
   }
 }
 
+#' Bracketr
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 bracketr <- function(query) {
   if (stringr::str_detect(query, "\\{") == TRUE) {
     query_plus <- stringr::str_replace(query, "\\{", "\\{Curated links: ")
@@ -1169,8 +1225,13 @@ bracketr <- function(query) {
   }
 }
 
+#' Gene Linkr
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 gene_linkr <- function(summary_table = gene_summary, query) { #best to use with lit_linkr, which takes a char_vec
-  query_clean <- str_extract(query, "[^[:punct:]]+") #anything but punct, one or more
+  query_clean <- stringr::str_extract(query, "[^[:punct:]]+") #anything but punct, one or more
   if ((query_clean %in% summary_table$approved_symbol) == TRUE) {
     query_link <- paste0('<a href="?show=gene&query=',
                          query_clean,
@@ -1193,10 +1254,15 @@ gene_linkr <- function(summary_table = gene_summary, query) { #best to use with 
   }
 }
 
+#' Lit Linkr
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 lit_linkr <- function(summary_table = gene_summary,
                       lit_string) { #split into char_vec, map function, glue back together, and then treat as htmlOutput in shiny_text
-  lit_string <- str_replace_all(lit_string, "PubMed ", "PubMed:") #if space, then str_split breaks
-  lit_string <- str_replace_all(lit_string, "PubMed=", "PubMed:") #for CC
+  lit_string <- stringr::str_replace_all(lit_string, "PubMed ", "PubMed:") #if space, then str_split breaks
+  lit_string <- stringr::str_replace_all(lit_string, "PubMed=", "PubMed:") #for CC
   lit_vec <- unlist(stringr::str_split(lit_string, pattern = " "))
   lit_vec <- purrr::map_chr(lit_vec, eco_zapr) #remove ECO
   lit_links <-
@@ -1205,16 +1271,16 @@ lit_linkr <- function(summary_table = gene_summary,
     purrr::map_chr(uniprot_linkr) %>%  #make uniprot links
     purrr::map_chr(bracketr) %>% #annotate bracket
     purrr::map_chr(gene_linkr, summary_table = gene_summary) #add some internal links
-  lit_string_link <- str_c(lit_links, collapse = " ")
+  lit_string_link <- stringr::str_c(lit_links, collapse = " ")
   return(lit_string_link)
 }
 
-#TESTING lit_linkr
-# test <- summary_protein(input = list(query = "ROCK1"), var = "function_cc")
-# lit_linkr(test)
-# gene_linkr(query = test)
-# lit_links %>% purrr::map_chr(gene_linkr, summary_table = gene_summary)
-
+#' Drug Linkr
+#'
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 drug_linkr <- function(query) {
   if ((query %in% prism_names$name) == TRUE) {
     query_link <- paste0('<a href="?show=compound&query=',
@@ -1228,6 +1294,12 @@ drug_linkr <- function(query) {
   }
 }
 
+#' MOA Linkr
+#'
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 moa_linkr <- function(query) {
   if ((query %in% prism_names$moa) == TRUE) {
     query_link <- paste0('<a href="?show=moa&query=',
@@ -1241,6 +1313,12 @@ moa_linkr <- function(query) {
   }
 }
 
+#' Metabolite Linkr
+#'
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 metabolite_linkr <- function(query) {
   if ((query %in% hmdb_names$name) == TRUE) {
     query_link <- paste0('<a href="?show=compound&query=', #fix me
@@ -1254,7 +1332,13 @@ metabolite_linkr <- function(query) {
   }
 }
 
-#make cell, lineage, list linkr with type var
+#' Cell Linkr
+#'
+#' Make cell, lineage, list linkr with type var
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 cell_linkr <- function(query, type) {
   type_url <- switch (type,
                       cell = "?show=cell&cell_line=",

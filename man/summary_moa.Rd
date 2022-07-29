@@ -10,6 +10,6 @@ summary_moa(summary_table = prism_meta, input = list(), var = "name")
 MOA Summary
 }
 \examples{
-summary_moa(input = list(query = "cyclooxygenase inhibitor"), var = "name")
-summary_moa(input = list(query = "cyclooxygenase inhibitor"), var = "moa")
+summary_moa(input = list(query = "cyclooxygenase inhibitor", content = "cyclooxygenase inhibitor"), var = "name")
+summary_moa(input = list(query = "cyclooxygenase inhibitor", content = "cyclooxygenase inhibitor"), var = "moa")
 }
