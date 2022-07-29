@@ -10,5 +10,5 @@ summary_compound(summary_table = prism_meta, input = list(), var = "name")
 Compound Summary
 }
 \examples{
-summary_compound(input = list(query = "aspirin"), var = "name")
+summary_compound(input = list(query = "aspirin", content = "aspirin"), var = "name")
 }

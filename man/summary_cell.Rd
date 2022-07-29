@@ -14,6 +14,6 @@ summary_cell(
 Cell summary
 }
 \examples{
-summary_cell(input = list(cell_line = "HEPG2"), var = "cell_line")
-summary_cell(input = list(cell_line = "HEPG2"), var = "lineage_subtype")
+summary_cell(input = list(content = "HEPG2"), var = "cell_line")
+summary_cell(input = list(content = "HEPG2"), var = "lineage_subtype")
 }
