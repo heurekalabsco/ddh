@@ -428,17 +428,17 @@ make_sequence <- function(sequence_data = proteins,
 #'
 #' @export
 #' @examples
-#' make_protein_domain_plot(input = list(content = "ROCK2"), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
-#' make_protein_domain_plot(input = list(content = c("ROCK1", "ROCK2")), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
+#' make_protein_domain(input = list(content = "ROCK2"), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
+#' make_protein_domain(input = list(content = c("ROCK1", "ROCK2")), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
 #' \dontrun{
-#' make_protein_domain_plot(input = list(content = "ROCK2"), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
+#' make_protein_domain(input = list(content = "ROCK2"), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
 #' }
-make_protein_domain_plot <- function(input = list(),
-                                     domain_data = protein_domains,
-                                     dom_var = NULL,
-                                     ptm_var = NULL) {
+make_protein_domain <- function(input = list(),
+                                domain_data = protein_domains,
+                                dom_var = NULL,
+                                ptm_var = NULL) {
 
-  make_protein_domain_plot_raw <- function() {
+  make_protein_domain_raw <- function() {
 
     gene_symbol <- domain_data %>%
       dplyr::filter(gene_name %in% input$content) %>%
@@ -556,7 +556,7 @@ make_protein_domain_plot <- function(input = list(),
   }
 
   #error handling
-  tryCatch(make_protein_domain_plot_raw(),
+  tryCatch(make_protein_domain_raw(),
            error = function(x){make_bomb_plot()})
 }
 
