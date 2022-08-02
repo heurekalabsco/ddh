@@ -1630,7 +1630,7 @@ make_cellexpression <- function(expression_data = expression_long,
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
         #dplyr::mutate(gene_fct = fct_reorder(gene, expression_var, .fun = max, .desc = TRUE)) %>%
         dplyr::mutate(gene_fct = forcats::fct_inorder(gene)) %>%
-        ggplot(aes(y = gene_fct,
+        ggplot(ggplot2::aes(y = gene_fct,
                    x = expression_var,
                    text = paste0("Cell Line: ", cell_line),
                    color = gene
@@ -2400,7 +2400,7 @@ make_lineage <- function(celldeps_data = achilles_long,
     plot_complete <-
       data_mean %>%
       {if(card)dplyr::filter(., lineage %in% most_negative) else .} %>%
-      ggplot2::ggplot(aes(dep_score, lineage)) +
+      ggplot2::ggplot(ggplot2::aes(dep_score, lineage)) +
       ## annotation range -1 to 1
       # geom_rect(
       #   xmin = -1, xmax = 1,
@@ -2594,7 +2594,7 @@ make_sublineage <- function(celldeps_data = achilles_long,
       ) +
       ## indicator lines sublineages
       ggplot2::geom_linerange(
-        aes(xmin = -Inf, xmax = dep_score),
+        ggplot2::aes(xmin = -Inf, xmax = dep_score),
         color = "grey60",
         linetype = "dotted"
       ) +
