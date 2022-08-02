@@ -4,14 +4,12 @@
 \alias{load_ddh_rds}
 \title{Function to load all DDH .RDS files}
 \usage{
-load_ddh_rds(app_data_dir = NULL, release = "22Q2", privateMode = TRUE)
+load_ddh_rds(app_data_dir, file_name = NULL)
 }
 \arguments{
 \item{app_data_dir}{Data directory path.}
 
-\item{release}{Character vector indicating the release version.}
-
-\item{privateMode}{Boolean indicating if private data is required.}
+\item{file_name}{Optional file name to get a single file; default loads all files}
 }
 \description{
 Function to load all DDH .RDS files
