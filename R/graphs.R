@@ -217,7 +217,7 @@ setup_graph <- function(toptable_data = master_top_table,
   }
 
   #make empty tibble
-  dep_network <- tibble()
+  dep_network <- dplyr::tibble()
 
   # make the correct graph including only correlations of the designated type
   if(setup_corrType == "Positive"){
@@ -494,7 +494,7 @@ make_graph <- function(toptable_data = master_top_table,
     # }
 
     # get the approved_name of each gene from the gene_summary table - will be added to nodes tibble for tooltip
-    nameTable <- tibble(name=character())
+    nameTable <- dplyr::tibble(name=character())
 
     if(input$type == "gene") {
       for(gene in nodes_filtered$name){
