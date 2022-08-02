@@ -36,6 +36,7 @@ load_ddh_rds <- function(app_data_dir,
   #file loader constructor
   load_rds_object <- function(rds_file){
     object_name <- stringr::str_remove(rds_file, pattern = "\\.Rds")
+    object_name <- stringr::str_remove(object_name, pattern = "22Q2_")
     assign(object_name, readRDS(here::here(app_data_dir, rds_file)),
            envir = .GlobalEnv)
     print(glue::glue("loaded {object_name}"))
