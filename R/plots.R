@@ -1,5 +1,19 @@
 
 ## BARCODE PLOT --------------------------------------------------------------------
+#' Barcode Plot
+#'
+#' The barcode image shows the location of the query gene(s) on human chromosomes in the style of a barcode.
+#'
+#' @param input Expecting a list containing a content variable.
+#' @return If no error, then returns a barcode image url.
+#'
+#' @export
+#' @examples
+#' make_barcode(input = list(type = "gene", query = "ROCK1", content = "ROCK1"))
+#' make_barcode(input = list(content = "ROCK1"))
+#' \dontrun{
+#' make_barcode(input = list(type = "gene", content = "ROCK1"))
+#' }
 make_barcode <- function(input = list()) {
   make_barcode_raw <- function() {
     #if multiple, then pull single "rep" image; consider pulling >1 and using patchwork, eg.
@@ -9,21 +23,9 @@ make_barcode <- function(input = list()) {
       fav_gene <- input$content
     }
 
-    #fetch image from dir, HARDCODED TO DATA DIR, NOT TEST DATA DIR
-    file_name <- glue::glue('{fav_gene}_barcode_card.jpeg')
-    image_path <- here::here("data", "images", "gene", fav_gene, file_name)
-
-    # barcode_image <-
-    #   magick::image_read(path = image_path)
-
-    #error catching
-    #currently tryCatch will just make empty image
-
-    #place image on ggplot
-    # plot_complete <-
-    #   ggplot() +
-    #   ggpubr::background_image(barcode_image) +
-    #   theme_void()
+    #fetch image from aws
+    file_name <- paste0(fav_gene, "_barcode_card.jpeg")
+    image_path <- paste0("https://ddh-barcodes.s3.amazonaws.com/", file_name)
 
     return(image_path)
   }
@@ -45,7 +47,6 @@ make_barcode <- function(input = list()) {
 #'
 #' @export
 #' @examples
-#' sum(1:10)
 #' make_ideogram(input = list(type = "gene", query = "ROCK1", content = "ROCK1"))
 #' make_ideogram(input = list(type = "gene", query = "ROCK1", content = "ROCK1"), card = TRUE)
 #' \dontrun{
@@ -131,24 +132,24 @@ make_ideogram <- function(location_data = gene_location,
       #background line fixes height
       ggplot2::geom_segment(data = pq %>% dplyr::filter(chromosome_name %in% chromosome_loci),
                             ggplot2::aes(x = chromosome_name, xend = chromosome_name, y = 0, yend = 260000000, alpha = 1),
-                   color = "white", size = 1, lineend = "butt") +
+                            color = "white", size = 1, lineend = "butt") +
       #background for black line
       ggplot2::geom_segment(data = pq %>% dplyr::filter(chromosome_name %in% chromosome_loci),
                             ggplot2::aes(x = chromosome_name, xend = chromosome_name, y = y_start, yend = y_end, alpha = 0.5),
-                   color = "black", size = 7, lineend = "round") +
+                            color = "black", size = 7, lineend = "round") +
       #chromosome
       ggplot2::geom_segment(data = pq %>% dplyr::filter(chromosome_name %in% chromosome_loci),
                             ggplot2::aes(x = chromosome_name, xend = chromosome_name, y = y_start, yend = y_end),
-                   color = "gray95", size = 6, lineend = "round") +
+                            color = "gray95", size = 6, lineend = "round") +
       #centromere
       ggplot2::geom_point(data = pq %>% dplyr::filter(chromosome_name %in% chromosome_loci,
-                                      arm == "q"),
+                                                      arm == "q"),
                           ggplot2::aes(x = chromosome_name, y = y_end + n), #calculated 1/2 of distance between
-                 color = "gray90", size = 5.5) +
+                          color = "gray90", size = 5.5) +
       #pq bands
       ggplot2::geom_segment(data = band_boundaries %>% dplyr::filter(alternate == 1, chromosome_name %in% chromosome_loci),
                             ggplot2::aes(x = chromosome_name, xend = chromosome_name, y = min, yend = max),
-                   size = 6.5, color = "black", alpha = 0.5) +
+                            size = 6.5, color = "black", alpha = 0.5) +
       #gene points + labels
       ggplot2::geom_point(data = gene_loci, ggplot2::aes(x = chromosome_name, y = start),  size = 6, color = ddh_pal_d(palette = "gene")(1), alpha = 1) +
       ggrepel::geom_text_repel(data = gene_loci, ggplot2::aes(x = chromosome_name, y = start, label = approved_symbol), nudge_x = .2, min.segment.length = 1, family = "Chivo") +
@@ -157,7 +158,7 @@ make_ideogram <- function(location_data = gene_location,
       theme_ddh(base_size = 16) +
       ggplot2::theme_void() +
       ggplot2::theme(legend.position = "none",
-            axis.text.x = ggplot2::element_text(size = 12)) +
+                     axis.text.x = ggplot2::element_text(size = 12)) +
       #clip height
       ggplot2::coord_cartesian(ylim=c(0, clip_height)) +
       NULL
@@ -273,7 +274,7 @@ make_proteinsize <- function(protein_data = proteins,
           family = "Chivo", size = 4.3, vjust = 0
         )} +
         ggplot2::scale_x_continuous(limits = c(0, max_mass*2),
-                           labels = function(x) paste(x, "kDa")) +
+                                    labels = function(x) paste(x, "kDa")) +
         ggplot2::coord_cartesian(ylim = c(.95, 1.2)) +
         ggplot2::scale_y_continuous(expand = c(0, 0)) +
         ggplot2::scale_color_manual(values = colors, guide = "none") +
@@ -287,8 +288,8 @@ make_proteinsize <- function(protein_data = proteins,
           base_plot +
           ggplot2::labs(x = "Protein Size") +
           ggplot2::theme(axis.text.x = ggplot2::element_text(family = "Roboto Slab", size = 14),
-                axis.title.x = ggplot2::element_text(family = "Nunito Sans", size = 18,
-                                            margin = ggplot2::margin(t = 12, b = 12)))
+                         axis.title.x = ggplot2::element_text(family = "Nunito Sans", size = 18,
+                                                              margin = ggplot2::margin(t = 12, b = 12)))
       }
 
       return(base_plot)
@@ -313,7 +314,7 @@ make_proteinsize <- function(protein_data = proteins,
         #   title = "Size Information",
         #   caption = "more ...") +
         ggplot2::theme(axis.text.x = ggplot2::element_blank(),
-              axis.title.x = ggplot2::element_blank()
+                       axis.title.x = ggplot2::element_blank()
         )
     }
 
@@ -466,25 +467,25 @@ make_protein_domain <- function(input = list(),
       ggplot2::ggplot() +
       ggplot2::geom_segment(data = plot_data,
                             ggplot2::aes(x = 1,
-                       xend = seq_len,
-                       y = order,
-                       yend = order),
-                   colour = "black",
-                   size = 1.5,
-                   lineend = "round")
+                                         xend = seq_len,
+                                         y = order,
+                                         yend = order),
+                            colour = "black",
+                            size = 1.5,
+                            lineend = "round")
     #DOMAINS
     if(nrow(prots_dr) != 0) {
       base_plot <-
         base_plot +
         ggplot2::geom_rect(data = prots_dr %>%
-                    dplyr::filter(description %in% dom_var),
-                    ggplot2::aes(xmin = begin,
-                      xmax = end,
-                      ymin = order - 1,
-                      ymax = order + 1,
-                      fill = description),
-                  alpha = 0.9,
-                  color = "black")
+                             dplyr::filter(description %in% dom_var),
+                           ggplot2::aes(xmin = begin,
+                                        xmax = end,
+                                        ymin = order - 1,
+                                        ymax = order + 1,
+                                        fill = description),
+                           alpha = 0.9,
+                           color = "black")
     }
 
     #PTMS
@@ -492,22 +493,22 @@ make_protein_domain <- function(input = list(),
       base_plot <-
         base_plot +
         ggplot2::geom_point(data = prots_ptm %>%
-                     dplyr::filter(description %in% ptm_var),
-                     ggplot2::aes(x = begin,
-                       y = order + 3,
-                       shape = description),
-                   size = 8,
-                   alpha = 1,
-                   color = "black") +
+                              dplyr::filter(description %in% ptm_var),
+                            ggplot2::aes(x = begin,
+                                         y = order + 3,
+                                         shape = description),
+                            size = 8,
+                            alpha = 1,
+                            color = "black") +
         ggplot2::geom_segment(data = prots_ptm %>%
-                       dplyr::filter(description %in% ptm_var),
-                       ggplot2::aes(x = begin,
-                         xend = begin,
-                         y = order,
-                         yend = order + 3),
-                     size = 0.5,
-                     linetype = 2,
-                     color = "black") +
+                                dplyr::filter(description %in% ptm_var),
+                              ggplot2::aes(x = begin,
+                                           xend = begin,
+                                           y = order,
+                                           yend = order + 3),
+                              size = 0.5,
+                              linetype = 2,
+                              color = "black") +
         ggplot2::scale_y_continuous(limits=c(0,4.1)) + #should be a touch larger than yend
         NULL
     }
@@ -526,9 +527,9 @@ make_protein_domain <- function(input = list(),
     base_plot <-
       base_plot +
       ggplot2::labs(x = NULL,
-           y = NULL) +
+                    y = NULL) +
       ggplot2::facet_wrap(~ gene_name, ncol = 1,
-                 labeller = wrapped_labels(.seq_len = lengths_data$seq_len)
+                          labeller = wrapped_labels(.seq_len = lengths_data$seq_len)
       ) +
       theme_ddh(base_size = 16) +
       ggplot2::theme_void() +
@@ -546,9 +547,9 @@ make_protein_domain <- function(input = list(),
     plot_complete <-
       base_plot +
       ggplot2::theme(axis.text.x = ggplot2::element_text(family = "Roboto Slab", size = 14),
-            axis.title.x = ggplot2::element_text(family = "Nunito Sans", size = 18,
-                                        margin = ggplot2::margin(t = 12, b = 12)),
-            legend.position = "right") +
+                     axis.title.x = ggplot2::element_text(family = "Nunito Sans", size = 18,
+                                                          margin = ggplot2::margin(t = 12, b = 12)),
+                     legend.position = "right") +
       scale_fill_ddh_d(palette = "protein")
 
     return(plot_complete)
@@ -607,7 +608,7 @@ make_radial <- function(cluster_data = sequence_clusters,
       signature_cluster_means_query <-
         signature_cluster_means_prep %>%
         dplyr::mutate(clust = as.numeric(as.character(clust)),
-               clust = as.factor(ifelse(clust %in% as.numeric(as.character(query_clust)), clust, "Mean"))) %>%
+                      clust = as.factor(ifelse(clust %in% as.numeric(as.character(query_clust)), clust, "Mean"))) %>%
         dplyr::group_by(clust) %>%
         dplyr::summarise_if(is.numeric, list(mean = mean)) %>%
         tidyr::pivot_longer(cols = -clust) %>%
@@ -683,24 +684,24 @@ make_radial <- function(cluster_data = sequence_clusters,
     # RADIAL/BAR PLOT
     plot_complete <- ggplot2::ggplot(signature_cluster_means_query,
                                      ggplot2::aes(x = forcats::fct_inorder(name),
-                                y = value,
-                                group = clust,
-                                color = clust
-                            )) +
+                                                  y = value,
+                                                  group = clust,
+                                                  color = clust
+                                     )) +
       {if(!barplot)ggplot2::geom_point(alpha = 0.8, show.legend = FALSE)} +
       {if(!barplot)ggplot2::geom_polygon(fill = NA)} +
       {if(barplot & relative)ggplot2::geom_col(data = signature_cluster_means_query %>%
-                                        dplyr::filter(clust != "Mean"),
-                                        ggplot2::aes(x = reorder(name, -value),
-                                          y = value,
-                                          group = clust,
-                                          color = clust,
-                                          fill = clust),
-                                      position = "dodge2")} +
-      {if(barplot & !relative)ggplot2::geom_col(ggplot2::aes(fill = clust), position = "dodge2")} +
+                                                 dplyr::filter(clust != "Mean"),
+                                               ggplot2::aes(x = reorder(name, -value),
+                                                            y = value,
+                                                            group = clust,
+                                                            color = clust,
+                                                            fill = clust),
+                                               position = "dodge2")} +
+      {if(barplot & !relative)ggplot2::geom_col(aes(fill = clust), position = "dodge2")} +
       {if(barplot & relative)ggplot2::geom_hline(yintercept = 1, color = "gray48")} +
       ggplot2::labs(y = y_label,
-           x = ggplot2::element_blank()) +
+                    x = ggplot2::element_blank()) +
       {if(!barplot)ggplot2::coord_polar()} +
       ggplot2::scale_color_manual(values = colors_radial) +
       {if(barplot)ggplot2::scale_fill_manual(values = colors_bar)} +
@@ -831,16 +832,16 @@ make_umap_plot <- function(cluster_data = sequence_clusters,
     # UMAP PLOT
     plot_complete <- ggplot2::ggplot() +
       {if(!show_subset)ggplot2::geom_point(data = sequence_data_clean %>%
-                                    dplyr::filter(!uniprot_id %in% cluster_genes$uniprot_id),
-                                    ggplot2::aes(X1, X2), size = 0.8, color = "grey80")} +
+                                             dplyr::filter(!uniprot_id %in% cluster_genes$uniprot_id),
+                                           ggplot2::aes(X1, X2), size = 0.8, color = "grey80")} +
       ggplot2::geom_point(data = sequence_data_clean %>%
-                   dplyr::filter(uniprot_id %in% cluster_genes$uniprot_id),
-                   ggplot2::aes(X1, X2, color = clust), size = 0.8) +
+                            dplyr::filter(uniprot_id %in% cluster_genes$uniprot_id),
+                          ggplot2::aes(X1, X2, color = clust), size = 0.8) +
       {if(labels)ggrepel::geom_label_repel(data = cluster_genes %>%
                                              dplyr::filter(gene_name %in% input$content),
                                            ggplot2::aes(X1, X2, label = gene_name))} +
       ggplot2::labs(x = "UMAP 1",
-           y = "UMAP 2") +
+                    y = "UMAP 2") +
       ggplot2::scale_color_manual(
         values = rep(colors, length.out =
                        nrow(sequence_data_clean %>%
@@ -900,15 +901,15 @@ make_cluster_enrich <- function(input = list(),
       dplyr::arrange(pvalue) %>%
       dplyr::slice(1:num_terms) %>%
       ggplot2::ggplot(ggplot2::aes(x = Count,
-                 y = reorder(substr(paste0(Description, " (", ID, ")"), 1, 40), Count),
-                 fill = pvalue)) +
+                                   y = reorder(substr(paste0(Description, " (", ID, ")"), 1, 40), Count),
+                                   fill = pvalue)) +
       ggplot2::geom_col() +
       ggplot2::labs(x = "Gene Count",
-           y = NULL) +
+                    y = NULL) +
       scale_fill_ddh_c(palette = "protein", reverse = TRUE) +
       ggplot2::guides(fill = ggplot2::guide_colorbar(barheight = ggplot2::unit(6, "lines"),
-                                   barwidth = ggplot2::unit(.6, "lines"),
-                                   reverse = TRUE)) +
+                                                     barwidth = ggplot2::unit(.6, "lines"),
+                                                     reverse = TRUE)) +
       theme_ddh() +
       ggplot2::theme(
         title = ggplot2::element_blank(),
@@ -957,11 +958,22 @@ make_structure <- function(input = list(),
       fav_gene <- input$content
     }
 
-    #fetch image from dir
-    file_name <- glue::glue('{fav_gene}_structure_plot.jpg')
-    image_path <- here::here("data", "images", "gene", fav_gene, file_name)
+    file_name <- paste0(fav_gene, ".jpg") #need to rename glue::glue('{fav_gene}_structure_plot.jpg')
 
-    if(card == TRUE&&file.exists(image_path)){
+    # if(card == TRUE){
+    #   file_name <- glue::glue('{fav_gene}_structure_card.jpg')
+    # } else {
+    #   file_name <- glue::glue('{fav_gene}_structure_plot.jpg')
+    # }
+
+    #fetch full image from aws
+    image_path <- paste0("https://ddh-proteins.s3.amazonaws.com/", file_name)
+
+    #checks to see if file exists by checking status code on public URL
+    status <- httr::HEAD(image_path) %>% http_status() %>% purrr::pluck("reason")
+
+    #comment all of this out after moving to generate
+    if(card == TRUE && status == "OK"){
       protein_image <-
         magick::image_read(path = image_path)
 
@@ -998,7 +1010,11 @@ make_structure <- function(input = list(),
       return(plot_complete)
     }
 
-    if(file.exists(image_path)){return(image_path)} else {return(NULL)}
+    if(status == "OK"){
+      return(image_path)
+    } else {
+      return(NULL)
+    }
 
   }
   #error handling
@@ -1084,10 +1100,10 @@ make_structure3d <- function(pdb_ids = uniprot_pdb_table,
             r3dmol::m_style_sphere(scale = 0.3)
           ),
           sel = r3dmol::m_sel(resi =  eval(parse(text = resi)),
-                      chain = chain,
-                      resn = resn,
-                      invert = invert,
-                      elem = elem)
+                              chain = chain,
+                              resn = resn,
+                              invert = invert,
+                              elem = elem)
         ) %>%
         m_zoom_to(sel = m_sel(resi = eval(parse(text = resi)),
                               chain = chain)) %>%
@@ -1146,14 +1162,14 @@ make_pubmed <- function(pubmed_data = pubmed,
       ggplot2::ggplot(plot_data) +
       ggplot2::geom_step(
         ggplot2::aes(x = year,
-            y = cumsum,
-            group = name,
-            color = forcats::fct_reorder2(name, year, cumsum)),
+                     y = cumsum,
+                     group = name,
+                     color = forcats::fct_reorder2(name, year, cumsum)),
         size = 1.2
       ) +
       ggplot2::coord_cartesian(clip = "off") + #allows points & labels to fall off plotting area
       ggplot2::scale_x_continuous(breaks = scales::breaks_pretty(4),
-                         expand = c(0, 0)) +
+                                  expand = c(0, 0)) +
       ggplot2::scale_y_continuous(expand = c(.01, .01), limits = c(0, max(plot_max$cumsum))) +
       scale_color_ddh_d(palette = input$type) +
       ggplot2::labs(x = "Year of Publication", y = "Cumulative Sum") +
@@ -1174,9 +1190,9 @@ make_pubmed <- function(pubmed_data = pubmed,
           ggrepel::geom_text_repel(
             data = plot_max,
             ggplot2::aes(x = year,
-                y = cumsum,
-                #label = name),
-                label = paste0(name, " (", cumsum, ")")),
+                         y = cumsum,
+                         #label = name),
+                         label = paste0(name, " (", cumsum, ")")),
             size = 5.5,
             hjust = 0,
             direction = "y",
@@ -1198,9 +1214,9 @@ make_pubmed <- function(pubmed_data = pubmed,
         ggplot2::geom_point(
           data = plot_max,
           ggplot2::aes(x = year,
-              y = cumsum,
-              group = name,
-              color = forcats::fct_reorder2(name, year, cumsum)),
+                       y = cumsum,
+                       group = name,
+                       color = forcats::fct_reorder2(name, year, cumsum)),
           size = 4, shape = 21, fill = "white", stroke = 2
         ) +
         ggplot2::theme(
@@ -1212,9 +1228,9 @@ make_pubmed <- function(pubmed_data = pubmed,
         ggplot2::geom_point(
           data = plot_max,
           ggplot2::aes(x = year,
-              y = cumsum,
-              group = name,
-              color = forcats::fct_reorder2(name, year, cumsum)),
+                       y = cumsum,
+                       group = name,
+                       color = forcats::fct_reorder2(name, year, cumsum)),
           size = 4, shape = 21, fill = "white", stroke = 2
         )
     }
@@ -1223,7 +1239,7 @@ make_pubmed <- function(pubmed_data = pubmed,
       plot_complete  <-
         plot_complete +
         ggplot2::labs(y = "Cumulative Publications",
-             color = "") +
+                      color = "") +
         ggplot2::guides(color = "none")
     } else {
       plot_complete <-
@@ -1236,7 +1252,7 @@ make_pubmed <- function(pubmed_data = pubmed,
       plot_complete <-
         plot_complete +
         ggplot2::theme(plot.margin = ggplot2::margin(5, 10, 5, 5),
-              legend.position="none") +
+                       legend.position="none") +
         ggplot2::labs(x = "") +
         NULL
     }
@@ -1355,7 +1371,7 @@ make_cellanatogramfacet <- function(cellanatogram_data = subcell,
       ggplot2::coord_fixed() +
       ggplot2::labs(fill = "Count") +
       ggplot2::theme(panel.spacing.y = ggplot2::unit(1.2, "lines"),
-            strip.text = ggplot2::element_text(size = 18, family = "Roboto Slab", face = "plain")) +
+                     strip.text = ggplot2::element_text(size = 18, family = "Roboto Slab", face = "plain")) +
       NULL
 
     return(plot_complete)
@@ -1514,14 +1530,14 @@ make_tissue <- function(tissue_data = tissue,
     plot_draft <-
       ggplot2::ggplot(plot_data,
                       ggplot2::aes(x = value,
-                 y = forcats::fct_reorder(organ, sum_value))) +
+                                   y = forcats::fct_reorder(organ, sum_value))) +
       ggplot2::coord_cartesian(clip = "off") +
       ggplot2::scale_x_continuous(expand = c(0, 0), sec.axis = ggplot2::dup_axis()) +
       ggplot2::scale_y_discrete(expand = c(.01, .01)) +
       theme_ddh() +
       ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, family = "Roboto Slab"),
-            axis.ticks.y = ggplot2::element_blank(),
-            axis.line.y = ggplot2::element_blank()) +
+                     axis.ticks.y = ggplot2::element_blank(),
+                     axis.line.y = ggplot2::element_blank()) +
       ggplot2::labs(y = NULL)
 
     ## Version with color mapped to count for single gene queries
@@ -1538,7 +1554,7 @@ make_tissue <- function(tissue_data = tissue,
         ggplot2::geom_col(ggplot2::aes(fill = gene_name), width = .82) +
         scale_fill_ddh_d(palette = "gene", shuffle = TRUE, seed = 5L) +
         ggplot2::labs(x = "Sum of Normalized Expression",
-             fill = "Query\nGene") +
+                      fill = "Query\nGene") +
         ggplot2::theme(legend.justification = "top")
     }
 
@@ -1547,7 +1563,7 @@ make_tissue <- function(tissue_data = tissue,
         plot_complete +
         ggplot2::labs(x = "") +
         ggplot2::theme(axis.text.x=ggplot2::element_blank(),
-              legend.position='none') +
+                       legend.position='none') +
         NULL
     }
 
@@ -1629,9 +1645,9 @@ make_cellexpression <- function(expression_data = expression_long,
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
         dplyr::mutate(cell_fct = forcats::fct_inorder(cell_line)) %>%
         ggplot2::ggplot(ggplot2::aes(y = cell_fct,
-                   x = expression_var,
-                   text = paste0("Gene: ", gene),
-                   color = cell_line
+                                     x = expression_var,
+                                     text = paste0("Gene: ", gene),
+                                     color = cell_line
         ))
     }
 
@@ -1708,10 +1724,10 @@ make_cellgeneprotein <- function(expression_data = expression_long,
         dplyr::select(cell_line, lineage, lineage_subtype, everything()) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
         ggplot2::ggplot(ggplot2::aes(x = gene_expression,
-                   y = protein_expression,
-                   text = paste0("Cell Line: ", cell_line),
-                   color = gene,
-                   group = gene)
+                                     y = protein_expression,
+                                     text = paste0("Cell Line: ", cell_line),
+                                     color = gene,
+                                     group = gene)
         )
     } else if (input$type == "cell") {
       plot_initial <- expression_data %>%
@@ -1723,10 +1739,10 @@ make_cellgeneprotein <- function(expression_data = expression_long,
                       !is.na(gene_expression),
                       !is.na(protein_expression)) %>%
         ggplot2::ggplot(ggplot2::aes(x = gene_expression,
-                   y = protein_expression,
-                   text = paste0("Gene: ", gene),
-                   color = cell_line,
-                   group = cell_line)
+                                     y = protein_expression,
+                                     text = paste0("Gene: ", gene),
+                                     color = cell_line,
+                                     group = cell_line)
         )
     }
 
@@ -1889,10 +1905,10 @@ make_celldeps <- function(celldeps_data = achilles_long,
     plot_complete <-
       plot_data %>%
       ggplot2::ggplot(ggplot2::aes(x = rank,
-                 y = dep_score,
-                 text = glue::glue('{var_title}: {name}\nCell Line: {cell_line}'),
-                 color = forcats::fct_reorder(!!aes_var, med),
-                 fill = forcats::fct_reorder(!!aes_var, med)
+                                   y = dep_score,
+                                   text = glue::glue('{var_title}: {name}\nCell Line: {cell_line}'),
+                                   color = forcats::fct_reorder(!!aes_var, med),
+                                   fill = forcats::fct_reorder(!!aes_var, med)
       )) +
       ## dot/line plot
       {if(!card & !lineplot)ggplot2::geom_point(size = 1.1, stroke = .25, alpha = 0.6)} +
@@ -2063,10 +2079,10 @@ make_cellbar <- function(celldeps_data = achilles_long,
     plot_complete <-
       plot_data %>%
       ggplot2::ggplot(ggplot2::aes(x = rank,
-                 y = dep_score,
-                 text = glue::glue('{var_title}: {name}\nCell Line: {cell_line}'),
-                 color = forcats::fct_reorder(!!aes_var, med),
-                 fill = forcats::fct_reorder(!!aes_var, med)
+                                   y = dep_score,
+                                   text = glue::glue('{var_title}: {name}\nCell Line: {cell_line}'),
+                                   color = forcats::fct_reorder(!!aes_var, med),
+                                   fill = forcats::fct_reorder(!!aes_var, med)
       )) +
       ## bar plot
       ggplot2::geom_bar(stat = "identity", width = 0.5) +
@@ -2217,22 +2233,22 @@ make_cellbins <- function(cellbins_data = achilles_long,
       ## indicator line y axis
       ggplot2::geom_linerange(
         ggplot2::aes(xmin = -Inf, xmax = med,
-            y = forcats::fct_reorder(!!aes_var, -med),
-            color = med < -1),
+                     y = forcats::fct_reorder(!!aes_var, -med),
+                     color = med < -1),
         linetype = "dotted",
         size = .2,
         show.legend = FALSE
       ) +
       ## density curves via {ggdist}
       ggdist::stat_halfeye(ggplot2::aes(x = dep_score,
-                       y = forcats::fct_reorder(!!aes_var, -med),
-                       fill = stat(abs(x) > 1),
-                       point_fill = ggplot2::after_scale(fill)),
-                   .width = c(.025, .975),
-                   color = "black",
-                   shape = 21,
-                   stroke = .7,
-                   point_size = 2) +
+                                        y = forcats::fct_reorder(!!aes_var, -med),
+                                        fill = stat(abs(x) > 1),
+                                        point_fill = ggplot2::after_scale(fill)),
+                           .width = c(.025, .975),
+                           color = "black",
+                           shape = 21,
+                           stroke = .7,
+                           point_size = 2) +
       ## zero line
       ggplot2::geom_vline(
         xintercept = 0,
@@ -2759,10 +2775,10 @@ make_correlation <- function(table_data = achilles_cor_nest,
       ggplot2::annotate("text", x = Inf, y = 0.005, label = label_var, color = "gray40", hjust = 1.15 ,vjust = 0) +
       ## dot plot
       ggplot2::geom_point(ggplot2::aes(x = rank,
-                     y = r2,
-                     text = glue::glue('{text_var}: {name}'),
-                     color = forcats::fct_reorder(!!var, med), #from https://rlang.r-lib.org/reference/quasiquotation.html
-                     fill = forcats::fct_reorder(!!var, med) #from https://rlang.r-lib.org/reference/quasiquotation.html
+                                       y = r2,
+                                       text = glue::glue('{text_var}: {name}'),
+                                       color = forcats::fct_reorder(!!var, med), #from https://rlang.r-lib.org/reference/quasiquotation.html
+                                       fill = forcats::fct_reorder(!!var, med) #from https://rlang.r-lib.org/reference/quasiquotation.html
       ),
       size = 1.1, stroke = .1, alpha = 0.4) +
       ## scales + legends
@@ -2796,7 +2812,7 @@ make_correlation <- function(table_data = achilles_cor_nest,
       plot_complete  <-
         plot_complete +
         ggplot2::guides(color = "none",
-               fill = "none")
+                        fill = "none")
     }
 
     return(plot_complete)
@@ -2846,7 +2862,7 @@ make_expdep <- function(expression_data = expression_long,
         exp_data %>%
         dplyr::inner_join(dep_data, by = c("X1", "gene")) %>%
         dplyr::filter(!is.na(dep_score),
-               !is.na(gene_expression)) %>%
+                      !is.na(gene_expression)) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
         dplyr::mutate(med = median(dep_score, na.rm = TRUE)) %>%
         dplyr::left_join(expression_join, by = "X1") %>%
@@ -2869,7 +2885,7 @@ make_expdep <- function(expression_data = expression_long,
         exp_data %>%
         dplyr::inner_join(dep_data, by = c("cell_line", "gene")) %>%
         dplyr::filter(!is.na(dep_score),
-               !is.na(gene_expression)) %>%
+                      !is.na(gene_expression)) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
         dplyr::mutate(med = median(dep_score, na.rm = TRUE)) %>%
         dplyr::select(gene, gene_expression, dep_score, med, cell_line, lineage)
@@ -2881,20 +2897,20 @@ make_expdep <- function(expression_data = expression_long,
       ## gray background
       ## dot plot
       {if(input$type == "gene")ggplot2::geom_point(ggplot2::aes(color = forcats::fct_reorder(gene, med),
-                                              fill = forcats::fct_reorder(gene, med)),
-                                          size = 2, stroke = .1, alpha = 0.4)} +
+                                                                fill = forcats::fct_reorder(gene, med)),
+                                                   size = 2, stroke = .1, alpha = 0.4)} +
       {if(input$type == "cell")ggplot2::geom_point(ggplot2::aes(color = forcats::fct_reorder(cell_line, med),
-                                              fill = forcats::fct_reorder(cell_line, med)),
-                                          size = 2, stroke = .1, alpha = 0.4)} +
+                                                                fill = forcats::fct_reorder(cell_line, med)),
+                                                   size = 2, stroke = .1, alpha = 0.4)} +
       # smooth line
       {if(input$type == "gene")ggplot2::geom_smooth(ggplot2::aes(color = forcats::fct_reorder(gene, med),
-                                               fill = forcats::fct_reorder(gene, med)),
-                                           method = "lm",
-                                           se = plot_se)} +
+                                                                 fill = forcats::fct_reorder(gene, med)),
+                                                    method = "lm",
+                                                    se = plot_se)} +
       {if(input$type == "cell")ggplot2::geom_smooth(ggplot2::aes(color = forcats::fct_reorder(cell_line, med),
-                                               fill = forcats::fct_reorder(cell_line, med)),
-                                           method = "lm",
-                                           se = plot_se)} +
+                                                                 fill = forcats::fct_reorder(cell_line, med)),
+                                                    method = "lm",
+                                                    se = plot_se)} +
       # R coefs
       {if(card == FALSE & input$type == "gene")ggpubr::stat_cor(ggplot2::aes(color = forcats::fct_reorder(gene, med)),
                                                                 digits = 3)} +
@@ -2926,9 +2942,9 @@ make_expdep <- function(expression_data = expression_long,
       plot_complete  <-
         plot_complete +
         ggplot2::guides(color = "none",
-               fill = "none") +
+                        fill = "none") +
         ggplot2::labs(x = paste0(input$content, " Dependency"),
-             y = paste0(input$content, " Expression"))
+                      y = paste0(input$content, " Expression"))
     }
 
     if(card == TRUE) {
@@ -3053,10 +3069,10 @@ make_cell_similarity <- function(cell_sims_dep = cell_line_dep_sim,
                         color = "gray40", hjust = 1.15 ,vjust = 0) +
       ## dot plot
       ggplot2::geom_point(ggplot2::aes(x = rank,
-                     y = coef,
-                     text = glue::glue('Cell: {name}'),
-                     color = forcats::fct_reorder(name, med),
-                     fill = forcats::fct_reorder(name, med)
+                                       y = coef,
+                                       text = glue::glue('Cell: {name}'),
+                                       color = forcats::fct_reorder(name, med),
+                                       fill = forcats::fct_reorder(name, med)
       ),
       size = 1.1, stroke = .1, alpha = 0.4) +
       ## scales + legends
@@ -3090,7 +3106,7 @@ make_cell_similarity <- function(cell_sims_dep = cell_line_dep_sim,
       plot_complete  <-
         plot_complete +
         ggplot2::guides(color = "none",
-               fill = "none")
+                        fill = "none")
     }
 
     return(plot_complete)
@@ -3132,11 +3148,11 @@ make_functional_cell <- function(pathway_data = pathways,
       dplyr::select(pathway, go, gene, gene_expression, X1) %>%
       tidyr::drop_na() %>%
       dplyr::left_join(expression_metadata %>%
-                  dplyr::select(X1, cell_line), by = "X1") %>%
+                         dplyr::select(X1, cell_line), by = "X1") %>%
       dplyr::select(-X1) %>%
       dplyr::mutate(pathway_short = ifelse(stringr::str_count(pathway) >= nwords,
-                                    paste0(gsub(paste0("^((\\w+\\W+){", nwords, "}\\w+).*$"), "\\1", pathway), " ..."),
-                                    pathway)
+                                           paste0(gsub(paste0("^((\\w+\\W+){", nwords, "}\\w+).*$"), "\\1", pathway), " ..."),
+                                           pathway)
       )
 
     med_cell <- plot_data %>%
@@ -3150,9 +3166,9 @@ make_functional_cell <- function(pathway_data = pathways,
       dplyr::ungroup() %>%
       dplyr::filter(med != 0) %>% # decide if filter zero expressions
       dplyr::left_join(plot_data %>%
-                  dplyr::select(go, pathway_short) %>%
-                    dplyr::filter(!duplicated(go)),
-                by = "go")
+                         dplyr::select(go, pathway_short) %>%
+                         dplyr::filter(!duplicated(go)),
+                       by = "go")
 
     if(remove_equivalent_pathways) {
       med_cell <- med_cell %>%
@@ -3177,9 +3193,9 @@ make_functional_cell <- function(pathway_data = pathways,
         dplyr::arrange(-diff) %>%
         dplyr::slice(1:num_pathways) %>%
         dplyr::left_join(plot_data %>%
-                    dplyr::select(go, pathway_short) %>%
-                      dplyr::filter(!duplicated(go)),
-                  by = "go")
+                           dplyr::select(go, pathway_short) %>%
+                           dplyr::filter(!duplicated(go)),
+                         by = "go")
     } else {
       diff_cell <- med_cell %>%
         dplyr::group_by(go) %>%
@@ -3188,17 +3204,17 @@ make_functional_cell <- function(pathway_data = pathways,
         dplyr::arrange(-diff) %>%
         dplyr::slice(1:num_pathways) %>%
         dplyr::left_join(plot_data %>%
-                    dplyr::select(go, pathway_short) %>%
-                      dplyr::filter(!duplicated(go)),
-                  by = "go")
+                           dplyr::select(go, pathway_short) %>%
+                           dplyr::filter(!duplicated(go)),
+                         by = "go")
     }
 
     med_cell <- med_cell %>%
       dplyr::filter(go %in% diff_cell$go) %>%
       dplyr::left_join(diff_cell %>%
-                  dplyr::select(-pathway_short) %>%
-                  dplyr::filter(!duplicated(go)),
-                by = "go")
+                         dplyr::select(-pathway_short) %>%
+                         dplyr::filter(!duplicated(go)),
+                       by = "go")
 
     background <- plot_data %>%
       dplyr::filter(go %in% diff_cell$go) %>%
@@ -3215,8 +3231,8 @@ make_functional_cell <- function(pathway_data = pathways,
                              ggplot2::aes(reorder(pathway_short, diff), med, ymin = med, ymax = med, color = cell_line)) +
       ggplot2::geom_point(data = med_cell, ggplot2::aes(reorder(pathway_short, diff), med, color = cell_line), size = 3) +
       ggplot2::labs(x = NULL,
-           y = "Gene Expression",
-           color = "Query Cell") +
+                    y = "Gene Expression",
+                    color = "Query Cell") +
       ggplot2::coord_flip() +
       scale_color_ddh_d(palette = input$type) +
       ggplot2::guides(
@@ -3247,11 +3263,11 @@ make_functional_cell <- function(pathway_data = pathways,
       plot_complete <-
         plot_complete +
         ggplot2::theme(axis.title.x = ggplot2::element_blank(),
-              axis.title.y = ggplot2::element_blank(),
-              axis.text.y = ggplot2::element_blank(),
-              axis.ticks.y = ggplot2::element_blank(),
-              axis.line.y = ggplot2::element_blank(),
-              legend.position = "none"
+                       axis.title.y = ggplot2::element_blank(),
+                       axis.text.y = ggplot2::element_blank(),
+                       axis.ticks.y = ggplot2::element_blank(),
+                       axis.line.y = ggplot2::element_blank(),
+                       legend.position = "none"
         )
     }
 
@@ -3292,9 +3308,9 @@ make_metadata_cell <- function(input = list(),
                                      input = input) %>%
       dplyr::bind_rows() %>%
       dplyr::mutate(group = dplyr::case_when(bonferroni > bonferroni_cutoff ~ "None",
-                               bonferroni < bonferroni_cutoff & coef > 0 ~ "Similar",
-                               bonferroni < bonferroni_cutoff & coef < 0 ~ "Dissimilar"),
-             group = forcats::as_factor(group)
+                                             bonferroni < bonferroni_cutoff & coef > 0 ~ "Similar",
+                                             bonferroni < bonferroni_cutoff & coef < 0 ~ "Dissimilar"),
+                    group = forcats::as_factor(group)
       ) %>%
       dplyr::as_tibble()
 
@@ -3348,7 +3364,7 @@ make_metadata_cell <- function(input = list(),
     plot_complete <- plot_complete +
       ggplot2::geom_col() +
       ggplot2::labs(x = "# Cell Lines",
-           y = NULL) +
+                    y = NULL) +
       # scale_x_continuous(labels = scales::percent_format()) +
       scale_fill_ddh_d(palette = input$type) +
       ggplot2::guides(
@@ -3369,9 +3385,9 @@ make_metadata_cell <- function(input = list(),
         plot_complete +
         ggplot2::scale_y_discrete(labels = scales::label_wrap(10)) + #to prevent long lines and squished plots
         ggplot2::theme(axis.title.x = ggplot2::element_blank(),
-              axis.title.y = ggplot2::element_blank(),
-              plot.title = ggplot2::element_blank(),
-              legend.position = "none"
+                       axis.title.y = ggplot2::element_blank(),
+                       plot.title = ggplot2::element_blank(),
+                       legend.position = "none"
         )
     }
 
