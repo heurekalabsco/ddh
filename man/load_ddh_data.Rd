@@ -4,12 +4,12 @@
 \alias{load_ddh_data}
 \title{Function to Load All DDH Data Including .RDS Files and Colors}
 \usage{
-load_ddh_data(app_data_dir = NULL, release = "22Q2", privateMode = TRUE)
+load_ddh_data(app_data_dir, file_name = NULL, privateMode = TRUE)
 }
 \arguments{
 \item{app_data_dir}{Data directory path.}
 
-\item{release}{Character vector indicating the release version.}
+\item{file_name}{Optional file name to get a single file; default loads all files}
 
 \item{privateMode}{Boolean indicating if private data is required.}
 }
