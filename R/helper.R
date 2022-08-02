@@ -1,70 +1,21 @@
-#' Function to Load All DDH Data Including .RDS Files and Colors
-#'
-#' @param app_data_dir Data directory path.
-#' @param file_name Optional file name to get a single file; default loads all files
-#' @param privateMode Boolean indicating if private data is required.
-#'
-#' @export
-load_ddh_data <- function(app_data_dir,
-                          file_name = NULL,
-                          privateMode = TRUE) {
-  # Load .RDS files
-  load_ddh_rds(app_data_dir,
-               file_name)
-
-  # Load colors
-  load_ddh_colors()
-  print("loaded colors")
-
-  print("everything loaded")
-}
-
-#' Function to load all DDH .RDS files
-#'
-#' @param app_data_dir Data directory path.
-#' @param file_name Optional file name to get a single file; default loads all files
-#'
-#' @export
-load_ddh_rds <- function(app_data_dir,
-                         file_name = NULL) {
-  if(is.null(file_name)){
-    data_files <- list.files(app_data_dir)
-  } else {
-    data_files <- file_name
-  }
-
-  #file loader constructor
-  load_rds_object <- function(rds_file){
-    object_name <- stringr::str_remove(rds_file, pattern = "\\.Rds")
-    assign(object_name, readRDS(here::here(app_data_dir, rds_file)),
-           envir = .GlobalEnv)
-    print(glue::glue("loaded {object_name}"))
-  }
-
-  #walk through to load all files
-  data_files %>%
-    purrr::walk(load_rds_object)
-
-  #print done
-  print("finished loading")
-}
-
 #' Function to download all DDH .Rds files
 #'
 #' @param app_data_dir Data directory path.
-#' @param file_name Optional file name to get a single file; default gets all files in bucket
+#' @param object_name Optional object name to get a single file; default gets all files in bucket
+#' @param test Boolean that will download test data instead of full data
 #' @param overwrite Boolean that deletes the app_data_dir thereby removing files, before remaking dir and downloading all files
 #' @param privateMode Boolean indicating if private data is required.
 #'
 #' @export
 download_ddh_data <- function(app_data_dir,
-                              file_name = NULL,
+                              object_name = NULL,
+                              test = FALSE,
                               overwrite = FALSE,
                               privateMode = TRUE){
   #delete dir to overwrite
   if(overwrite == TRUE) {
-    path <- paste0(app_data_dir, "/", file_name)
-    unlink(path, recursive = TRUE)
+    path <- stringr::str_glue("{app_data_dir}/{object_name}.Rds")
+    path %>% purrr::walk(unlink, recursive = TRUE) #handles 1, many, or NULL file_name
   }
   #make dir
   if(!dir.exists(app_data_dir)){
@@ -72,9 +23,9 @@ download_ddh_data <- function(app_data_dir,
   }
   #get_data function
   get_aws_data <- function(bucket_id,
-                           file_name){
-    s3 <- paws::s3()
+                           object_name){
     bucket_name <- Sys.getenv(bucket_id)
+    s3 <- paws::s3()
     data_objects <-
       s3$list_objects(Bucket = bucket_name) %>%
       purrr::pluck("Contents")
@@ -82,34 +33,136 @@ download_ddh_data <- function(app_data_dir,
     print(glue::glue('{length(data_objects)} objects in the {bucket_name} bucket'))
 
     #filter list for single object
-    if(!is.null(file_name)){
+    if(!is.null(object_name)){
+      file_name <- glue::glue("{object_name}.Rds")
       data_objects <-
         data_objects %>% #take full list
-        purrr::keep(purrr::map_lgl(.x = 1:length(data_objects), ~ data_objects[[.x]][["Key"]] %in% file_name)) #pass map_lgl to keep to filter names to keep
+        keep(purrr::map_lgl(.x = 1:length(data_objects), ~ data_objects[[.x]][["Key"]] %in% file_name)) #pass map_lgl to keep to filter names to keep
       print(glue::glue('filtered to keep only {length(data_objects)}'))
     }
 
     for (i in 1:length(data_objects)) {
-      file_name <- data_objects[[i]][["Key"]]
-      #check if files exists
-      if(file.exists(glue::glue("{app_data_dir}/{file_name}"))){
-        print(glue::glue("file already exists: {file_name}"))
-      } else {
-        #if not, thne download
-        s3$download_file(Bucket = bucket_name,
-                         Key = file_name,
-                         Filename = glue::glue("{app_data_dir}/{file_name}"))
+      #check for no objects
+      if(length(data_objects) == 0){
         print(glue::glue("file downloaded: {file_name}"))
+      } else {
+        file_name <- data_objects[[i]][["Key"]]
+        #check if files exists
+        if(file.exists(glue::glue("{app_data_dir}/{file_name}"))){
+          print(glue::glue("file already exists: {file_name}"))
+        } else {
+          #if not, then download
+          s3$download_file(Bucket = bucket_name,
+                           Key = as.character(file_name),
+                           Filename = as.character(glue::glue("{app_data_dir}/{file_name}")))
+          print(glue::glue("file downloaded: {file_name}"))
+        }
       }
     }
   }
+  #get test data
+  if(test == TRUE){
+    get_aws_data(object_name,
+                 bucket_id = "AWS_DATA_BUCKET_ID_TEST")
+    return(print("test data download complete"))
+  }
   #get data
-  get_aws_data(file_name,
-               bucket_id = "AWS_DATA_BUCKET_ID")
+  if(privateMode == FALSE){   #get public data only
 
-  #get private data
-  if(privateMode == TRUE){ get_aws_data(file_name,
-                                        bucket_id = "AWS_DATA_PRIVATE_BUCKET_ID")}
+    get_aws_data(object_name,
+                 bucket_id = "AWS_DATA_BUCKET_ID_TEST")
+    return(print("public data download complete"))
+  } else { #get both
+    get_aws_data(object_name,
+                 bucket_id = "AWS_DATA_BUCKET_ID")
+    get_aws_data(object_name,
+                 bucket_id = "AWS_DATA_PRIVATE_BUCKET_ID")
+    return(print("private data download complete"))
+  }
+}
+
+#' Function to Load All DDH Data Including .Rds Files and Colors
+#'
+#' @param app_data_dir Data directory path.
+#' @param file_name Optional file name to get a single file; default loads all files
+#' @param privateMode Boolean indicating if private data is required.
+#'
+#' @export
+load_ddh_data <- function(app_data_dir,
+                          object_name = NULL) {
+
+  # Load .RDS files
+  load_ddh_rds(app_data_dir,
+               object_name)
+  message("loaded Rds files")
+  if(!is.null(object_name)){ #stop here
+    return(message("done"))
+  }
+
+  #load DB cons
+  load_ddh_db()
+  message("loaded db connections")
+
+  # Load colors
+  load_ddh_colors()
+  message("loaded colors")
+
+  message("finished loaing")
+}
+
+#' Function to load all DDH .RDS files
+#'
+#' @param app_data_dir Data directory path.
+#' @param object_name Optional object name to load a single file; default loads all files
+#'
+#' @export
+load_ddh_rds <- function(app_data_dir,
+                         object_name = NULL) {
+  if(is.null(object_name)){
+    all_objects <- list.files(app_data_dir) %>%
+      purrr::map_chr(stringr::str_remove, pattern = "\\.Rds")
+  } else {
+    all_objects <- object_name
+  }
+
+  #file loader constructor
+  load_rds_object <- function(single_object){
+    file_name <- glue::glue("{single_object}.Rds")
+    assign(single_object, readRDS(here::here(app_data_dir, file_name)),
+           envir = .GlobalEnv)
+    message(glue::glue("loaded {single_object}"))
+  }
+
+  #walk through to load all files
+  all_objects %>% purrr::walk(load_rds_object)
+
+  #print done
+  message("finished loading")
+}
+
+#' Function to load all DDH db connections
+#'
+#' @param object_name Optional object name to load a single db connection; default loads all connections
+#'
+#' @export
+load_ddh_db <- function(object_name = NULL) {
+  #fun for db connection
+  #load_db_connection <- function(db_name){}
+
+  #manually (?) list all dbs to connect to
+
+  #filter list for those in file_name
+  #db_cons <-
+  # if(is.null(file_name)){
+  #   db_cons <-  #manually (?) list all dbs to connect to
+  # } else {
+  #   db_cons <- file_name
+  # }
+
+  #db_cons %>% purrr::walk(load_db_connection)
+
+  #placeholder for db connections
+  message("placeholder for db connections")
 }
 
 #' Function to load DDH colors
