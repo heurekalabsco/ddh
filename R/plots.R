@@ -1,4 +1,3 @@
-
 ## BARCODE PLOT --------------------------------------------------------------------
 #' Barcode Plot
 #'
@@ -970,7 +969,9 @@ make_structure <- function(input = list(),
     image_path <- paste0("https://ddh-proteins.s3.amazonaws.com/", file_name)
 
     #checks to see if file exists by checking status code on public URL
-    status <- httr::HEAD(image_path) %>% http_status() %>% purrr::pluck("reason")
+    status <- httr::HEAD(image_path) %>%
+      httr::http_status() %>%
+      purrr::pluck("reason")
 
     #comment all of this out after moving to generate
     if(card == TRUE && status == "OK"){
