@@ -6,7 +6,8 @@
 \usage{
 download_ddh_data(
   app_data_dir,
-  file_name = NULL,
+  object_name = NULL,
+  test = FALSE,
   overwrite = FALSE,
   privateMode = TRUE
 )
@@ -14,7 +15,9 @@ download_ddh_data(
 \arguments{
 \item{app_data_dir}{Data directory path.}
 
-\item{file_name}{Optional file name to get a single file; default gets all files in bucket}
+\item{object_name}{Optional object name to get a single file; default gets all files in bucket}
+
+\item{test}{Boolean that will download test data instead of full data}
 
 \item{overwrite}{Boolean that deletes the app_data_dir thereby removing files, before remaking dir and downloading all files}
 

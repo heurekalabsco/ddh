@@ -4,12 +4,12 @@
 \alias{load_ddh_rds}
 \title{Function to load all DDH .RDS files}
 \usage{
-load_ddh_rds(app_data_dir, file_name = NULL)
+load_ddh_rds(app_data_dir, object_name = NULL)
 }
 \arguments{
 \item{app_data_dir}{Data directory path.}
 
-\item{file_name}{Optional file name to get a single file; default loads all files}
+\item{object_name}{Optional object name to load a single file; default loads all files}
 }
 \description{
 Function to load all DDH .RDS files

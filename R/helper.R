@@ -6,6 +6,8 @@
 #' @param overwrite Boolean that deletes the app_data_dir thereby removing files, before remaking dir and downloading all files
 #' @param privateMode Boolean indicating if private data is required.
 #'
+#' @importFrom magrittr %>%
+#'
 #' @export
 download_ddh_data <- function(app_data_dir,
                               object_name = NULL,
@@ -115,6 +117,8 @@ load_ddh_data <- function(app_data_dir,
 #' @param app_data_dir Data directory path.
 #' @param object_name Optional object name to load a single file; default loads all files
 #'
+#' @importFrom magrittr %>%
+#'
 #' @export
 load_ddh_rds <- function(app_data_dir,
                          object_name = NULL) {
@@ -134,7 +138,8 @@ load_ddh_rds <- function(app_data_dir,
   }
 
   #walk through to load all files
-  all_objects %>% purrr::walk(load_rds_object)
+  all_objects %>%
+    purrr::walk(load_rds_object)
 
   #print done
   message("finished loading")
@@ -143,6 +148,8 @@ load_ddh_rds <- function(app_data_dir,
 #' Function to load all DDH db connections
 #'
 #' @param object_name Optional object name to load a single db connection; default loads all connections
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 load_ddh_db <- function(object_name = NULL) {

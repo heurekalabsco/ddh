@@ -2,9 +2,9 @@
 % Please edit documentation in R/helper.R
 \name{load_ddh_data}
 \alias{load_ddh_data}
-\title{Function to Load All DDH Data Including .RDS Files and Colors}
+\title{Function to Load All DDH Data Including .Rds Files and Colors}
 \usage{
-load_ddh_data(app_data_dir, file_name = NULL, privateMode = TRUE)
+load_ddh_data(app_data_dir, object_name = NULL)
 }
 \arguments{
 \item{app_data_dir}{Data directory path.}
@@ -14,5 +14,5 @@ load_ddh_data(app_data_dir, file_name = NULL, privateMode = TRUE)
 \item{privateMode}{Boolean indicating if private data is required.}
 }
 \description{
-Function to Load All DDH Data Including .RDS Files and Colors
+Function to Load All DDH Data Including .Rds Files and Colors
 }

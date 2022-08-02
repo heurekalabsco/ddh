@@ -23,7 +23,6 @@ If no error, then returns an ideogram plot. If an error is thrown, then will ret
 Each point shows the location of the query gene(s) on human chromosomes.
 }
 \examples{
-sum(1:10)
 make_ideogram(input = list(type = "gene", query = "ROCK1", content = "ROCK1"))
 make_ideogram(input = list(type = "gene", query = "ROCK1", content = "ROCK1"), card = TRUE)
 \dontrun{
