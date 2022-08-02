@@ -1606,7 +1606,14 @@ make_cellexpression <- function(expression_data = expression_long,
         expression_data %>%
         dplyr::select(dplyr::any_of(c("X1", "gene", "gene_expression"))) %>%
         dplyr::rename("expression_var" = "gene_expression")
-      mean <- mean_virtual_gene_expression
+
+      median <- plot_initial %>%
+        dplyr::group_by(gene) %>%
+        dplyr::summarise(median = median(expression_var, na.rm = TRUE)) %>%
+        dplyr::ungroup() %>%
+        dplyr::pull(median) %>%
+        median(na.rm = TRUE)
+
       upper_limit <- gene_expression_upper
       lower_limit <- gene_expression_lower
     } else if (var == "protein") {
@@ -1614,7 +1621,14 @@ make_cellexpression <- function(expression_data = expression_long,
         expression_data %>%
         dplyr::select(X1, gene, protein_expression) %>%
         dplyr::rename("expression_var" = "protein_expression")
-      mean <- mean_virtual_protein_expression
+
+      median <- plot_initial %>%
+        dplyr::group_by(gene) %>%
+        dplyr::summarise(median = median(expression_var, na.rm = TRUE)) %>%
+        dplyr::ungroup() %>%
+        dplyr::pull(median) %>%
+        median(na.rm = TRUE)
+
       upper_limit <- protein_expression_upper
       lower_limit <- protein_expression_lower
     } else {
@@ -1627,11 +1641,11 @@ make_cellexpression <- function(expression_data = expression_long,
                       !is.na(expression_var)) %>%
         dplyr::left_join(expression_join, by = "X1") %>%
         dplyr::select(-X1) %>%
-        dplyr::select(cell_line, lineage, lineage_subtype, everything()) %>%
+        dplyr::select(cell_line, lineage, lineage_subtype, dplyr::everything()) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
         #dplyr::mutate(gene_fct = fct_reorder(gene, expression_var, .fun = max, .desc = TRUE)) %>%
         dplyr::mutate(gene_fct = forcats::fct_inorder(gene)) %>%
-        ggplot(ggplot2::aes(y = gene_fct,
+        ggplot2::ggplot(ggplot2::aes(y = gene_fct,
                    x = expression_var,
                    text = paste0("Cell Line: ", cell_line),
                    color = gene
@@ -1640,7 +1654,7 @@ make_cellexpression <- function(expression_data = expression_long,
       plot_data <- plot_initial %>%
         dplyr::left_join(expression_join, by = "X1") %>%
         dplyr::select(-X1) %>%
-        dplyr::select(cell_line, lineage, lineage_subtype, everything()) %>%
+        dplyr::select(cell_line, lineage, lineage_subtype, dplyr::everything()) %>%
         dplyr::filter(cell_line %in% input$content,
                       !is.na(expression_var)) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
@@ -1656,7 +1670,7 @@ make_cellexpression <- function(expression_data = expression_long,
       plot_data +
       ggplot2::geom_point(alpha = 0.1, shape = "|", size = 12) +
       ggplot2::geom_vline(xintercept = 0, color = "lightgray") + #3SD is below zero
-      ggplot2::geom_vline(xintercept = mean) +
+      ggplot2::geom_vline(xintercept = median) +
       ggplot2::geom_vline(xintercept = upper_limit, color = "lightgray") +#3SD
       ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = 0.01)) +
       ggplot2::scale_y_discrete(expand = ggplot2::expansion(mult = 1 / length(input$content)), na.translate = FALSE) +
@@ -1722,7 +1736,7 @@ make_cellgeneprotein <- function(expression_data = expression_long,
                       !is.na(protein_expression)) %>%
         dplyr::left_join(expression_join, by = "X1") %>%
         dplyr::select(-X1) %>%
-        dplyr::select(cell_line, lineage, lineage_subtype, everything()) %>%
+        dplyr::select(cell_line, lineage, lineage_subtype, dplyr::everything()) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
         ggplot2::ggplot(ggplot2::aes(x = gene_expression,
                                      y = protein_expression,
@@ -1734,7 +1748,7 @@ make_cellgeneprotein <- function(expression_data = expression_long,
       plot_initial <- expression_data %>%
         dplyr::left_join(expression_join, by = "X1") %>%
         dplyr::select(-X1) %>%
-        dplyr::select(cell_line, lineage, lineage_subtype, everything()) %>%
+        dplyr::select(cell_line, lineage, lineage_subtype, dplyr::everything()) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
         dplyr::filter(cell_line %in% input$content,
                       !is.na(gene_expression),
@@ -1754,8 +1768,8 @@ make_cellgeneprotein <- function(expression_data = expression_long,
       ggplot2::geom_hline(yintercept = 0, color = "lightgray") +
       ggplot2::geom_vline(xintercept = 0, color = "lightgray") +
       # smooth line
-      geom_smooth(method = "lm",
-                  se = TRUE) +
+      ggplot2::geom_smooth(method = "lm",
+                           se = TRUE) +
       # R coefs
       {if(card == FALSE)ggpubr::stat_cor(digits = 3)} +
       scale_color_ddh_d(palette = input$type) +
@@ -1824,7 +1838,12 @@ make_celldeps <- function(celldeps_data = achilles_long,
       aes_var <- rlang::sym("name")
       var_title <- "Gene"
       ylab <- "Dependecy Score"
-      mean <- mean_virtual_achilles
+      median <- celldeps_data %>%
+        dplyr::group_by(gene) %>%
+        dplyr::summarise(median = median(dep_score, na.rm = TRUE)) %>%
+        dplyr::ungroup() %>%
+        dplyr::pull(median) %>%
+        median(na.rm = TRUE)
 
       plot_data <-
         celldeps_data %>% #plot setup
@@ -1844,7 +1863,13 @@ make_celldeps <- function(celldeps_data = achilles_long,
       aes_var <- rlang::sym("name")
       var_title <- "Compound"
       ylab <- "Log2FC"
-      mean <- mean_virtual_achilles_cell_line
+      median <- celldeps_data %>%
+        dplyr::group_by(X1) %>%
+        dplyr::summarise(median = median(dep_score, na.rm = TRUE)) %>%
+        dplyr::ungroup() %>%
+        dplyr::pull(median) %>%
+        median(na.rm = TRUE)
+
       plot_data <-
         prism_data %>% #plot setup
         dplyr::filter(name %in% input$content) %>%
@@ -1863,7 +1888,12 @@ make_celldeps <- function(celldeps_data = achilles_long,
       aes_var <- rlang::sym("cell_line")
       var_title <- "Gene"
       ylab <- "Dependecy Score"
-      mean <- mean_virtual_achilles_cell_line
+      median <- celldeps_data %>%
+        dplyr::group_by(X1) %>%
+        dplyr::summarise(median = median(dep_score, na.rm = TRUE)) %>%
+        dplyr::ungroup() %>%
+        dplyr::pull(median) %>%
+        median(na.rm = TRUE)
 
       plot_data <-
         celldeps_data %>% #plot setup
@@ -1916,7 +1946,7 @@ make_celldeps <- function(celldeps_data = achilles_long,
       {if(input$type == "gene" & (card | lineplot))ggplot2::geom_line(ggplot2::aes(group = name))} +
       {if(input$type == "cell" & (card | lineplot))ggplot2::geom_line(ggplot2::aes(group = cell_line))} +
       ## indicator lines dep. score
-      ggplot2::geom_hline(yintercept = mean) +
+      ggplot2::geom_hline(yintercept = median) +
       ggplot2::geom_hline(yintercept = 1, size = .2, color = "grey70", linetype = "dashed") +
       ggplot2::geom_hline(yintercept = -1, size = .2, color = "grey70", linetype = "dashed") +
       ggplot2::geom_hline(yintercept = 0, size = .2, color = "grey50") +
