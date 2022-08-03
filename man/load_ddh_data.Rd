@@ -4,7 +4,7 @@
 \alias{load_ddh_data}
 \title{Function to Load All DDH Data Including .Rds Files and Colors}
 \usage{
-load_ddh_data(app_data_dir, object_name = NULL, load_colors = TRUE)
+load_ddh_data(app_data_dir, object_name = NULL)
 }
 \arguments{
 \item{app_data_dir}{Data directory path.}

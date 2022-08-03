@@ -91,25 +91,24 @@ download_ddh_data <- function(app_data_dir,
 #'
 #' @export
 load_ddh_data <- function(app_data_dir,
-                          object_name = NULL,
-                          load_colors = TRUE) {
+                          object_name = NULL) {
+
+  # Load colors
+  load_ddh_colors()
+  message("loaded colors")
 
   # Load .RDS files
   load_ddh_rds(app_data_dir,
                object_name)
   message("loaded Rds files")
 
-  if(!is.null(object_name) & !load_colors){ #stop here
+  if(!is.null(object_name)){ #stop here
     return(message("done"))
   }
 
   #load DB cons
   load_ddh_db()
   message("loaded db connections")
-
-  # Load colors
-  load_ddh_colors()
-  message("loaded colors")
 
   message("finished loaing")
 }
