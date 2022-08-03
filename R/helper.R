@@ -91,13 +91,15 @@ download_ddh_data <- function(app_data_dir,
 #'
 #' @export
 load_ddh_data <- function(app_data_dir,
-                          object_name = NULL) {
+                          object_name = NULL,
+                          load_colors = TRUE) {
 
   # Load .RDS files
   load_ddh_rds(app_data_dir,
                object_name)
   message("loaded Rds files")
-  if(!is.null(object_name)){ #stop here
+
+  if(!is.null(object_name) & !load_colors){ #stop here
     return(message("done"))
   }
 

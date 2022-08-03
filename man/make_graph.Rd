@@ -8,6 +8,7 @@ make_graph(
   toptable_data = master_top_table,
   bottomtable_data = master_bottom_table,
   compound_data = prism_cor_nest,
+  summary = gene_summary,
   input = list(),
   threshold = 10,
   deg = 2,
