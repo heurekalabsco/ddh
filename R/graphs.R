@@ -336,6 +336,7 @@ setup_graph <- function(toptable_data = master_top_table,
 make_graph <- function(toptable_data = master_top_table,
                        bottomtable_data = master_bottom_table,
                        compound_data = prism_cor_nest,
+                       summary = gene_summary,
                        input = list(),
                        threshold = 10,
                        deg = 2,
@@ -498,7 +499,7 @@ make_graph <- function(toptable_data = master_top_table,
 
     if(input$type == "gene") {
       for(gene in nodes_filtered$name){
-        newVal <- gene_summary %>%
+        newVal <- summary %>%
           dplyr::filter(approved_symbol==gene) %>%
           dplyr::pull(approved_name)
         if(length(newVal)==0){
@@ -665,6 +666,7 @@ make_bipartite_graph <- function(toptable_data = master_top_table,
                                  bottomtable_data = master_bottom_table,
                                  protein_data = hmdb_proteins,
                                  metabolite_data = hmdb_metabolites,
+                                 summary = gene_summary,
                                  input = list(),
                                  censor = character(), #removes most common metabolites
                                  collapsed = TRUE,
@@ -779,8 +781,8 @@ make_bipartite_graph <- function(toptable_data = master_top_table,
                                 <p>
                                 {.x}
                                 <br>
-                                {if(length(gene_summary %>% dplyr::filter(approved_symbol == .x) %>% dplyr::pull(approved_name)) != 0) {
-                                gene_summary %>% dplyr::filter(approved_symbol == .x) %>% dplyr::pull(approved_name)} else {
+                                {if(length(summary %>% dplyr::filter(approved_symbol == .x) %>% dplyr::pull(approved_name)) != 0) {
+                                summary %>% dplyr::filter(approved_symbol == .x) %>% dplyr::pull(approved_name)} else {
                                 "No summary"}
                                 }
                                 <br>

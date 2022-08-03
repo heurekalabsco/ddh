@@ -39,7 +39,7 @@ download_ddh_data <- function(app_data_dir,
       file_name <- glue::glue("{object_name}.Rds")
       data_objects <-
         data_objects %>% #take full list
-        keep(purrr::map_lgl(.x = 1:length(data_objects), ~ data_objects[[.x]][["Key"]] %in% file_name)) #pass map_lgl to keep to filter names to keep
+        purrr::keep(purrr::map_lgl(.x = 1:length(data_objects), ~ data_objects[[.x]][["Key"]] %in% file_name)) #pass map_lgl to keep to filter names to keep
       print(glue::glue('filtered to keep only {length(data_objects)}'))
     }
 
@@ -142,7 +142,7 @@ load_ddh_rds <- function(app_data_dir,
     purrr::walk(load_rds_object)
 
   #print done
-  message("finished loading")
+  message("finished loading Rds")
 }
 
 #' Function to load all DDH db connections
