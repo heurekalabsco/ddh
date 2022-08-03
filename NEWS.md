@@ -1,3 +1,3 @@
-# ddh 0.1.33
+# ddh 0.1.34
 
 * Added a `NEWS.md` file to track changes to the package.
