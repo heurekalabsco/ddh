@@ -9,6 +9,7 @@ make_bipartite_graph(
   bottomtable_data = master_bottom_table,
   protein_data = hmdb_proteins,
   metabolite_data = hmdb_metabolites,
+  summary = gene_summary,
   input = list(),
   censor = character(),
   collapsed = TRUE,
