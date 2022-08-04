@@ -269,6 +269,8 @@ make_empty_plot <- function() {
 
 #' Function to create a bomb plot
 #'
+#' @importFrom magrittr %>%
+#'
 #' @return A ggplot2 object.
 #'
 #' @examples
@@ -535,6 +537,8 @@ make_bomb_plot <- function(){
 #'
 #' @param function_name Function name.
 #'
+#' @importFrom magrittr %>%
+#'
 #' @return A list with plot size
 #'
 #' @examples
@@ -603,6 +607,8 @@ plot_size_finder <- function(function_name){ #this function sets the output size
 #' @param fun_name Function name.
 #' @param type Function type.
 #'
+#' @importFrom magrittr %>%
+#'
 #' @return A roxygen structure.
 #'
 #' @examples
@@ -645,6 +651,7 @@ make_roxygen <- function(fun_name,
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a empty graph graph. If an error is thrown, then will return an empty graph.
 #'
+#' @importFrom magrittr %>%
 #' @import visNetwork
 #'
 #' @examples
@@ -784,6 +791,8 @@ make_legend <- function(fun,
 #' @param email_address Email address for the report to be delivered to
 #' @param input A list containing type, query, and content variables.
 #' @param private A Boolean determining which information to include in the report
+#'
+#' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
