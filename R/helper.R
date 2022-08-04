@@ -16,7 +16,8 @@ download_ddh_data <- function(app_data_dir,
                               privateMode = TRUE){
   #delete dir to overwrite
   if(overwrite == TRUE) {
-    path <- stringr::str_glue("{app_data_dir}/{object_name}.Rds")
+    if(is.null(object_name)){all_objects <- ""} else {all_objects <- stringr::str_glue("{object_name}.Rds")}
+    path <- stringr::str_glue("{app_data_dir}/{all_objects}")
     path %>% purrr::walk(unlink, recursive = TRUE) #handles 1, many, or NULL file_name
   }
   #make dir
