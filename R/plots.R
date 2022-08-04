@@ -1597,6 +1597,12 @@ make_tissue <- function(tissue_data = tissue,
 #' }
 make_cellexpression <- function(expression_data = expression_long,
                                 expression_join = expression_names,
+                                gene_expression_upr = gene_expression_upper,
+                                gene_expression_lwr = gene_expression_lower,
+                                protein_expression_upr = protein_expression_upper,
+                                protein_expression_lwr = protein_expression_lower,
+                                mean_gene = mean_virtual_gene_expression,
+                                mean_protein = mean_virtual_protein_expression,
                                 input = list(),
                                 var = "gene",
                                 card = FALSE) {
@@ -1606,31 +1612,17 @@ make_cellexpression <- function(expression_data = expression_long,
         expression_data %>%
         dplyr::select(dplyr::any_of(c("X1", "gene", "gene_expression"))) %>%
         dplyr::rename("expression_var" = "gene_expression")
-
-      median <- plot_initial %>%
-        dplyr::group_by(gene) %>%
-        dplyr::summarise(median = median(expression_var, na.rm = TRUE)) %>%
-        dplyr::ungroup() %>%
-        dplyr::pull(median) %>%
-        median(na.rm = TRUE)
-
-      upper_limit <- gene_expression_upper
-      lower_limit <- gene_expression_lower
+      mean <- mean_gene
+      upper_limit <- gene_expression_upr
+      lower_limit <- gene_expression_lwr
     } else if (var == "protein") {
       plot_initial <-
         expression_data %>%
         dplyr::select(X1, gene, protein_expression) %>%
         dplyr::rename("expression_var" = "protein_expression")
-
-      median <- plot_initial %>%
-        dplyr::group_by(gene) %>%
-        dplyr::summarise(median = median(expression_var, na.rm = TRUE)) %>%
-        dplyr::ungroup() %>%
-        dplyr::pull(median) %>%
-        median(na.rm = TRUE)
-
-      upper_limit <- protein_expression_upper
-      lower_limit <- protein_expression_lower
+      mean <- mean_protein
+      upper_limit <- protein_expression_upr
+      lower_limit <- protein_expression_lwr
     } else {
       stop("declare your variable")
     }
@@ -1669,9 +1661,9 @@ make_cellexpression <- function(expression_data = expression_long,
     plot_complete <-
       plot_data +
       ggplot2::geom_point(alpha = 0.1, shape = "|", size = 12) +
-      ggplot2::geom_vline(xintercept = 0, color = "lightgray") + #3SD is below zero
-      ggplot2::geom_vline(xintercept = median) +
-      ggplot2::geom_vline(xintercept = upper_limit, color = "lightgray") +#3SD
+      ggplot2::geom_vline(xintercept = mean, color = "lightgray", linetype = "dashed") +#3SD
+      ggplot2::geom_vline(xintercept = lower_limit, color = "lightgray", linetype = "dashed") +#3SD
+      ggplot2::geom_vline(xintercept = upper_limit, color = "lightgray", linetype = "dashed") +#3SD
       ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = 0.01)) +
       ggplot2::scale_y_discrete(expand = ggplot2::expansion(mult = 1 / length(input$content)), na.translate = FALSE) +
       scale_color_ddh_d(palette = input$type) +
@@ -1829,6 +1821,9 @@ make_cellgeneprotein <- function(expression_data = expression_long,
 make_celldeps <- function(celldeps_data = achilles_long,
                           prism_data = prism_long,
                           expression_data = expression_names,
+                          mean_achilles = mean_virtual_achilles,
+                          mean_prism = mean_virtual_prism_cor,
+                          mean_cell_line = mean_virtual_achilles_cell_line,
                           input = list(),
                           card = FALSE,
                           lineplot = FALSE,
@@ -1838,12 +1833,7 @@ make_celldeps <- function(celldeps_data = achilles_long,
       aes_var <- rlang::sym("name")
       var_title <- "Gene"
       ylab <- "Dependecy Score"
-      median <- celldeps_data %>%
-        dplyr::group_by(gene) %>%
-        dplyr::summarise(median = median(dep_score, na.rm = TRUE)) %>%
-        dplyr::ungroup() %>%
-        dplyr::pull(median) %>%
-        median(na.rm = TRUE)
+      mean <- mean_achilles
 
       plot_data <-
         celldeps_data %>% #plot setup
@@ -1863,12 +1853,7 @@ make_celldeps <- function(celldeps_data = achilles_long,
       aes_var <- rlang::sym("name")
       var_title <- "Compound"
       ylab <- "Log2FC"
-      median <- celldeps_data %>%
-        dplyr::group_by(X1) %>%
-        dplyr::summarise(median = median(dep_score, na.rm = TRUE)) %>%
-        dplyr::ungroup() %>%
-        dplyr::pull(median) %>%
-        median(na.rm = TRUE)
+      mean <- mean_prism
 
       plot_data <-
         prism_data %>% #plot setup
@@ -1888,12 +1873,7 @@ make_celldeps <- function(celldeps_data = achilles_long,
       aes_var <- rlang::sym("cell_line")
       var_title <- "Gene"
       ylab <- "Dependecy Score"
-      median <- celldeps_data %>%
-        dplyr::group_by(X1) %>%
-        dplyr::summarise(median = median(dep_score, na.rm = TRUE)) %>%
-        dplyr::ungroup() %>%
-        dplyr::pull(median) %>%
-        median(na.rm = TRUE)
+      mean <- mean_cell_line
 
       plot_data <-
         celldeps_data %>% #plot setup
@@ -1946,10 +1926,9 @@ make_celldeps <- function(celldeps_data = achilles_long,
       {if(input$type == "gene" & (card | lineplot))ggplot2::geom_line(ggplot2::aes(group = name))} +
       {if(input$type == "cell" & (card | lineplot))ggplot2::geom_line(ggplot2::aes(group = cell_line))} +
       ## indicator lines dep. score
-      ggplot2::geom_hline(yintercept = median) +
-      ggplot2::geom_hline(yintercept = 1, size = .2, color = "grey70", linetype = "dashed") +
-      ggplot2::geom_hline(yintercept = -1, size = .2, color = "grey70", linetype = "dashed") +
-      ggplot2::geom_hline(yintercept = 0, size = .2, color = "grey50") +
+      ggplot2::geom_hline(yintercept = mean, linetype = "dashed", color = "grey80") +
+      ggplot2::geom_hline(yintercept = 1, size = .2, color = "grey70") +
+      ggplot2::geom_hline(yintercept = -1, size = .2, color = "grey70") +
       ## scales + legends
       #scale_x_discrete(expand = expansion(mult = 0.02), na.translate = FALSE) +
       scale_color_ddh_d(palette = input$type) +
@@ -2021,6 +2000,9 @@ make_celldeps <- function(celldeps_data = achilles_long,
 make_cellbar <- function(celldeps_data = achilles_long,
                          prism_data = prism_long,
                          expression_data = expression_names,
+                         mean_achilles = mean_virtual_achilles,
+                         mean_prism = mean_virtual_prism_cor,
+                         mean_cell_line = mean_virtual_achilles_cell_line,
                          input = list(),
                          card = FALSE,
                          scale = NULL) {
@@ -2029,7 +2011,7 @@ make_cellbar <- function(celldeps_data = achilles_long,
       aes_var <- rlang::sym("name")
       var_title <- "Gene"
       ylab <- "Dependecy Score"
-      mean <- mean_virtual_achilles
+      mean <- mean_achilles
 
       plot_data <-
         celldeps_data %>% #plot setup
@@ -2050,7 +2032,7 @@ make_cellbar <- function(celldeps_data = achilles_long,
       aes_var <- rlang::sym("name")
       var_title <- "Compound"
       ylab <- "Log2FC"
-      mean <- mean_virtual_prism_cor
+      mean <- mean_prism
 
       plot_data <-
         prism_data %>% #plot setup
@@ -2071,7 +2053,7 @@ make_cellbar <- function(celldeps_data = achilles_long,
       aes_var <- rlang::sym("cell_line")
       var_title <- "Gene"
       ylab <- "Dependecy Score"
-      mean <- mean_virtual_achilles_cell_line
+      mean <- mean_cell_line
 
       plot_data <-
         celldeps_data %>% #plot setup
@@ -2118,10 +2100,10 @@ make_cellbar <- function(celldeps_data = achilles_long,
       ## bar plot
       ggplot2::geom_bar(stat = "identity", width = 0.5) +
       ## indicator lines dep. score
-      ggplot2::geom_hline(yintercept = mean) +
-      ggplot2::geom_hline(yintercept = 1, size = .2, color = "grey70", linetype = "dashed") +
-      ggplot2::geom_hline(yintercept = -1, size = .2, color = "grey70", linetype = "dashed") +
-      ggplot2::geom_hline(yintercept = 0, size = .2, color = "grey50") +
+      ggplot2::geom_hline(yintercept = mean, linetype = "dashed", color = "grey80") +
+      ggplot2::geom_hline(yintercept = 1, size = .2, color = "grey70") +
+      ggplot2::geom_hline(yintercept = -1, size = .2, color = "grey70") +
+      ggplot2::geom_hline(yintercept = 0, size = .2, color = "grey70") +
       ## scales + legends
       ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = 0.02), na.translate = FALSE) +
       scale_color_ddh_d(palette = input$type) +
@@ -2709,14 +2691,20 @@ make_sublineage <- function(celldeps_data = achilles_long,
 make_correlation <- function(table_data = achilles_cor_nest,
                              cell_line_data = achilles_cell_line_cor_nest,
                              prism_data = prism_cor_nest,
+                             achilles_upr = achilles_upper,
+                             achilles_lwr = achilles_lower,
+                             prism_cor_upr = prism_cor_upper,
+                             prism_cor_lwr = prism_cor_lower,
+                             mean_achilles = mean_virtual_achilles,
+                             mean_prism = mean_virtual_prism_cor,
                              input = list(),
                              card = FALSE,
                              scale = NULL) { #no card option, but need this to prevent error
   make_correlation_raw <- function() {
     if(input$type == "gene") {
-      mean <- mean_virtual_achilles
-      upper_limit <- achilles_upper
-      lower_limit <- achilles_lower
+      mean <- mean_achilles
+      upper_limit <- achilles_upr
+      lower_limit <- achilles_lwr
       var <- rlang::sym("fav_gene") #from https://rlang.r-lib.org/reference/quasiquotation.html
       label_var <- "Gene Rank"
       text_var <- "Gene"
@@ -2736,9 +2724,9 @@ make_correlation <- function(table_data = achilles_cor_nest,
         dplyr::rename(name = gene) #for plot name
 
     } else if(input$type == "compound") {
-      mean <- mean_virtual_prism_cor
-      upper_limit <- prism_cor_upper
-      lower_limit <- prism_cor_lower
+      mean <- mean_prism
+      upper_limit <- prism_cor_upr
+      lower_limit <- prism_cor_lwr
       var <- rlang::sym("fav_drug") #from https://rlang.r-lib.org/reference/quasiquotation.html
       label_var <- "Drug Rank"
       text_var <- "Compound"
@@ -2757,28 +2745,6 @@ make_correlation <- function(table_data = achilles_cor_nest,
         dplyr::ungroup()
 
     }
-    # else { #cell lines
-    #   mean <- mean_virtual_achilles_cell_line
-    #   upper_limit <- achilles_cell_line_upper
-    #   lower_limit <- achilles_cell_line_lower
-    #   var <- rlang::sym("fav_cell") #from https://rlang.r-lib.org/reference/quasiquotation.html
-    #   label_var <- "Cell Rank"
-    #   text_var <- "Cell"
-    #   content_var <- glue::glue_collapse(input$content, sep = ", ")
-    #
-    #   plot_data <-
-    #     cell_line_data %>%
-    #     dplyr::filter(fav_cell %in% input$content) %>%
-    #     tidyr::unnest(data) %>%
-    #     dplyr::group_by(fav_cell) %>%
-    #     dplyr::arrange(desc(r2)) %>%
-    #     dplyr::mutate(
-    #       rank = 1:n(),
-    #       med = median(r2, na.rm= TRUE)
-    #     ) %>%
-    #     dplyr::ungroup() %>%
-    #     dplyr::rename(name = cell) #for plot name
-    # }
 
     if(!is.null(scale) & !card){
       plot_data <-
@@ -2800,9 +2766,9 @@ make_correlation <- function(table_data = achilles_cor_nest,
       plot_data %>%
       ggplot2::ggplot() +
       ## sd square
-      ggplot2::geom_hline(yintercept = upper_limit, color = "gray80") +
-      ggplot2::geom_hline(yintercept = 0, color = "gray80", linetype = "dashed") +
-      ggplot2::geom_hline(yintercept = lower_limit, color = "gray80") +
+      ggplot2::geom_hline(yintercept = upper_limit, color = "gray80", linetype = "dashed") +
+      ggplot2::geom_hline(yintercept = mean, color = "gray80", linetype = "dashed") +
+      ggplot2::geom_hline(yintercept = lower_limit, color = "gray80", linetype = "dashed") +
       ggplot2::annotate("text", x = Inf, y = 0.005, label = label_var, color = "gray40", hjust = 1.15 ,vjust = 0) +
       ## dot plot
       ggplot2::geom_point(ggplot2::aes(x = rank,

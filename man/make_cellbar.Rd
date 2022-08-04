@@ -8,6 +8,9 @@ make_cellbar(
   celldeps_data = achilles_long,
   prism_data = prism_long,
   expression_data = expression_names,
+  mean_achilles = mean_virtual_achilles,
+  mean_prism = mean_virtual_prism_cor,
+  mean_cell_line = mean_virtual_achilles_cell_line,
   input = list(),
   card = FALSE,
   scale = NULL
