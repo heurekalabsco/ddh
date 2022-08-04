@@ -796,22 +796,26 @@ send_report_message <- function(first_name,
                                 last_name,
                                 email_address,
                                 input = list(),
-                                private) {
-  json_array = glue::glue('[{{
-  "first_name":"{first_name}",
-  "last_name":"{last_name}",
-  "email_address":"{email_address}",
-  "type":"{input$type}",
-  "subtype":"{input$subtype}",
-  "query":"{input$query}",
-  "content":"{input$content}",
-  "private":"{private}"}}]')
+                                private){
+  json_array <-
+    tibble::tibble(
+      first_name = first_name,
+      last_name = last_name,
+      email_address = email_address,
+      type = input$type,
+      subtype = input$subtype,
+      query = stringr::str_c(input$query, collapse = ", "),
+      content = stringr::str_c(input$content, collapse = ", "),
+      private = private
+    ) %>%
+    jsonlite::toJSON(dataframe = "rows")
+
   sqs <- paws::sqs()
   sqs$send_message(
     QueueUrl = Sys.getenv("AWS_SQS_SERVICE_URL"),
     MessageBody = json_array
   )
-  print(glue::glue("{input$query} sqs message sent for {first_name} ({email_address})"))
+  message(glue::glue("{glue::glue_collapse(input$query, sep = ', ')} sqs message sent for {first_name} ({email_address})"))
 }
 
 #DATA GENERATION----
