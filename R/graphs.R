@@ -413,11 +413,11 @@ make_graph <- function(toptable_data = master_top_table,
       tibble::rowid_to_column("id") %>%
       dplyr::mutate(degree = igraph::degree(graph_network),
                     group = dplyr::case_when(name %in% dep_network_list$query_id == TRUE ~ "Query", #could use input$content or input$content
-                                      name %in% dep_network_list$top_id == TRUE ~ "Positive",
-                                      name %in% dep_network_list$bottom_id == TRUE ~ "Negative",
-                                      TRUE ~ "Connected"),
-             group = forcats::as_factor(group),
-             group = forcats::fct_relevel(group, group_var)) %>%
+                                             name %in% dep_network_list$top_id == TRUE ~ "Positive",
+                                             name %in% dep_network_list$bottom_id == TRUE ~ "Negative",
+                                             TRUE ~ "Connected"),
+                    group = forcats::as_factor(group),
+                    group = forcats::fct_relevel(group, group_var)) %>%
       dplyr::arrange(group)
 
     links <- graph_network %>%
@@ -631,7 +631,8 @@ make_graph <- function(toptable_data = master_top_table,
   }
   #error handling
   tryCatch(make_graph_raw(),
-           error = function(x){
+           error = function(e){
+             message(e)
              make_empty_graph()
            })
 }
@@ -676,8 +677,8 @@ make_bipartite_graph <- function(toptable_data = master_top_table,
     if(input$type == "gene") {
       #get dep_network object
       dep_network_list <- ddh::setup_graph(input_list = input,
-                                      setup_corrType = corrType,
-                                      setup_threshold = threshold)
+                                           setup_corrType = corrType,
+                                           setup_threshold = threshold)
       #get gene_names
       if(length(input$content) == 1){
         if(corrType == "Positive") {
@@ -840,6 +841,9 @@ make_bipartite_graph <- function(toptable_data = master_top_table,
   }
   #error handling
   tryCatch(make_bipartite_graph_raw(),
-           error = function(x){"Graph cannot be built"})
+           error = function(e){
+             message(e)
+             make_empty_graph()
+           })
 }
 

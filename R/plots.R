@@ -30,7 +30,9 @@ make_barcode <- function(input = list()) {
   }
   #error handling
   tryCatch(make_barcode_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 ## IDEOGRAM PLOT --------------------------------------------------------
@@ -172,7 +174,9 @@ make_ideogram <- function(location_data = gene_location,
   }
   #error handling
   tryCatch(make_ideogram_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 ## SIZE PLOT --------------------------------------------------------
@@ -321,7 +325,9 @@ make_proteinsize <- function(protein_data = proteins,
   }
   #error handling
   tryCatch(make_proteinsize_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 ## SEQUENCE PLOT --------------------------------------------------------------------
@@ -412,7 +418,9 @@ make_sequence <- function(sequence_data = proteins,
   }
   #error handling
   tryCatch(make_sequence_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 ## PROTEIN DOMAIN PLOT --------------------------------------------------------
@@ -557,7 +565,9 @@ make_protein_domain <- function(input = list(),
 
   #error handling
   tryCatch(make_protein_domain_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 ## AA RADIAL PLOT -------------------------------------------------------------
@@ -750,7 +760,9 @@ make_radial <- function(cluster_data = sequence_clusters,
 
   #error handling
   tryCatch(make_radial_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 ## AA BAR PLOT -------------------------------------------------------------
@@ -787,7 +799,9 @@ make_radial_bar <- function(input = list(),
 
   #error handling
   tryCatch(make_radial_bar_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 ## UMAP PLOT --------------------------------------------------------
@@ -865,7 +879,9 @@ make_umap_plot <- function(cluster_data = sequence_clusters,
 
   #error handling
   tryCatch(make_umap_plot_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 ## CLUSTER ENRICHMENT PLOT --------------------------------------------------------
@@ -926,7 +942,9 @@ make_cluster_enrich <- function(input = list(),
   }
   #error handling
   tryCatch(make_cluster_enrich_plot_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 ## STRUCTURE PLOT --------------------------------------------------------------------
@@ -1020,7 +1038,9 @@ make_structure <- function(input = list(),
   }
   #error handling
   tryCatch(make_structure_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 ## 3D STRUCTURE PLOT --------------------------------------------------------------------
@@ -1116,7 +1136,9 @@ make_structure3d <- function(pdb_ids = uniprot_pdb_table,
 
   #error handling
   tryCatch(make_structure3d_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 ## PUBMED PLOT ------------------------------------------
@@ -1262,7 +1284,9 @@ make_pubmed <- function(pubmed_data = pubmed,
   }
   #error handling
   tryCatch(make_pubmed_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 ## CELL ANATOGRAM -------------------------------------------------------------------
@@ -1335,7 +1359,9 @@ make_cellanatogram <- function(cellanatogram_data = subcell,
   }
   #error handling
   tryCatch(make_cellanatogram_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 #' Cell Anatogram Facet
@@ -1379,7 +1405,9 @@ make_cellanatogramfacet <- function(cellanatogram_data = subcell,
   }
   #error handling
   tryCatch(make_cellanatogramfacet_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 ## HUMAN BODY ANATOGRAMS --------------------------------------------------------
@@ -1450,7 +1478,9 @@ make_female_anatogram <- function(anatogram = "female",
   }
   #error handling
   tryCatch(make_female_anatogram_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 #' Male Anatogram Plot
@@ -1572,7 +1602,9 @@ make_tissue <- function(tissue_data = tissue,
   }
   #error handling
   tryCatch(make_tissue_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 ## EXPRESSION PLOT --------------------------------------------------------
@@ -1638,9 +1670,9 @@ make_cellexpression <- function(expression_data = expression_long,
         #dplyr::mutate(gene_fct = fct_reorder(gene, expression_var, .fun = max, .desc = TRUE)) %>%
         dplyr::mutate(gene_fct = forcats::fct_inorder(gene)) %>%
         ggplot2::ggplot(ggplot2::aes(y = gene_fct,
-                   x = expression_var,
-                   text = paste0("Cell Line: ", cell_line),
-                   color = gene
+                                     x = expression_var,
+                                     text = paste0("Cell Line: ", cell_line),
+                                     color = gene
         ))
     } else if (input$type == "cell") {
       plot_data <- plot_initial %>%
@@ -1699,7 +1731,9 @@ make_cellexpression <- function(expression_data = expression_long,
   }
   #error handling
   tryCatch(print(make_cellexpression_raw()),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 # G-EXPvP-EXP ----------------------------------
@@ -1797,7 +1831,9 @@ make_cellgeneprotein <- function(expression_data = expression_long,
   }
   #error handling
   tryCatch(print(make_cellgeneprotein_raw()),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 ## CELL DEPS --------------------------------------------------------------------
@@ -1976,7 +2012,9 @@ make_celldeps <- function(celldeps_data = achilles_long,
   }
   #error handling
   tryCatch(make_celldeps_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 ## BAR PLOT --------------------------------------------------------------------
@@ -2148,7 +2186,9 @@ make_cellbar <- function(celldeps_data = achilles_long,
   }
   #error handling
   tryCatch(make_cellbar_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 ## DENSITY PLOT ----------------------------------------------------------------
@@ -2307,7 +2347,9 @@ make_cellbins <- function(cellbins_data = achilles_long,
   }
   #error handling
   tryCatch(print(make_cellbins_raw()), #add print to catch ggplot.print errors
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 ## LINEAGE LINERANGE PLOT ------------------------------------------------------
@@ -2487,7 +2529,9 @@ make_lineage <- function(celldeps_data = achilles_long,
   }
   #error handling
   tryCatch(make_lineage_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 ## SUBLINE RANGE PLOT ---------------------------------------------------
@@ -2667,7 +2711,9 @@ make_sublineage <- function(celldeps_data = achilles_long,
   }
   #error handling
   tryCatch(make_sublineage_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 ## CORRELATION PLOT FOR CELL DEPS--------------------------------------------------------
@@ -2816,7 +2862,9 @@ make_correlation <- function(table_data = achilles_cor_nest,
   }
   #error handling
   tryCatch(make_correlation_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 ## EXPvDEP PLOT --------------------------------------------------------
@@ -2955,7 +3003,9 @@ make_expdep <- function(expression_data = expression_long,
   }
   #error handling
   tryCatch(make_expdep_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 #CELL --------------------------------------------------------------------
@@ -2985,7 +3035,9 @@ make_cell_image <- function(input = list()) {
   }
   #error handling
   tryCatch(make_cell_image_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 ## CO-ESSENTIALITY CELL LINE PLOT --------------------------------------------------------
@@ -3110,7 +3162,9 @@ make_cell_similarity <- function(cell_sims_dep = cell_line_dep_sim,
   }
   #error handling
   tryCatch(make_similarity_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 # FUNCTIONAL PLOT ------------------------------------------
@@ -3273,7 +3327,9 @@ make_functional_cell <- function(pathway_data = pathways,
 
   #error handling
   tryCatch(make_functional_cell_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 # CELL METADATA PLOT ------------------------------------------
@@ -3393,7 +3449,9 @@ make_metadata_cell <- function(input = list(),
 
   #error handling
   tryCatch(make_metadata_cell_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 
 #COMPOUND --------------------------------------------------------------------
@@ -3447,6 +3505,8 @@ make_molecule_structure <- function(input = list(),
   }
   #error handling
   tryCatch(make_molecule_structure_raw(),
-           error = function(x){make_bomb_plot()})
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
 }
 

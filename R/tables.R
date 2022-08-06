@@ -86,7 +86,9 @@ make_compound_table <- function(data_table = prism_cor_nest,
   }
   #error handling
   tryCatch(make_compound_table_raw(),
-           error = function(x){make_empty_table()})
+           error = function(e){
+             message(e)
+             make_empty_table()})
 }
 
 # PUBMED TABLE -----
@@ -137,7 +139,9 @@ make_pubmed_table <- function(pubmed_data = pubmed,
   }
   #error handling
   tryCatch(make_pubmed_table_raw(),
-           error = function(x){make_empty_table()})
+           error = function(e){
+             message(e)
+             make_empty_table()})
 }
 
 # CELL ANATOGRAM TABLES -----
@@ -173,7 +177,9 @@ make_cellanatogram_table <- function(cellanatogram_data = subcell,
   }
   #error handling
   tryCatch(make_cellanatogram_table_raw(),
-           error = function(x){make_empty_table()})
+           error = function(e){
+             message(e)
+             make_empty_table()})
 }
 
 # EXPRESSION TABLES -----
@@ -243,7 +249,9 @@ make_expression_table <- function(expression_data = expression_long,
   }
   #error handling
   tryCatch(make_expression_table_raw(),
-           error = function(x){make_empty_table()})
+           error = function(e){
+             message(e)
+             make_empty_table()})
 }
 
 # HUMAN ANATOGRAM TABLES -----
@@ -280,7 +288,9 @@ make_humananatogram_table <- function(humananatogram_data = tissue,
   }
   #error handling
   tryCatch(make_humananatogram_table_raw(),
-           error = function(x){make_empty_table()})
+           error = function(e){
+             message(e)
+             make_empty_table()})
 }
 
 ## PROTEIN CLUSTER TABLE -----------------------------------------------
@@ -351,7 +361,9 @@ make_clustering_table <- function(cluster_data = sequence_clusters,
 
   #error handling
   tryCatch(make_clustering_table_raw(),
-           error = function(x){make_empty_table()})
+           error = function(e){
+             message(e)
+             make_empty_table()})
 }
 
 ## PROTEIN CLUSTER ENRICHMENT TABLE -----------------------------------------------
@@ -409,7 +421,9 @@ make_clustering_enrichment_table <- function(cluster_data = sequence_clusters,
 
   #error handling
   tryCatch(make_clustering_enrichment_table_raw(),
-           error = function(x){make_empty_table()})
+           error = function(e){
+             message(e)
+             make_empty_table()})
 }
 
 ## 3D STRUCTURE TABLE --------------------------------------------------------------------
@@ -433,7 +447,9 @@ make_structure3d_table <- function(pdb_ids = uniprot_pdb_table,
 
   #error handling
   tryCatch(make_structure3d_table_raw(),
-           error = function(x){make_empty_table()})
+           error = function(e){
+             message(e)
+             make_empty_table()})
 }
 
 # DEPENDENCY TABLES -----
@@ -512,7 +528,9 @@ make_dep_table <- function(achilles_data = achilles_long,
   }
   #error handling
   tryCatch(make_dep_table_raw(),
-           error = function(x){make_empty_table()})
+           error = function(e){
+             message(e)
+             make_empty_table()})
 }
 
 ## co-essentiality -----
@@ -572,7 +590,9 @@ make_top_table <- function(toptable_data = master_top_table,
   }
   #error handling
   tryCatch(make_top_table_raw(),
-           error = function(x){make_empty_table()})
+           error = function(e){
+             message(e)
+             make_empty_table()})
 }
 
 #' Bottom Table
@@ -631,7 +651,9 @@ make_bottom_table <- function(bottomtable_data = master_bottom_table,
   }
   #error handling
   tryCatch(make_bottom_table_raw(),
-           error = function(x){make_empty_table()})
+           error = function(e){
+             message(e)
+             make_empty_table()})
 }
 
 
@@ -686,7 +708,9 @@ make_enrichment_top <- function(enrichmenttop_data = master_positive,
   }
   #error handling
   tryCatch(make_enrichment_top_raw(),
-           error = function(x){make_empty_table()})
+           error = function(e){
+             message(e)
+             make_empty_table()})
 }
 
 #' Enrichment Bottom Table
@@ -718,7 +742,9 @@ make_enrichment_bottom <- function(enrichmentbottom_data = master_negative,
   }
   #error handling
   tryCatch(make_enrichment_bottom_raw(),
-           error = function(x){make_empty_table()})
+           error = function(e){
+             message(e)
+             make_empty_table()})
 }
 
 # CELL SUMMARY TABLE ------
@@ -749,7 +775,9 @@ make_cell_line_table <- function(cell_data_meta = expression_meta,
 
   # error handling
   tryCatch(make_cell_summary_raw(),
-           error = function(x){make_empty_table()})
+           error = function(e){
+             message(e)
+             make_empty_table()})
 
 }
 
@@ -826,7 +854,9 @@ make_cell_sim_table <- function(cell_sims_dep = cell_line_dep_sim,
 
   # error handling
   tryCatch(make_cell_sim_table_raw(),
-           error = function(x){make_empty_table()})
+           error = function(e){
+             message(e)
+             make_empty_table()})
 }
 
 # DRUG TABLES -----
@@ -848,7 +878,9 @@ make_drug_genes_cor_table <- function(table_data = drug_genes_cor_table,
     return(unnested_table)
   }
   tryCatch(make_drug_genes_cor_table_raw(),
-           error = function(x){make_empty_table()})
+           error = function(e){
+             message(e)
+             make_empty_table()})
 }
 
 #' Gene Drugs Cor Table
@@ -880,7 +912,9 @@ make_gene_drugs_cor_table <- function(table_data = gene_drugs_cor_table,
     return(unnested_table)
   }
   tryCatch(make_gene_drugs_cor_table_raw(),
-           error = function(x){make_empty_table()})
+           error = function(e){
+             message(e)
+             make_empty_table()})
 }
 
 #' Drug Genes Table
@@ -915,7 +949,9 @@ make_drug_genes_table <- function(table_data = drug_genes_table,
   }
   #error handling
   tryCatch(make_drug_genes_table_raw(),
-           error = function(x){make_empty_table()})
+           error = function(e){
+             message(e)
+             make_empty_table()})
 }
 
 #' Gene Drugs Table
@@ -946,7 +982,9 @@ make_gene_drugs_table <- function(table_data = gene_drugs_table,
   }
   #error handling
   tryCatch(make_gene_drugs_table_raw(),
-           error = function(x){make_empty_table()})
+           error = function(e){
+             message(e)
+             make_empty_table()})
 }
 
 #' Cell Drugs Table
@@ -967,7 +1005,9 @@ make_cell_drugs_table <- function(table_data = prism_long,
   }
   #error handling
   tryCatch(make_cell_drugs_table_raw(),
-           error = function(x){make_empty_table()})
+           error = function(e){
+             message(e)
+             make_empty_table()})
 }
 
 # METABOLITE TABLES -----
@@ -1027,6 +1067,8 @@ make_metabolite_table <- function(protein_data = hmdb_proteins,
   }
   #error handling
   tryCatch(make_metabolite_table_raw(),
-           error = function(x){make_empty_table()})
+           error = function(e){
+             message(e)
+             make_empty_table()})
 }
 
