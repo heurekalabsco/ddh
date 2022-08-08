@@ -1212,15 +1212,19 @@ cell_linkr <- function(query, type) {
 }
 
 ###make example
+#' Make Example
+#'
 #' Function to create an HTML string of examples to use on the index page and the start here methods doc
 #'
 #' @param privateMode Boolean indicating if private data is pointed to
 #' @return An HTML string.
 #'
+#' @export
 #' @examples
 #' make_example()
-#'
-#' @export
+#' \dontrun{
+#' make_example()
+#' }
 make_example <- function(privateMode = TRUE){
   #need to dynamically switch depending on privateMode
   tld <- dplyr::if_else(privateMode == TRUE, "com", "org")
