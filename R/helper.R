@@ -1240,3 +1240,4 @@ make_example <- function(privateMode = TRUE){
               </ul>')
   return(examples)
 }
+
