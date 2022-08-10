@@ -5,7 +5,7 @@
 \title{Load single card}
 \usage{
 load_image(
-  app_data_dir = app_data_dir,
+  data_dir = app_data_dir,
   input = list(),
   fun_name,
   image_type = "card"

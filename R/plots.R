@@ -1061,7 +1061,7 @@ make_structure <- function(input = list(),
 #' }
 make_structure3d <- function(pdb_ids = uniprot_pdb_table,
                              protein_data = proteins,
-                             app_data_dir = app_data_dir,
+                             data_dir = app_data_dir,
                              gene_id = NULL,
                              pdb_id = NULL,
                              input = list(),
@@ -1085,7 +1085,7 @@ make_structure3d <- function(pdb_ids = uniprot_pdb_table,
     }
 
     pdb_path <- load_pdb(input = list(content = gene_id),
-                         app_data_dir = app_data_dir)
+                         data_dir = data_dir)
 
     if(!is.null(pdb_path) & is.null(pdb_id)) {
       plot_data <- bio3d::read.pdb(pdb_path)
@@ -3018,7 +3018,7 @@ make_expdep <- function(expression_data = expression_long,
 #' @export
 #' @examples
 #' make_cell_image(input = list(content = "HEPG2"))
-make_cell_image <- function(app_data_dir = app_data_dir,
+make_cell_image <- function(data_dir = app_data_dir,
                             input = list()) {
   make_cell_image_raw <- function() {
     #if multiple, then pull single "rep" image; consider pulling >1 and using patchwork, eg.
@@ -3030,7 +3030,7 @@ make_cell_image <- function(app_data_dir = app_data_dir,
 
     #fetch image path from dir, HARDCODED TO DATA DIR, NOT TEST DATA DIR
     file_name <- glue::glue('{fav_cell}_cell_image_plot.jpeg')
-    image_path <- here::here(app_data_dir, "images", "cell", fav_cell, file_name)
+    image_path <- here::here(data_dir, "images", "cell", fav_cell, file_name)
 
     return(image_path)
   }

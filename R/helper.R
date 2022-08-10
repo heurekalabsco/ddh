@@ -819,7 +819,7 @@ clean_colnames <- function(dataset) {
 #' load_image(input = list(type = "gene", content = c("ROCK1", "ROCK2")), fun_name = "make_female_anatogram")
 #' load_image(input = list(type = "compound", content = c("aspirin")), fun_name = "make_celldeps")
 #' load_image(input = list(type = "compound", content = c("aspirin")), fun_name = "make_molecule_structure")
-load_image <- function(app_data_dir = app_data_dir,
+load_image <- function(data_dir = app_data_dir,
                        input = list(),
                        fun_name,
                        image_type = "card") { #type is either card or plot
@@ -827,7 +827,7 @@ load_image <- function(app_data_dir = app_data_dir,
   name <- stringr::str_c(input$content, collapse="-") #intended to fail with multigene query to return NULL
   fun <- stringr::str_remove(fun_name, "make_")
   file_name <- glue::glue('{name}_{fun}_{image_type}.jpeg')
-  path <- here::here(app_data_dir, "images", input$type, name)
+  path <- here::here(data_dir, "images", input$type, name)
 
   #check to see if file exists
   if(file.exists(glue::glue('{path}/{file_name}'))) {
@@ -840,7 +840,7 @@ load_image <- function(app_data_dir = app_data_dir,
 #' Load PDB file
 #'
 #' @param input Expecting a list containing type and content variable.
-#' @param app_data_dir
+#' @param data_dir
 #'
 #' @return A PDB file.
 #'
@@ -849,12 +849,12 @@ load_image <- function(app_data_dir = app_data_dir,
 #' load_pdb(input = list(content = c("ROCK1")))
 #' load_pdb(input = list(content = c("ROCK3")))
 #' load_pdb(input = list(content = c("ROCK1", "ROCK2")))
-load_pdb <- function(app_data_dir = app_data_dir,
+load_pdb <- function(data_dir = app_data_dir,
                      input = list()
                      ) {
   name <- stringr::str_c(input$content, collapse = "-") #intended to fail with multigene query to return NULL
   file_name <- glue::glue('{name}.pdb')
-  path <- here::here(app_data_dir, "images/gene", name)
+  path <- here::here(data_dir, "images/gene", name)
 
   #check to see if file exists
   if(file.exists(glue::glue('{path}/{file_name}'))) {

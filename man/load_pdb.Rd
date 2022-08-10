@@ -4,10 +4,10 @@
 \alias{load_pdb}
 \title{Load PDB file}
 \usage{
-load_pdb(app_data_dir = app_data_dir, input = list())
+load_pdb(data_dir = app_data_dir, input = list())
 }
 \arguments{
-\item{app_data_dir}{}
+\item{data_dir}{}
 
 \item{input}{Expecting a list containing type and content variable.}
 }
