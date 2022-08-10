@@ -11,5 +11,4 @@ make_drug_genes_cor_table(table_data = drug_genes_cor_table, drug)
 }
 \details{
 This is a table function that takes a gene name and returns a drug genes cor Table
- @importFrom magrittr %>%
 }

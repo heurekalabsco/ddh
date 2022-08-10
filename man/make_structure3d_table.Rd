@@ -11,5 +11,5 @@ make_structure3d_table(
 )
 }
 \description{
-@importFrom magrittr %>%
+Plot for 3D protein structure table
 }

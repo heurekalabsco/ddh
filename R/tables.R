@@ -35,6 +35,7 @@ make_pathway_list <- function(table_name = pathways,
 #' Pathway Genes Table
 #'
 #' @importFrom magrittr %>%
+#' @export
 make_pathway_genes <- function(table_name = pathways,
                                table_join = gene_summary,
                                go_id) {
@@ -163,7 +164,7 @@ make_pubmed_table <- function(pubmed_data = pubmed,
 #' make_cellanatogram_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
 make_cellanatogram_table <- function(cellanatogram_data = subcell,
-                                     input = list()) { #change to input=list()
+                                     input = list()) {
   make_cellanatogram_table_raw <- function() {
     cellanatogram_data %>%
       dplyr::filter_all(dplyr::any_vars(gene_name %in% input$content)) %>%
@@ -172,7 +173,7 @@ make_cellanatogram_table <- function(cellanatogram_data = subcell,
       dplyr::transmute(Gene = gene_name,
                        Reliability = reliability,
                        Location = main_location,
-                       Count = as_factor(n)) %>%
+                       Count = forcats::as_factor(n)) %>%
       dplyr::arrange(dplyr::desc(Count))
   }
   #error handling
@@ -429,7 +430,8 @@ make_clustering_enrichment_table <- function(cluster_data = sequence_clusters,
 ## 3D STRUCTURE TABLE --------------------------------------------------------------------
 #' Plot for 3D protein structure table
 #'
-#'  @importFrom magrittr %>%
+#' @importFrom magrittr %>%
+#' @export
 make_structure3d_table <- function(pdb_ids = uniprot_pdb_table,
                                    protein_data = proteins,
                                    input = list()
@@ -663,6 +665,7 @@ make_bottom_table <- function(bottomtable_data = master_bottom_table,
 #' Censor is used to remove genes from similarity table that are garbage (too many associations)
 #'
 #' @importFrom magrittr %>%
+#' @export
 censor <- function(top_table, censor_data = censor_genes, choice = FALSE, greater_than) {
   if(choice == TRUE){
     censor_data <-
@@ -751,6 +754,7 @@ make_enrichment_bottom <- function(enrichmentbottom_data = master_negative,
 #' Cell Summary Table
 #'
 #' @importFrom magrittr %>%
+#' @export
 make_cell_line_table <- function(cell_data_meta = expression_meta,
                                  input = list()) {
 
@@ -865,7 +869,8 @@ make_cell_sim_table <- function(cell_sims_dep = cell_line_dep_sim,
 #' \code{make_drug_genes_cor_table} returns an image of ...
 #'
 #' This is a table function that takes a gene name and returns a drug genes cor Table
-#'  @importFrom magrittr %>%
+#' @importFrom magrittr %>%
+#' @export
 make_drug_genes_cor_table <- function(table_data = drug_genes_cor_table,
                                       drug) {
   make_drug_genes_cor_table_raw <- function() {
@@ -990,6 +995,7 @@ make_gene_drugs_table <- function(table_data = gene_drugs_table,
 #' Cell Drugs Table
 #'
 #' @importFrom magrittr %>%
+#' @export
 make_cell_drugs_table <- function(table_data = prism_long,
                                   cell_meta = expression_meta,
                                   input = list()) {
