@@ -4,7 +4,7 @@
 \alias{make_cell_image}
 \title{Cell Images}
 \usage{
-make_cell_image(input = list())
+make_cell_image(app_data_dir = app_data_dir, input = list())
 }
 \description{
 Cells image shown at low (top) and high (bottom) growth density.

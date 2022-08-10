@@ -7,7 +7,7 @@
 make_structure3d(
   pdb_ids = uniprot_pdb_table,
   protein_data = proteins,
-  app_data_dir = NULL,
+  app_data_dir = app_data_dir,
   gene_id = NULL,
   pdb_id = NULL,
   input = list(),

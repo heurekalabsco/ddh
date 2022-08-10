@@ -2,12 +2,20 @@
 % Please edit documentation in R/helper.R
 \name{load_pdb}
 \alias{load_pdb}
-\title{Load single PDB}
+\title{Load PDB file}
 \usage{
-load_pdb(app_data_dir, input = list())
+load_pdb(app_data_dir = app_data_dir, input = list())
+}
+\arguments{
+\item{app_data_dir}{}
+
+\item{input}{Expecting a list containing type and content variable.}
+}
+\value{
+A PDB file.
 }
 \description{
-Load single PDB
+Load PDB file
 }
 \examples{
 load_pdb(input = list(content = c("ROCK1")))

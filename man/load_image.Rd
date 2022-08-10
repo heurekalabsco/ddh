@@ -4,7 +4,12 @@
 \alias{load_image}
 \title{Load single card}
 \usage{
-load_image(app_data_dir, input = list(), fun_name, image_type = "card")
+load_image(
+  app_data_dir = app_data_dir,
+  input = list(),
+  fun_name,
+  image_type = "card"
+)
 }
 \description{
 Load single card

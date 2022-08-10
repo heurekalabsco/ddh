@@ -1061,7 +1061,7 @@ make_structure <- function(input = list(),
 #' }
 make_structure3d <- function(pdb_ids = uniprot_pdb_table,
                              protein_data = proteins,
-                             app_data_dir = NULL,
+                             app_data_dir = app_data_dir,
                              gene_id = NULL,
                              pdb_id = NULL,
                              input = list(),
@@ -3018,7 +3018,8 @@ make_expdep <- function(expression_data = expression_long,
 #' @export
 #' @examples
 #' make_cell_image(input = list(content = "HEPG2"))
-make_cell_image <- function(input = list()) {
+make_cell_image <- function(app_data_dir = app_data_dir,
+                            input = list()) {
   make_cell_image_raw <- function() {
     #if multiple, then pull single "rep" image; consider pulling >1 and using patchwork, eg.
     if(length(input$content > 1)) {

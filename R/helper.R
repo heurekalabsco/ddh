@@ -249,6 +249,7 @@ load_ddh_colors <- function() {
 #' Function to create an empty table
 #'
 #' @return A data.frame.
+#' @export
 #'
 #' @examples
 #' make_empty_table()
@@ -260,6 +261,7 @@ make_empty_table <- function() {
 #' Function to create an empty plot
 #'
 #' @return A ggplot2 object.
+#' @export
 #'
 #' @examples
 #' make_empty_plot()
@@ -273,6 +275,7 @@ make_empty_plot <- function() {
 #' @importFrom magrittr %>%
 #'
 #' @return A ggplot2 object.
+#' @export
 #'
 #' @examples
 #' make_bomb_plot()
@@ -542,6 +545,7 @@ make_bomb_plot <- function(){
 #'
 #' @return A list with plot size
 #'
+#' @export
 #' @examples
 #' plot_size_finder("make_ideogram")
 plot_size_finder <- function(function_name){ #this function sets the output size to pre-render a plot
@@ -612,6 +616,7 @@ plot_size_finder <- function(function_name){ #this function sets the output size
 #'
 #' @return A roxygen structure.
 #'
+#' @export
 #' @examples
 #' make_roxygen("make_ideogram")
 make_roxygen <- function(fun_name,
@@ -655,6 +660,7 @@ make_roxygen <- function(fun_name,
 #' @importFrom magrittr %>%
 #' @import visNetwork
 #'
+#' @export
 #' @examples
 #' make_empty_graph()
 #' \dontrun{
@@ -686,21 +692,6 @@ make_empty_graph <- function(type = "gene") {
               color = list(background = queryColor, border = borderColor, highlight = queryColor, hover = queryColor),
               shape='dot',
               borderWidth = 2)
-}
-
-load_pdb <- function(app_data_dir = NULL,
-                     input = list(),
-                     ...) {
-  name <- stringr::str_c(input$content, collapse = "-")
-  file_name <- glue::glue('{name}.pdb')
-  path <- here::here(app_data_dir, "images/gene", name)
-
-  #check to see if file exists
-  if(file.exists(glue::glue('{path}/{file_name}'))) {
-    return(glue::glue('{path}/{file_name}'))
-  } else {
-    return(NULL)
-  }
 }
 
 #' Extract Documentation Sections
@@ -828,7 +819,7 @@ clean_colnames <- function(dataset) {
 #' load_image(input = list(type = "gene", content = c("ROCK1", "ROCK2")), fun_name = "make_female_anatogram")
 #' load_image(input = list(type = "compound", content = c("aspirin")), fun_name = "make_celldeps")
 #' load_image(input = list(type = "compound", content = c("aspirin")), fun_name = "make_molecule_structure")
-load_image <- function(app_data_dir,
+load_image <- function(app_data_dir = app_data_dir,
                        input = list(),
                        fun_name,
                        image_type = "card") { #type is either card or plot
@@ -846,16 +837,19 @@ load_image <- function(app_data_dir,
   }
 }
 
-#' Load single PDB
+#' Load PDB file
 #'
-#' @importFrom magrittr %>%
+#' @param input Expecting a list containing type and content variable.
+#' @param app_data_dir
+#'
+#' @return A PDB file.
 #'
 #' @export
 #' @examples
 #' load_pdb(input = list(content = c("ROCK1")))
 #' load_pdb(input = list(content = c("ROCK3")))
 #' load_pdb(input = list(content = c("ROCK1", "ROCK2")))
-load_pdb <- function(app_data_dir,
+load_pdb <- function(app_data_dir = app_data_dir,
                      input = list()
                      ) {
   name <- stringr::str_c(input$content, collapse = "-") #intended to fail with multigene query to return NULL
