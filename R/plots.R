@@ -1688,6 +1688,11 @@ make_cellexpression <- function(expression_data = expression_long,
                                      text = paste0("Gene: ", gene),
                                      color = cell_line
         ))
+
+      mean <- mean_virtual_achilles_cell_line
+      upper_limit <- NULL
+      lower_limit <- NULL
+
     }
 
     plot_complete <-
