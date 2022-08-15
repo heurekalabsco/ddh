@@ -134,8 +134,11 @@ load_ddh_rds <- function(app_data_dir,
   #file loader constructor
   load_rds_object <- function(single_object){
     file_name <- glue::glue("{single_object}.Rds")
-    assign(single_object, readRDS(here::here(app_data_dir, file_name)),
-           envir = .GlobalEnv)
+
+    if(!exists(single_object)) {
+      assign(single_object, readRDS(here::here(app_data_dir, file_name)),
+             envir = .GlobalEnv)
+    }
     message(glue::glue("loaded {single_object}"))
   }
 
