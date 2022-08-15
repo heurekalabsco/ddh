@@ -12,7 +12,7 @@ Authors@R: c(
            family = "Bareja",
            role = c("aut", "ctb"),
            email = "akshay.bareja@duke.edu",
-           comment = c(ORCID = "0000")),
+           comment = c(ORCID = "0000-0000")),
     person(given = "Pol",
            family = "Castellano-Escuder",
            role = c("aut", "ctb"),
