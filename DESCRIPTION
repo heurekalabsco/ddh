@@ -1,7 +1,7 @@
 Package: ddh
 Type: Package
 Title: Utility Functions and Data Sets for datadrivenhypothesis
-Version: 0.1.47
+Version: 0.1.48
 Authors@R: c(
     person(given = "Matthew",
            family = "Hirschey",
@@ -12,7 +12,7 @@ Authors@R: c(
            family = "Bareja",
            role = c("aut", "ctb"),
            email = "akshay.bareja@duke.edu",
-           comment = c(ORCID = "0000-0000")),
+           comment = c(ORCID = "0000")),
     person(given = "Pol",
            family = "Castellano-Escuder",
            role = c("aut", "ctb"),
