@@ -114,7 +114,7 @@ load_ddh_data <- function(app_data_dir,
   load_ddh_db()
   message("loaded db connections")
 
-  message("finished loaing")
+  message("finished loading")
 }
 
 #' Function to load all DDH .RDS files
