@@ -128,7 +128,7 @@ load_ddh_data <- function(app_data_dir,
 load_ddh_rds <- function(app_data_dir,
                          object_name = NULL) {
   if(is.null(object_name)){
-    all_objects <- list.files(app_data_dir) %>%
+    all_objects <- list.files(app_data_dir, pattern = "\\.Rds") %>%
       purrr::map_chr(stringr::str_remove, pattern = "\\.Rds")
   } else {
     all_objects <- object_name
