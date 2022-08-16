@@ -33,6 +33,9 @@ download_ddh_data <- function(app_data_dir,
       s3$list_objects(Bucket = bucket_name) %>%
       purrr::pluck("Contents")
 
+    remove_methods_idx <- which(sapply(data_objects,"[[", 1) == "methods.zip")
+    data_objects[[remove_methods]] <- NULL
+
     print(glue::glue('{length(data_objects)} objects in the {bucket_name} bucket'))
 
     #filter list for single object
