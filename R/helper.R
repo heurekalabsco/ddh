@@ -901,6 +901,21 @@ make_quarto <- function(title){
   return(glue::glue("{file_name}.qmd"))
 }
 
+#' Good File Namer
+#'
+#' @param input Expecting a list that contains a content object
+#' @examples
+#' good_file_namer(input = list(content = c("ROCK1", "ROCK2")))
+#' @export
+good_file_namer <- function(input = list){
+  if(length(input$content) == 1){
+    good_file_name <- input$content
+  } else if(length(input$content) > 1){
+    good_file_name <- paste0("custom_", str_extract(input$content, pattern = "^[:alnum:]+"), "_query")[1]
+  }
+  return(good_file_name)
+}
+
 #INTERNAL LINKS----
 #' Internal link
 #'
