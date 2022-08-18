@@ -9,7 +9,8 @@ send_report_message(
   last_name,
   email_address,
   input = list(),
-  private
+  private,
+  greeting = "default"
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ send_report_message(
 \item{input}{A list containing type, query, and content variables.}
 
 \item{private}{A Boolean determining which information to include in the report}
+
+\item{greeting}{One of "default", "seminar", or "paper" to customize the front of the report}
 }
 \description{
 \code{send_report_message} generates a message that gets sent to the AWS simple queue service (SQS) for report generation
