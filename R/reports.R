@@ -9,6 +9,7 @@
 #' @param email_address Email address for the report to be delivered to
 #' @param input A list containing type, query, and content variables.
 #' @param private A Boolean determining which information to include in the report
+#' @param greeting One of "default", "seminar", or "paper" to customize the front of the report
 #'
 #' @export
 #' @examples
@@ -20,7 +21,8 @@ send_report_message <- function(first_name,
                                 last_name,
                                 email_address,
                                 input = list(),
-                                private){
+                                private,
+                                greeting = "default"){
   json_array <-
     tibble::tibble(
       first_name = first_name,
@@ -30,7 +32,8 @@ send_report_message <- function(first_name,
       subtype = input$subtype,
       query = stringr::str_c(input$query, collapse = ", "),
       content = stringr::str_c(input$content, collapse = ", "),
-      private = private
+      private = private,
+      greeting = greeting
     ) %>%
     jsonlite::toJSON(dataframe = "rows")
 
