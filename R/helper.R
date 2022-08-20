@@ -31,10 +31,14 @@ download_ddh_data <- function(app_data_dir,
     s3 <- paws::s3()
     data_objects <-
       s3$list_objects(Bucket = bucket_name) %>%
-      purrr::pluck("Contents") %>%
-      purrr::keep(purrr::map_lgl(.x = 1:length(data_objects), ~ stringr::str_detect(data_objects[[.x]][["Key"]], pattern = "\\.Rds")))
+      purrr::pluck("Contents")
 
     print(glue::glue('{length(data_objects)} objects in the {bucket_name} bucket'))
+
+    #filter list for Rds objects only
+    data_objects <-
+      data_objects %>%
+      purrr::keep(purrr::map_lgl(.x = 1:length(data_objects), ~ stringr::str_detect(data_objects[[.x]][["Key"]], pattern = "\\.Rds")))
 
     #filter list for single object
     if(!is.null(object_name)){
