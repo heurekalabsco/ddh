@@ -866,9 +866,9 @@ make_cell_sim_table <- function(cell_sims_dep = cell_line_dep_sim,
 # DRUG TABLES -----
 #' Drug Genes Cor Table
 #'
-#' \code{make_drug_genes_cor_table} returns an image of ...
+#' \code{make_drug_genes_cor_table} takes a drug name and returns a table of genes
 #'
-#' This is a table function that takes a gene name and returns a drug genes cor Table
+#' This is a table function that takes a drug name and returns a table of genes
 #' @importFrom magrittr %>%
 #' @export
 make_drug_genes_cor_table <- function(table_data = drug_genes_cor_table,
@@ -885,7 +885,12 @@ make_drug_genes_cor_table <- function(table_data = drug_genes_cor_table,
   tryCatch(make_drug_genes_cor_table_raw(),
            error = function(e){
              message(e)
-             make_empty_table()})
+             #make empty table equivalent to returned table
+             table_data %>%
+               tidyr::unnest(cols = c(data)) %>%
+               colnames() %>%
+               purrr::map_dfc(setNames, object = list(character()))
+             })
 }
 
 #' Gene Drugs Cor Table
@@ -919,7 +924,12 @@ make_gene_drugs_cor_table <- function(table_data = gene_drugs_cor_table,
   tryCatch(make_gene_drugs_cor_table_raw(),
            error = function(e){
              message(e)
-             make_empty_table()})
+             #make empty table equivalent to returned table
+             table_data %>%
+               tidyr::unnest(cols = c(data)) %>%
+               colnames() %>%
+               purrr::map_dfc(setNames, object = list(character()))
+             })
 }
 
 #' Drug Genes Table
@@ -956,7 +966,12 @@ make_drug_genes_table <- function(table_data = drug_genes_table,
   tryCatch(make_drug_genes_table_raw(),
            error = function(e){
              message(e)
-             make_empty_table()})
+             #make empty table equivalent to returned table
+             table_data %>%
+               tidyr::unnest(cols = c(data)) %>%
+               colnames() %>%
+               purrr::map_dfc(setNames, object = list(character()))
+             })
 }
 
 #' Gene Drugs Table
@@ -989,7 +1004,12 @@ make_gene_drugs_table <- function(table_data = gene_drugs_table,
   tryCatch(make_gene_drugs_table_raw(),
            error = function(e){
              message(e)
-             make_empty_table()})
+             #make empty table equivalent to returned table
+             table_data %>%
+               tidyr::unnest(cols = c(data)) %>%
+               colnames() %>%
+               purrr::map_dfc(setNames, object = list(character()))
+             })
 }
 
 #' Cell Drugs Table
