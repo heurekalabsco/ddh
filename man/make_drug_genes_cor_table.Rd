@@ -7,8 +7,8 @@
 make_drug_genes_cor_table(table_data = drug_genes_cor_table, drug)
 }
 \description{
-\code{make_drug_genes_cor_table} returns an image of ...
+\code{make_drug_genes_cor_table} takes a drug name and returns a table of genes
 }
 \details{
-This is a table function that takes a gene name and returns a drug genes cor Table
+This is a table function that takes a drug name and returns a table of genes
 }

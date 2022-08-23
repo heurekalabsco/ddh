@@ -917,7 +917,7 @@ good_file_namer <- function(input = list){
   if(length(input$content) == 1){
     good_file_name <- input$content
   } else if(length(input$content) > 1){
-    good_file_name <- paste0("custom_", stringr::str_extract(input$content, pattern = "^[:alnum:]+"), "_query")[1]
+    good_file_name <- paste0("custom_query_", paste0(stringr::str_extract(input$content, pattern = "^[:alnum:]+"),collapse = "_"))
   }
   return(good_file_name)
 }
