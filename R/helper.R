@@ -783,12 +783,16 @@ make_legend <- function(fun,
 #DATA GENERATION----
 #' Fix names
 #'
+#' @param wrong_name A gene name that is not its official symbol
+#' @param summary_df The gene_summary dataframe with all gene symbols
+#'
 #' @importFrom magrittr %>%
 #'
 #' @export
-fix_names <- function(wrong_name) {
-  var <- stringr::str_which(gene_summary$aka, paste0("(?<![:alnum:])", wrong_name, "(?![:alnum:]|\\-)")) #finds index
-  df <- gene_summary[var,]
+fix_names <- function(wrong_name,
+                      summary_df = gene_summary) {
+  var <- stringr::str_which(summary_df$aka, paste0("(?<![:alnum:])", wrong_name, "(?![:alnum:]|\\-)")) #finds index
+  df <- summary_df[var,]
   right_name <- df$approved_symbol
   if (length(var) == 1) {
     return(right_name)
@@ -800,13 +804,17 @@ fix_names <- function(wrong_name) {
 
 #' Clean colnames
 #'
+#' @param dataset A dataset to fix gene names
+#' @param summary_df The gene_summary dataframe with all gene symbols
+#'
 #' @importFrom magrittr %>%
 #'
 #' @export
-clean_colnames <- function(dataset) {
+clean_colnames <- function(dataset,
+                           summary_df = gene_summary) {
   for (name in names(dataset)) {
-    if (name %in% gene_summary$approved_symbol == FALSE) {
-      fixed_name <- fix_names(name)
+    if (name %in% summary_df$approved_symbol == FALSE) {
+      fixed_name <- fix_names(name, summary_df = summary_df)
       if (fixed_name %in% names(dataset) == FALSE) {
         names(dataset)[names(dataset) == name] <- fixed_name
       }
