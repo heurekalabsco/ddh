@@ -13,26 +13,35 @@
 #' \dontrun{
 #' make_barcode(input = list(type = "gene", content = "ROCK1"))
 #' }
-make_barcode <- function(input = list()) {
+make_barcode <- function(input = list(),
+                         card = FALSE) {
   make_barcode_raw <- function() {
     #if multiple, then pull single "rep" image; consider pulling >1 and using patchwork, eg.
     if(length(input$content > 1)){
-      fav_gene <- sample(input$content, 1) #input$content[[1]]
+      gene_symbol <- sample(input$content, 1) #input$content[[1]]
     } else {
-      fav_gene <- input$content
+      gene_symbol <- input$content
     }
 
-    #fetch image from aws
-    file_name <- paste0(fav_gene, "_barcode_card.jpeg")
-    image_path <- paste0("https://ddh-barcodes.s3.amazonaws.com/", file_name)
+    #image type
+    if(card == TRUE){image_type = "card"} else {image_type = "plot"}
 
-    return(image_path)
+    #check if exists
+    url <- glue::glue('https://ddh-barcodes.s3.amazonaws.com/{gene_symbol}_barcode_{image_type}.jpeg')
+    status <- httr::GET(url) %>% httr::status_code()
+
+    if(status == 200){
+      return(url)
+    } else {
+      return(glue::glue('https://ddh-barcodes.s3.amazonaws.com/error_barcode_{image_type}.jpeg'))
+    }
   }
   #error handling
   tryCatch(make_barcode_raw(),
            error = function(e){
              message(e)
-             make_bomb_plot()})
+             if(card == TRUE){image_type = "card"} else {image_type = "plot"}
+             glue::glue('https://ddh-barcodes.s3.amazonaws.com/error_barcode_{image_type}.jpeg')})
 }
 
 ## IDEOGRAM PLOT --------------------------------------------------------
