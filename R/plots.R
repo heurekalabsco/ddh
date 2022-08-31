@@ -4,6 +4,7 @@
 #' The barcode image shows the location of the query gene(s) on human chromosomes in the style of a barcode.
 #'
 #' @param input Expecting a list containing a content variable.
+#' @param card A boolean that sets which image should be pulled for display
 #' @return If no error, then returns a barcode image url.
 #'
 #' @export
