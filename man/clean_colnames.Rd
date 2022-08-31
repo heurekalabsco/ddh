@@ -4,7 +4,12 @@
 \alias{clean_colnames}
 \title{Clean colnames}
 \usage{
-clean_colnames(dataset)
+clean_colnames(dataset, summary_df = gene_summary)
+}
+\arguments{
+\item{dataset}{A dataset to fix gene names}
+
+\item{summary_df}{The gene_summary dataframe with all gene symbols}
 }
 \description{
 Clean colnames

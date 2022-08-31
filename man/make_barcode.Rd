@@ -4,10 +4,12 @@
 \alias{make_barcode}
 \title{Barcode Plot}
 \usage{
-make_barcode(input = list())
+make_barcode(input = list(), card = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing a content variable.}
+
+\item{card}{A boolean that sets which image should be pulled for display}
 }
 \value{
 If no error, then returns a barcode image url.
