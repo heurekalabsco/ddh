@@ -33,7 +33,7 @@ download_ddh_data <- function(app_data_dir,
       s3$list_objects(Bucket = bucket_name) %>%
       purrr::pluck("Contents")
 
-    print(glue::glue('{length(data_objects)} objects in the {bucket_name} bucket'))
+    message(glue::glue('{length(data_objects)} objects in the {bucket_name} bucket'))
 
     #filter list for Rds objects only
     data_objects <-
@@ -46,24 +46,24 @@ download_ddh_data <- function(app_data_dir,
       data_objects <-
         data_objects %>% #take full list
         purrr::keep(purrr::map_lgl(.x = 1:length(data_objects), ~ data_objects[[.x]][["Key"]] %in% file_name)) #pass map_lgl to keep to filter names to keep
-      print(glue::glue('filtered to keep only {length(data_objects)}'))
+      message(glue::glue('filtered to keep only {length(data_objects)}'))
     }
 
     for (i in 1:length(data_objects)) {
       #check for no objects
       if(length(data_objects) == 0){
-        print(glue::glue("file downloaded: {file_name}"))
+        message(glue::glue("file downloaded: {file_name}"))
       } else {
         file_name <- data_objects[[i]][["Key"]]
         #check if files exists
         if(file.exists(glue::glue("{app_data_dir}/{file_name}"))){
-          print(glue::glue("file already exists: {file_name}"))
+          message(glue::glue("file already exists: {file_name}"))
         } else {
           #if not, then download
           s3$download_file(Bucket = bucket_name,
                            Key = as.character(file_name),
                            Filename = as.character(glue::glue("{app_data_dir}/{file_name}")))
-          print(glue::glue("file downloaded: {file_name}"))
+          message(glue::glue("file downloaded: {file_name}"))
         }
       }
     }
@@ -72,20 +72,20 @@ download_ddh_data <- function(app_data_dir,
   if(test == TRUE){
     get_aws_data(object_name,
                  bucket_id = "AWS_DATA_BUCKET_ID_TEST")
-    return(print("test data download complete"))
+    return(message("test data download complete"))
   }
   #get data
   if(privateMode == FALSE){   #get public data only
 
     get_aws_data(object_name,
                  bucket_id = "AWS_DATA_BUCKET_ID_TEST")
-    return(print("public data download complete"))
+    return(message("public data download complete"))
   } else { #get both
     get_aws_data(object_name,
                  bucket_id = "AWS_DATA_BUCKET_ID")
     get_aws_data(object_name,
                  bucket_id = "AWS_DATA_PRIVATE_BUCKET_ID")
-    return(print("private data download complete"))
+    return(message("private data download complete"))
   }
 }
 
