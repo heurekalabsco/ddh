@@ -489,11 +489,14 @@ make_clustering_enrichment_table <- function(cluster_data = sequence_clusters,
 #' Plot for 3D protein structure table
 #'
 #' @importFrom magrittr %>%
+#'
 #' @export
+#' @examples
+#' make_structure3d_table(input = list(content = 'ROCK1'))
 make_structure3d_table <- function(pdb_ids = uniprot_pdb_table,
                                    protein_data = proteins,
                                    input = list()
-) {
+                                   ) {
   make_structure3d_table_raw <- function() {
 
     table_complete <- protein_data %>%
@@ -508,8 +511,13 @@ make_structure3d_table <- function(pdb_ids = uniprot_pdb_table,
   #error handling
   tryCatch(make_structure3d_table_raw(),
            error = function(e){
-             message(e)
-             make_empty_table()})
+             return(protein_data %>%
+                      dplyr::left_join(pdb_ids, by = c("uniprot_id" = "uniprot")) %>%
+                      tidyr::unnest(data) %>%
+                      dplyr::select(gene_name, uniprot_id, pdb, title, doi, organism, expression_system) %>%
+                      dplyr::slice(0)
+             )
+             })
 }
 
 # DEPENDENCY TABLES -----
@@ -584,13 +592,18 @@ make_dep_table <- function(achilles_data = achilles_long,
       table_data %>%
       dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
       dplyr::arrange(.[[3]])
+
     return(table_complete)
   }
   #error handling
   tryCatch(make_dep_table_raw(),
            error = function(e){
-             message(e)
-             make_empty_table()})
+             return(dplyr::tibble(`Cell Line` = NA,
+                                  Lineage = NA,
+                                  Gene = NA) %>%
+                      dplyr::slice(0)
+             )
+             })
 }
 
 ## co-essentiality -----
@@ -651,8 +664,11 @@ make_top_table <- function(toptable_data = master_top_table,
   #error handling
   tryCatch(make_top_table_raw(),
            error = function(e){
-             message(e)
-             make_empty_table()})
+             return(toptable_data %>%
+                      tidyr::unnest(data) %>%
+                      dplyr::slice(0)
+                      )
+             })
 }
 
 #' Bottom Table
@@ -712,8 +728,11 @@ make_bottom_table <- function(bottomtable_data = master_bottom_table,
   #error handling
   tryCatch(make_bottom_table_raw(),
            error = function(e){
-             message(e)
-             make_empty_table()})
+             return(toptable_data %>%
+                      tidyr::unnest(data) %>%
+                      dplyr::slice(0)
+             )
+             })
 }
 
 
@@ -723,6 +742,7 @@ make_bottom_table <- function(bottomtable_data = master_bottom_table,
 #' Censor is used to remove genes from similarity table that are garbage (too many associations)
 #'
 #' @importFrom magrittr %>%
+#'
 #' @export
 censor <- function(top_table, censor_data = censor_genes, choice = FALSE, greater_than) {
   if(choice == TRUE){
@@ -770,8 +790,17 @@ make_enrichment_top <- function(enrichmenttop_data = master_positive,
   #error handling
   tryCatch(make_enrichment_top_raw(),
            error = function(e){
-             message(e)
-             make_empty_table()})
+             return(enrichmenttop_data %>%
+                      tidyr::unnest(data) %>%
+                      dplyr::select(fav_gene, enrichr, Term, Overlap, Adjusted.P.value, Combined.Score, Genes) %>%
+                      dplyr::rename("Query" = "fav_gene",
+                                    "Gene Set" = "enrichr",
+                                    "Gene List" = "Term",
+                                    "Adjusted p-value" = "Adjusted.P.value",
+                                    "Combined Score" = "Combined.Score") %>%
+                      dplyr::slice(0)
+             )
+             })
 }
 
 #' Enrichment Bottom Table
@@ -804,15 +833,27 @@ make_enrichment_bottom <- function(enrichmentbottom_data = master_negative,
   #error handling
   tryCatch(make_enrichment_bottom_raw(),
            error = function(e){
-             message(e)
-             make_empty_table()})
+             return(enrichmentbottom_data %>%
+                      tidyr::unnest(data) %>%
+                      dplyr::select(fav_gene, enrichr, Term, Overlap, Adjusted.P.value, Combined.Score, Genes) %>%
+                      dplyr::rename("Query" = "fav_gene",
+                                    "Gene Set" = "enrichr",
+                                    "Gene List" = "Term",
+                                    "Adjusted p-value" = "Adjusted.P.value",
+                                    "Combined Score" = "Combined.Score") %>%
+                      dplyr::slice(0)
+             )
+             })
 }
 
 # CELL SUMMARY TABLE ------
 #' Cell Summary Table
 #'
 #' @importFrom magrittr %>%
+#'
 #' @export
+#' @examples
+#' make_cell_line_table(input = list(content = 'HEPG2'))
 make_cell_line_table <- function(cell_data_meta = expression_meta,
                                  input = list()) {
 
@@ -838,8 +879,14 @@ make_cell_line_table <- function(cell_data_meta = expression_meta,
   # error handling
   tryCatch(make_cell_summary_raw(),
            error = function(e){
-             message(e)
-             make_empty_table()})
+             return(dplyr::tibble(`Cell Line` = NA,
+                                  Lineage = NA,
+                                  `Lineage Subtype` = NA,
+                                  Age = NA,
+                                  Sex = NA) %>%
+                      dplyr::slice(0)
+             )
+             })
 
 }
 
@@ -910,15 +957,21 @@ make_cell_sim_table <- function(cell_sims_dep = cell_line_dep_sim,
     bottom_table <- cell_sim_table %>%
       dplyr::filter(coef < 0)
 
-    return(list(top_table = top_table,
-                bottom_table = bottom_table))
+    return(list(top_table = dplyr::as_tibble(top_table),
+                bottom_table = dplyr::as_tibble(bottom_table)
+                ))
   }
 
   # error handling
   tryCatch(make_cell_sim_table_raw(),
            error = function(e){
-             message(e)
-             make_empty_table()})
+             return(dplyr::tibble(cell1_name = NA, cell2_name = NA,
+                                  lineage = NA, coef = NA, pval = NA,
+                                  fdr = NA, bonferroni = NA, lineage_subtype = NA,
+                                  sex = NA, age = NA, status = NA) %>%
+               dplyr::slice(0)
+             )
+             })
 }
 
 # DRUG TABLES -----
@@ -927,7 +980,9 @@ make_cell_sim_table <- function(cell_sims_dep = cell_line_dep_sim,
 #' \code{make_drug_genes_cor_table} takes a drug name and returns a table of genes
 #'
 #' This is a table function that takes a drug name and returns a table of genes
+#'
 #' @importFrom magrittr %>%
+#'
 #' @export
 make_drug_genes_cor_table <- function(table_data = drug_genes_cor_table,
                                       drug) {
@@ -942,12 +997,11 @@ make_drug_genes_cor_table <- function(table_data = drug_genes_cor_table,
   }
   tryCatch(make_drug_genes_cor_table_raw(),
            error = function(e){
-             message(e)
              #make empty table equivalent to returned table
-             table_data %>%
-               tidyr::unnest(cols = c(data)) %>%
-               colnames() %>%
-               purrr::map_dfc(setNames, object = list(character()))
+             return(table_data %>%
+                      tidyr::unnest(cols = c(data)) %>%
+                      dplyr::slice(0)
+             )
              })
 }
 
@@ -981,12 +1035,11 @@ make_gene_drugs_cor_table <- function(table_data = gene_drugs_cor_table,
   }
   tryCatch(make_gene_drugs_cor_table_raw(),
            error = function(e){
-             message(e)
              #make empty table equivalent to returned table
-             table_data %>%
-               tidyr::unnest(cols = c(data)) %>%
-               colnames() %>%
-               purrr::map_dfc(setNames, object = list(character()))
+             return(table_data %>%
+                      tidyr::unnest(cols = c(data)) %>%
+                      dplyr::slice(0)
+             )
              })
 }
 
@@ -1023,12 +1076,11 @@ make_drug_genes_table <- function(table_data = drug_genes_table,
   #error handling
   tryCatch(make_drug_genes_table_raw(),
            error = function(e){
-             message(e)
              #make empty table equivalent to returned table
-             table_data %>%
-               tidyr::unnest(cols = c(data)) %>%
-               colnames() %>%
-               purrr::map_dfc(setNames, object = list(character()))
+             return(table_data %>%
+                      tidyr::unnest(cols = c(data)) %>%
+                      dplyr::slice(0)
+             )
              })
 }
 
@@ -1090,8 +1142,13 @@ make_cell_drugs_table <- function(table_data = prism_long,
   #error handling
   tryCatch(make_cell_drugs_table_raw(),
            error = function(e){
-             message(e)
-             make_empty_table()})
+             return(table_data %>%
+                      dplyr::rename(X1 = 1) %>%
+                      dplyr::left_join(cell_meta, by = "X1") %>%
+                      dplyr::select(cell_line, name, log2fc) %>%
+                      dplyr::slice(0)
+             )
+             })
 }
 
 # METABOLITE TABLES -----
@@ -1152,7 +1209,13 @@ make_metabolite_table <- function(protein_data = hmdb_proteins,
   #error handling
   tryCatch(make_metabolite_table_raw(),
            error = function(e){
-             message(e)
-             make_empty_table()})
+             return(
+               protein_data %>%
+                 tidyr::unnest(data_original) %>%
+                 dplyr::ungroup() %>%
+                 dplyr::select(gene_name, metabolite_name, gene_accession, metabolite_accession) %>%
+                 dplyr::slice(0)
+             )
+             })
 }
 

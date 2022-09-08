@@ -13,3 +13,6 @@ make_structure3d_table(
 \description{
 Plot for 3D protein structure table
 }
+\examples{
+make_structure3d_table(input = list(content = 'ROCK1'))
+}

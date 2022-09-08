@@ -7,8 +7,9 @@
 make_clustering_enrichment_table(
   cluster_data = sequence_clusters,
   input = list(),
-  enrichment_tables = enriched_clusters,
-  ontology = "BP"
+  enrichment_tables = protein_cluster_enrichment,
+  ontology = "BP",
+  filter_noise = FALSE
 )
 }
 \arguments{

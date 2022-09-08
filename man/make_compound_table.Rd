@@ -8,6 +8,8 @@ make_compound_table(
   data_table = prism_cor_nest,
   join_table = prism_names,
   input = list(),
+  prism_cor_upr = prism_cor_upper,
+  prism_cor_lwr = prism_cor_lower,
   top = TRUE
 )
 }

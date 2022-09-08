@@ -9,3 +9,6 @@ make_pathway_genes(table_name = pathways, table_join = gene_summary, go_id)
 \description{
 Pathway Genes Table
 }
+\examples{
+make_pathway_genes(go_id = "1902965")
+}

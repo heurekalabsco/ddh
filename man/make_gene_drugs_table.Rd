@@ -16,8 +16,8 @@ If no error, then returns a drug genes Table. If an error is thrown, then will r
 This is a table function that takes a gene name and returns a drug genes Table
 }
 \examples{
-make_gene_drugs_table(inpuit = list(type = "gene", content = "ROCK1"))
+make_gene_drugs_table(input = list(type = "gene", content = "ROCK1"))
 \dontrun{
-make_gene_drugs_table(inpuit = list(type = "gene", content = "ROCK1"))
+make_gene_drugs_table(input = list(type = "gene", content = "ROCK1"))
 }
 }

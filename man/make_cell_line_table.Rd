@@ -9,3 +9,6 @@ make_cell_line_table(cell_data_meta = expression_meta, input = list())
 \description{
 Cell Summary Table
 }
+\examples{
+make_cell_line_table(input = list(content = 'HEPG2'))
+}
