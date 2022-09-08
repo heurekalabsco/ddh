@@ -174,8 +174,11 @@ make_pubmed_table <- function(pubmed_data = pubmed,
   #error handling
   tryCatch(make_pubmed_table_raw(),
            error = function(e){
-             message(e)
-             make_empty_table()})
+             return(pubmed_data %>%
+                      tidyr::unnest(data) %>%
+                      dplyr::slice(0)
+             )
+             })
 }
 
 # CELL ANATOGRAM TABLES -----
@@ -212,8 +215,15 @@ make_cellanatogram_table <- function(cellanatogram_data = subcell,
   #error handling
   tryCatch(make_cellanatogram_table_raw(),
            error = function(e){
-             message(e)
-             make_empty_table()})
+             return(cellanatogram_data %>%
+                      dplyr::add_count(main_location) %>%
+                      dplyr::transmute(Gene = gene_name,
+                                       Reliability = reliability,
+                                       Location = main_location,
+                                       Count = forcats::as_factor(n)) %>%
+                      dplyr::slice(0)
+             )
+             })
 }
 
 # EXPRESSION TABLES -----
@@ -284,8 +294,13 @@ make_expression_table <- function(expression_data = expression_long,
   #error handling
   tryCatch(make_expression_table_raw(),
            error = function(e){
-             message(e)
-             make_empty_table()})
+             return(dplyr::tibble(`Cell Line` = NA,
+                                  Lineage = NA,
+                                  Subtype = NA,
+                                  Gene = NA) %>%
+                      dplyr::slice(0)
+             )
+             })
 }
 
 # HUMAN ANATOGRAM TABLES -----
@@ -323,8 +338,10 @@ make_humananatogram_table <- function(humananatogram_data = tissue,
   #error handling
   tryCatch(make_humananatogram_table_raw(),
            error = function(e){
-             message(e)
-             make_empty_table()})
+             return(dplyr::tibble(Organ = NA, Gene = NA) %>%
+                      dplyr::slice(0)
+             )
+             })
 }
 
 ## PROTEIN CLUSTER TABLE -----------------------------------------------
@@ -351,7 +368,6 @@ make_clustering_table <- function(cluster_data = sequence_clusters,
                                   input = list(),
                                   cluster = FALSE,
                                   show_signature = FALSE) {
-
   make_clustering_table_raw <- function() {
 
     # sequence_data_clean <- cluster_data %>%
@@ -389,15 +405,18 @@ make_clustering_table <- function(cluster_data = sequence_clusters,
       stop("Unable to cluster this protein by its amino acid sequence so far...")
     }
 
-    return(cluster_table)
+    return(dplyr::as_tibble(cluster_table))
 
   }
 
   #error handling
   tryCatch(make_clustering_table_raw(),
            error = function(e){
-             message(e)
-             make_empty_table()})
+             return(dplyr::tibble(uniprot_id = NA, gene_name = NA,
+                                  protein_name = NA, clust = NA, cluster_name = NA) %>%
+                      dplyr::slice(0)
+                    )
+             })
 }
 
 ## PROTEIN CLUSTER ENRICHMENT TABLE -----------------------------------------------
@@ -420,17 +439,19 @@ make_clustering_table <- function(cluster_data = sequence_clusters,
 #' }
 make_clustering_enrichment_table <- function(cluster_data = sequence_clusters,
                                              input = list(),
-                                             enrichment_tables = enriched_clusters,
-                                             ontology = "BP") {
+                                             enrichment_tables = protein_cluster_enrichment,
+                                             ontology = "BP",
+                                             filter_noise = FALSE) {
 
   make_clustering_enrichment_table_raw <- function() {
 
-    sequence_data_clean <-
-      cluster_data %>%
-      dplyr::filter(clust != 0)
+    if(filter_noise) {
+      cluster_data <- cluster_data %>%
+        dplyr::filter(clust != 0)
+    }
 
     query_clust <-
-      sequence_data_clean %>%
+      cluster_data %>%
       dplyr::filter(gene_name %in% input$content) %>%
       dplyr::pull(clust) %>%
       unique()
@@ -441,23 +462,27 @@ make_clustering_enrichment_table <- function(cluster_data = sequence_clusters,
 
     enrichment_table <-
       enrichment_tables %>%
-      dplyr::bind_rows() %>%
-      dplyr::filter(cluster == query_clust) %>%
-      dplyr::filter(ont == ontology) %>%
+      dplyr::as_tibble() %>%
+      dplyr::filter(cluster %in% query_clust) %>%
+      dplyr::filter(ont %in% ontology) %>%
       dplyr::select(-ont, -cluster)
 
     if(nrow(enrichment_table) == 0) {
       stop("No enriched terms for this cluster and ontology...")
     }
 
-    return(enrichment_table)
+    return(dplyr::as_tibble(enrichment_table))
   }
 
   #error handling
   tryCatch(make_clustering_enrichment_table_raw(),
            error = function(e){
-             message(e)
-             make_empty_table()})
+             return(enrichment_tables %>%
+                      dplyr::as_tibble() %>%
+                      dplyr::select(-ont, -cluster) %>%
+                      dplyr::slice(0)
+             )
+             })
 }
 
 ## 3D STRUCTURE TABLE --------------------------------------------------------------------
