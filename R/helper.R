@@ -262,8 +262,7 @@ load_ddh_colors <- function() {
 #' @examples
 #' make_empty_table()
 make_empty_table <- function() {
-  empty <- as.data.frame("No data available")
-  return(empty)
+  message("No data available")
 }
 
 #' Function to create an empty plot

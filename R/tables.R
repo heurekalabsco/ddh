@@ -19,33 +19,56 @@
 #' }
 make_pathway_list <- function(table_name = pathways,
                               input = list()) { #makes a subtable of pathways that contains your gene query
-  if (is.null(input$content)) {
-    return (NULL)
+  make_pathway_list_raw <- function() {
+    present <- function(list, query){ #is the gene present?
+      y <- unlist(list, use.names = FALSE)
+      any(stringr::str_detect(y, query))
+    }
+    filtered_table <-
+      table_name %>%
+      dplyr::filter(purrr::map_lgl(table_name$data, ~present(list = .x, query = input$content)) == TRUE)
+    return(filtered_table)
   }
-  present <- function(list, query){ #is the gene present?
-    y <- unlist(list, use.names = FALSE)
-    any(stringr::str_detect(y, query))
-  }
-  filtered_table <-
-    table_name %>%
-    dplyr::filter(purrr::map_lgl(table_name$data, ~present(list = .x, query = input$content)) == TRUE)
-  return(filtered_table)
+  #error handling
+  tryCatch(make_pathway_list_raw(),
+           error = function(e){
+             #make empty table equivalent to returned table
+             return(table_name %>%
+                      dplyr::slice(0)
+             )
+           })
 }
 
 #' Pathway Genes Table
 #'
 #' @importFrom magrittr %>%
+#'
 #' @export
+#' @examples
+#' make_pathway_genes(go_id = "1902965")
 make_pathway_genes <- function(table_name = pathways,
                                table_join = gene_summary,
                                go_id) {
-  pathway_table <-
-    table_name %>%
-    dplyr::filter(go %in% go_id) %>%
-    tidyr::unnest(data) %>%
-    dplyr::left_join(gene_summary, by = c("gene" = "approved_symbol")) %>%
-    dplyr::select(gene, approved_name, aka)
-  return(pathway_table)
+  make_pathway_genes_raw <- function() {
+    pathway_table <-
+      table_name %>%
+      dplyr::filter(go %in% go_id) %>%
+      tidyr::unnest(data) %>%
+      dplyr::left_join(gene_summary, by = c("gene" = "approved_symbol")) %>%
+      dplyr::select(gene, approved_name, aka)
+    return(pathway_table)
+  }
+  #error handling
+  tryCatch(make_pathway_genes_raw(),
+           error = function(e){
+             #make empty table equivalent to returned table
+             return(table_name %>%
+                      tidyr::unnest(data) %>%
+                      dplyr::left_join(gene_summary, by = c("gene" = "approved_symbol")) %>%
+                      dplyr::select(gene, approved_name, aka) %>%
+                      dplyr::slice(0)
+             )
+           })
 }
 
 #' Compound Table
@@ -68,11 +91,13 @@ make_pathway_genes <- function(table_name = pathways,
 make_compound_table <- function(data_table = prism_cor_nest,
                                 join_table = prism_names,
                                 input = list(),
+                                prism_cor_upr = prism_cor_upper,
+                                prism_cor_lwr = prism_cor_lower,
                                 top = TRUE) {
   make_compound_table_raw <- function() {
 
-    upper <- prism_cor_upper
-    lower <- prism_cor_lower
+    upper <- prism_cor_upr
+    lower <- prism_cor_lwr
 
     table_complete <-
       data_table %>%
@@ -88,8 +113,16 @@ make_compound_table <- function(data_table = prism_cor_nest,
   #error handling
   tryCatch(make_compound_table_raw(),
            error = function(e){
-             message(e)
-             make_empty_table()})
+             #make empty table equivalent to returned table
+             return(data_table %>%
+                      tidyr::unnest("data") %>%
+                      dplyr::ungroup() %>%
+                      dplyr::left_join(join_table, by = "name") %>%
+                      dplyr::select(1:4) %>%
+                      dplyr::slice(0)
+             )
+             }
+           )
 }
 
 # PUBMED TABLE -----
@@ -985,9 +1018,9 @@ make_drug_genes_table <- function(table_data = drug_genes_table,
 #'
 #' @export
 #' @examples
-#' make_gene_drugs_table(inpuit = list(type = "gene", content = "ROCK1"))
+#' make_gene_drugs_table(input = list(type = "gene", content = "ROCK1"))
 #' \dontrun{
-#' make_gene_drugs_table(inpuit = list(type = "gene", content = "ROCK1"))
+#' make_gene_drugs_table(input = list(type = "gene", content = "ROCK1"))
 #' }
 make_gene_drugs_table <- function(table_data = gene_drugs_table,
                                   input = list()) {
@@ -1003,18 +1036,18 @@ make_gene_drugs_table <- function(table_data = gene_drugs_table,
   #error handling
   tryCatch(make_gene_drugs_table_raw(),
            error = function(e){
-             message(e)
              #make empty table equivalent to returned table
-             table_data %>%
+             return(table_data %>%
                tidyr::unnest(cols = c(data)) %>%
-               colnames() %>%
-               purrr::map_dfc(setNames, object = list(character()))
+               dplyr::slice(0)
+             )
              })
 }
 
 #' Cell Drugs Table
 #'
 #' @importFrom magrittr %>%
+#'
 #' @export
 make_cell_drugs_table <- function(table_data = prism_long,
                                   cell_meta = expression_meta,
