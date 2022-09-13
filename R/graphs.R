@@ -717,7 +717,7 @@ make_bipartite_graph <- function(toptable_data = master_top_table,
       connected_genes <-
         hmdb_network %>%
         dplyr::count(gene_name, sort = TRUE) %>%
-        dplyr::filter(n >1) %>%
+        dplyr::filter(n > 1) %>%
         dplyr::pull(gene_name)
 
       hmdb_filtered <-

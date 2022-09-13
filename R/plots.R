@@ -1277,7 +1277,7 @@ make_pubmed <- function(pubmed_data = pubmed,
     } else {
       plot_complete <-
         plot_complete +
-        labs(y = "Cumulative Publications",
+        ggplot2::labs(y = "Cumulative Publications",
              color = "Query")
     }
 
