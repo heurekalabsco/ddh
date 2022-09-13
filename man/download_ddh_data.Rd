@@ -9,7 +9,8 @@ download_ddh_data(
   object_name = NULL,
   test = FALSE,
   overwrite = FALSE,
-  privateMode = TRUE
+  privateMode = TRUE,
+  raw = FALSE
 )
 }
 \arguments{

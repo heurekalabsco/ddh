@@ -13,7 +13,8 @@ download_ddh_data <- function(app_data_dir,
                               object_name = NULL,
                               test = FALSE,
                               overwrite = FALSE,
-                              privateMode = TRUE){
+                              privateMode = TRUE,
+                              raw = FALSE){
   #delete dir to overwrite
   if(overwrite == TRUE) {
     if(is.null(object_name)){all_objects <- ""} else {all_objects <- stringr::str_glue("{object_name}.Rds")}
@@ -35,17 +36,37 @@ download_ddh_data <- function(app_data_dir,
 
     message(glue::glue('{length(data_objects)} objects in the {bucket_name} bucket'))
 
+    #detect directories
+    names_with_dir <- data_objects %>%
+      purrr::keep(purrr::map_lgl(.x = 1:length(data_objects),
+                                 ~ stringr::str_detect(data_objects[[.x]][["Key"]],
+                                                       pattern = "/")))
+
+    names_with_dir <- lapply(names_with_dir, `[[`, 1)
+    new_dirs <- sub("/[^/]+$", "", names_with_dir) # remove everything (filename) after the last /
+    new_dirs <- new_dirs[!duplicated(new_dirs)]
+
+    #make new dirs
+    for (i in 1:length(new_dirs)) {
+      if(!dir.exists(paste0(app_data_dir, "/", new_dirs[i]))) {
+        dir.create(paste0(app_data_dir, "/", new_dirs[i]))
+      }
+    }
+
     #filter list for Rds objects only
-    data_objects <-
-      data_objects %>%
-      purrr::keep(purrr::map_lgl(.x = 1:length(data_objects), ~ stringr::str_detect(data_objects[[.x]][["Key"]], pattern = "\\.Rds")))
+    # data_objects <-
+    #   data_objects %>%
+    #   purrr::keep(purrr::map_lgl(.x = 1:length(data_objects),
+    #                              ~ stringr::str_detect(data_objects[[.x]][["Key"]],
+    #                                                    pattern = "\\.Rds")))
 
     #filter list for single object
     if(!is.null(object_name)){
       file_name <- glue::glue("{object_name}.Rds")
       data_objects <-
         data_objects %>% #take full list
-        purrr::keep(purrr::map_lgl(.x = 1:length(data_objects), ~ data_objects[[.x]][["Key"]] %in% file_name)) #pass map_lgl to keep to filter names to keep
+        purrr::keep(purrr::map_lgl(.x = 1:length(data_objects),
+                                   ~ data_objects[[.x]][["Key"]] %in% file_name)) #pass map_lgl to keep to filter names to keep
       message(glue::glue('filtered to keep only {length(data_objects)}'))
     }
 
@@ -80,12 +101,18 @@ download_ddh_data <- function(app_data_dir,
     get_aws_data(object_name,
                  bucket_id = "AWS_DATA_BUCKET_ID_TEST")
     return(message("public data download complete"))
-  } else { #get both
+  }
+  else if (test != TRUE) { #get both
     get_aws_data(object_name,
                  bucket_id = "AWS_DATA_BUCKET_ID")
     get_aws_data(object_name,
                  bucket_id = "AWS_DATA_PRIVATE_BUCKET_ID")
     return(message("private data download complete"))
+  }
+  if (raw == TRUE) {
+    get_aws_data(object_name,
+                 bucket_id = "AWS_DATA_BUCKET_ID_RAW")
+    return(message("raw data download complete"))
   }
 }
 
