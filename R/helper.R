@@ -144,6 +144,11 @@ load_ddh_data <- function(app_data_dir,
                object_name)
   message("loaded Rds files")
 
+  # Load .qs files
+  load_ddh_qs(app_data_dir,
+              object_name)
+  message("loaded qs files")
+
   if(!is.null(object_name)){ #stop here
     return(message("done"))
   }
@@ -189,6 +194,42 @@ load_ddh_rds <- function(app_data_dir,
 
   #print done
   message("finished loading Rds")
+}
+
+#' Function to load all DDH qs files
+#'
+#' @param app_data_dir Data directory path.
+#' @param object_name Optional object name to load a single file; default loads all files
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+load_ddh_qs <- function(app_data_dir,
+                        object_name = NULL) {
+  if(is.null(object_name)){
+    all_objects <- list.files(app_data_dir) %>%
+      purrr::discard(~ stringr::str_detect(., pattern = "\\.Rds"))
+  } else {
+    all_objects <- object_name
+  }
+
+  #file loader constructor
+  load_qs_object <- function(single_object){
+    file_name <- single_object
+
+    if(!exists(single_object)) {
+      assign(single_object, qs::qread(here::here(app_data_dir, file_name)),
+             envir = .GlobalEnv)
+    }
+    message(glue::glue("loaded {single_object}"))
+  }
+
+  #walk through to load all files
+  all_objects %>%
+    purrr::walk(load_qs_object)
+
+  #print done
+  message("finished loading qs")
 }
 
 #' Function to load all DDH db connections
