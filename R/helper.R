@@ -17,7 +17,7 @@ download_ddh_data <- function(app_data_dir,
                               raw = FALSE){
   #delete dir to overwrite
   if(overwrite == TRUE) {
-    if(is.null(object_name)){all_objects <- ""} else {all_objects <- stringr::str_glue("{object_name}.Rds")}
+    if(is.null(object_name)){all_objects <- ""} else {all_objects <- object_name}
     path <- stringr::str_glue("{app_data_dir}/{all_objects}")
     path %>% purrr::walk(unlink, recursive = TRUE) #handles 1, many, or NULL file_name
   }
@@ -46,23 +46,16 @@ download_ddh_data <- function(app_data_dir,
     new_dirs <- sub("/[^/]+$", "", names_with_dir) # remove everything (filename) after the last /
     new_dirs <- new_dirs[!duplicated(new_dirs)]
 
-    #make new dirs
+    # #make new dirs
     for (i in 1:length(new_dirs)) {
       if(!dir.exists(paste0(app_data_dir, "/", new_dirs[i]))) {
         dir.create(paste0(app_data_dir, "/", new_dirs[i]))
       }
     }
 
-    #filter list for Rds objects only
-    # data_objects <-
-    #   data_objects %>%
-    #   purrr::keep(purrr::map_lgl(.x = 1:length(data_objects),
-    #                              ~ stringr::str_detect(data_objects[[.x]][["Key"]],
-    #                                                    pattern = "\\.Rds")))
-
     #filter list for single object
     if(!is.null(object_name)){
-      file_name <- glue::glue("{object_name}.Rds")
+      file_name <- object_name
       data_objects <-
         data_objects %>% #take full list
         purrr::keep(purrr::map_lgl(.x = 1:length(data_objects),
@@ -88,31 +81,45 @@ download_ddh_data <- function(app_data_dir,
         }
       }
     }
-  }
-  #get test data
-  if(test == TRUE){
-    get_aws_data(object_name,
-                 bucket_id = "AWS_DATA_BUCKET_ID_TEST")
-    return(message("test data download complete"))
-  }
-  #get data
-  if(privateMode == FALSE){   #get public data only
 
-    get_aws_data(object_name,
-                 bucket_id = "AWS_DATA_BUCKET_ID_TEST")
-    return(message("public data download complete"))
+    #make tempdir our working directory
+    owd <- getwd()
+    setwd(app_data_dir)
+    on.exit(setwd(owd))
+
+    if(!privateMode) {
+      #remove private directory
+      unlink("_private", recursive = TRUE)
+    }
+
+    # copy the file into our current directory
+    files_from <- list.files(path = app_data_dir, full.names = TRUE, recursive = TRUE)
+    files_to <- list.files(path = app_data_dir, full.names = FALSE, recursive = TRUE)
+    files_to <- sub(".*\\/", "", files_to)
+    file.copy(files_from, files_to, overwrite = TRUE) #setting wd makes this happen
+
+    #remove all sub-directories
+    unlink(list.dirs(), recursive = TRUE)
   }
-  else if (test != TRUE) { #get both
-    get_aws_data(object_name,
-                 bucket_id = "AWS_DATA_BUCKET_ID")
-    get_aws_data(object_name,
-                 bucket_id = "AWS_DATA_PRIVATE_BUCKET_ID")
-    return(message("private data download complete"))
-  }
+
+  #get raw data
   if (raw == TRUE) {
     get_aws_data(object_name,
                  bucket_id = "AWS_DATA_BUCKET_ID_RAW")
     return(message("raw data download complete"))
+  } else {
+    #get test data
+    if(test == TRUE){
+      get_aws_data(object_name,
+                   bucket_id = "AWS_DATA_BUCKET_ID_TEST")
+      return(message("test data download complete"))
+    }
+    #get data
+    else {
+      get_aws_data(object_name,
+                   bucket_id = "AWS_DATA_BUCKET_ID")
+      return(message("data download complete"))
+    }
   }
 }
 
