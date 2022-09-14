@@ -34,6 +34,13 @@ download_ddh_data <- function(app_data_dir,
       s3$list_objects(Bucket = bucket_name) %>%
       purrr::pluck("Contents")
 
+    if(!privateMode) {
+      data_objects <- data_objects %>%
+        purrr::discard(purrr::map_lgl(.x = 1:length(data_objects),
+                                   ~ stringr::str_detect(data_objects[[.x]][["Key"]],
+                                                         pattern = "_private")))
+    }
+
     message(glue::glue('{length(data_objects)} objects in the {bucket_name} bucket'))
 
     #detect directories
@@ -86,11 +93,6 @@ download_ddh_data <- function(app_data_dir,
     owd <- getwd()
     setwd(app_data_dir)
     on.exit(setwd(owd))
-
-    if(!privateMode) {
-      #remove private directory
-      unlink("_private", recursive = TRUE)
-    }
 
     # copy the file into our current directory
     files_from <- list.files(path = app_data_dir, full.names = TRUE, recursive = TRUE)
