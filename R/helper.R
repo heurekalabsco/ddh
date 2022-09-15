@@ -89,19 +89,32 @@ download_ddh_data <- function(app_data_dir,
       }
     }
 
+    temp_dir <- tempfile(pattern = "tmpdir", tmpdir = app_data_dir)
+    dir.create(temp_dir)
+
     #make tempdir our working directory
     owd <- getwd()
-    setwd(app_data_dir)
+    setwd(temp_dir)
     on.exit(setwd(owd))
 
     # copy the file into our current directory
     files_from <- list.files(path = app_data_dir, full.names = TRUE, recursive = TRUE)
     files_to <- list.files(path = app_data_dir, full.names = FALSE, recursive = TRUE)
     files_to <- sub(".*\\/", "", files_to)
+    # files_to <- paste0(temp_dir, "/", files_to)
+    file.copy(files_from, files_to, overwrite = TRUE) #setting wd makes this happen
+
+    # Remove original files
+    file.remove(from = files_from)
+
+    setwd(app_data_dir)
+
+    files_from <- list.files(path = temp_dir, full.names = TRUE)
+    files_to <- list.files(path = temp_dir, full.names = FALSE)
     file.copy(files_from, files_to, overwrite = TRUE) #setting wd makes this happen
 
     #remove all sub-directories
-    unlink(list.dirs(), recursive = TRUE)
+    unlink(list.dirs(app_data_dir, recursive = FALSE), recursive = TRUE)
   }
 
   #get raw data
