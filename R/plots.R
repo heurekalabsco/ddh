@@ -1895,7 +1895,7 @@ make_celldeps <- function(celldeps_data = achilles_long,
         dplyr::arrange(dep_score) %>%
         dplyr::mutate(
           rank = 1:dplyr::n(),
-          med = median(dep_score, na.rm= TRUE)
+          med = median(dep_score, na.rm = TRUE)
         ) %>%
         dplyr::ungroup() %>%
         dplyr::rename(name = gene)
@@ -2023,7 +2023,9 @@ make_celldeps <- function(celldeps_data = achilles_long,
         ggplot2::theme(legend.position = "none")
     }
 
-    return(plot_complete)
+    plot_interactive <- ggiraph::girafe(ggobj = plot_complete)
+
+    return(plot_interactive)
   }
   #error handling
   tryCatch(make_celldeps_raw(),
