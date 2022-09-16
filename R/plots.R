@@ -1973,9 +1973,9 @@ make_celldeps <- function(celldeps_data = achilles_long,
                                    fill = forcats::fct_reorder(!!aes_var, med)
       )) +
       ## dot/line plot
-      {if(!card & !lineplot)ggplot2::geom_point(size = 1.1, stroke = .25, alpha = 0.6)} +
-      {if(input$type == "gene" & (card | lineplot))ggplot2::geom_line(ggplot2::aes(group = name))} +
-      {if(input$type == "cell" & (card | lineplot))ggplot2::geom_line(ggplot2::aes(group = cell_line))} +
+      {if(!card & !lineplot)ggiraph::geom_point_interactive(aes(tooltip = cell_line, data_id = cell_line), size = 1.1, stroke = .25, alpha = 0.6)} +
+      {if(input$type == "gene" & (card | lineplot))ggiraph::geom_line_interactive(ggplot2::aes(group = name, tooltip = name, data_id = name))} +
+      {if(input$type == "cell" & (card | lineplot))ggplot2::geom_line_interactive(ggplot2::aes(group = cell_line, tooltip = cell_line, data_id = cell_line))} +
       ## indicator lines dep. score
       ggplot2::geom_hline(yintercept = mean, linetype = "dashed", color = "grey80") +
       ggplot2::geom_hline(yintercept = 1, size = .2, color = "grey70") +
