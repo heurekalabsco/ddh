@@ -2023,9 +2023,7 @@ make_celldeps <- function(celldeps_data = achilles_long,
         ggplot2::theme(legend.position = "none")
     }
 
-    plot_interactive <- ggiraph::girafe(ggobj = plot_complete)
-
-    return(plot_interactive)
+    return(plot_complete)
   }
   #error handling
   tryCatch(make_celldeps_raw(),
