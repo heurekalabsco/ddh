@@ -166,7 +166,7 @@ make_ideogram <- function(location_data = gene_location,
       ggrepel::geom_text_repel(data = gene_loci, ggplot2::aes(x = chromosome_name, y = start, label = approved_symbol), nudge_x = .2, min.segment.length = 1, family = "Chivo") +
       ggplot2::scale_fill_manual(values = c("#FFFFFF", "#FFFFFF")) +
       ggplot2::labs(y = NULL) +
-      theme_ddh(base_size = 16) +
+      ddh::theme_ddh(base_size = 16) +
       ggplot2::theme_void() +
       ggplot2::theme(legend.position = "none",
                      axis.text.x = ggplot2::element_text(size = 12)) +
@@ -291,7 +291,7 @@ make_proteinsize <- function(protein_data = proteins,
         ggplot2::coord_cartesian(ylim = c(.95, 1.2)) +
         ggplot2::scale_y_continuous(expand = c(0, 0)) +
         ggplot2::scale_color_manual(values = colors, guide = "none") +
-        theme_ddh() +
+        ddh::theme_ddh() +
         ggplot2::theme_void() +
         NULL
 
@@ -548,7 +548,7 @@ make_protein_domain <- function(input = list(),
       ggplot2::facet_wrap(~ gene_name, ncol = 1,
                           labeller = wrapped_labels(.seq_len = lengths_data$seq_len)
       ) +
-      theme_ddh(base_size = 16) +
+      ddh::theme_ddh(base_size = 16) +
       ggplot2::theme_void() +
       ggplot2::theme(
         legend.title = ggplot2::element_blank(),
@@ -567,7 +567,7 @@ make_protein_domain <- function(input = list(),
                      axis.title.x = ggplot2::element_text(family = "Nunito Sans", size = 18,
                                                           margin = ggplot2::margin(t = 12, b = 12)),
                      legend.position = "right") +
-      scale_fill_ddh_d(palette = "protein")
+      ddh::scale_fill_ddh_d(palette = "protein")
 
     return(plot_complete)
 
@@ -725,7 +725,7 @@ make_radial <- function(cluster_data = sequence_clusters,
       ggplot2::scale_color_manual(values = colors_radial) +
       {if(barplot)ggplot2::scale_fill_manual(values = colors_bar)} +
       ## theme changes
-      theme_ddh(base_size = 16) +
+      ddh::theme_ddh(base_size = 16) +
       {if(!barplot)ggplot2::theme_minimal()} +
       {if(!barplot)ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
@@ -872,7 +872,7 @@ make_umap_plot <- function(cluster_data = sequence_clusters,
       ) +
       ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 3))) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         legend.position = "top",
@@ -935,7 +935,7 @@ make_cluster_enrich <- function(input = list(),
       ggplot2::guides(fill = ggplot2::guide_colorbar(barheight = ggplot2::unit(6, "lines"),
                                                      barwidth = ggplot2::unit(.6, "lines"),
                                                      reverse = TRUE)) +
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         title = ggplot2::element_blank(),
         text = ggplot2::element_text(family = "Nunito Sans"),
@@ -1204,9 +1204,9 @@ make_pubmed <- function(pubmed_data = pubmed,
       ggplot2::scale_x_continuous(breaks = scales::breaks_pretty(4),
                                   expand = c(0, 0)) +
       ggplot2::scale_y_continuous(expand = c(.01, .01), limits = c(0, max(plot_max$cumsum))) +
-      scale_color_ddh_d(palette = input$type) +
+      ddh::scale_color_ddh_d(palette = input$type) +
       ggplot2::labs(x = "Year of Publication", y = "Cumulative Sum") +
-      theme_ddh(base_size = 16,
+      ddh::theme_ddh(base_size = 16,
                 margin = 20) +
       ggplot2::theme(
         #text = element_text(family = "Nunito Sans"),
@@ -1348,7 +1348,7 @@ make_cellanatogram <- function(cellanatogram_data = subcell,
         plot.margin = ggplot2::margin(5, 10, 5, 5)
       ) +
       ggplot2::coord_fixed() +
-      scale_fill_ddh_d(palette = "protein") +
+      ddh::scale_fill_ddh_d(palette = "protein") +
       ggplot2::labs(fill = "Count") +
       NULL
 
@@ -1575,7 +1575,7 @@ make_tissue <- function(tissue_data = tissue,
       ggplot2::coord_cartesian(clip = "off") +
       ggplot2::scale_x_continuous(expand = c(0, 0), sec.axis = ggplot2::dup_axis()) +
       ggplot2::scale_y_discrete(expand = c(.01, .01)) +
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, family = "Roboto Slab"),
                      axis.ticks.y = ggplot2::element_blank(),
                      axis.line.y = ggplot2::element_blank()) +
@@ -1593,7 +1593,7 @@ make_tissue <- function(tissue_data = tissue,
       plot_complete <-
         plot_draft +
         ggplot2::geom_col(ggplot2::aes(fill = gene_name), width = .82) +
-        scale_fill_ddh_d(palette = "gene", shuffle = TRUE, seed = 5L) +
+        ddh::scale_fill_ddh_d(palette = "gene", shuffle = TRUE, seed = 5L) +
         ggplot2::labs(x = "Sum of Normalized Expression",
                       fill = "Query\nGene") +
         ggplot2::theme(legend.justification = "top")
@@ -1713,8 +1713,8 @@ make_cellexpression <- function(expression_data = expression_long,
       ggplot2::geom_vline(xintercept = upper_limit, color = "lightgray", linetype = "dashed") +#3SD
       ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = 0.01)) +
       ggplot2::scale_y_discrete(expand = ggplot2::expansion(mult = 1 / length(input$content)), na.translate = FALSE) +
-      scale_color_ddh_d(palette = input$type) +
-      theme_ddh() +
+      ddh::scale_color_ddh_d(palette = input$type) +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
@@ -1813,8 +1813,8 @@ make_cellgeneprotein <- function(expression_data = expression_long,
                            se = TRUE) +
       # R coefs
       {if(card == FALSE)ggpubr::stat_cor(digits = 3)} +
-      scale_color_ddh_d(palette = input$type) +
-      theme_ddh() +
+      ddh::scale_color_ddh_d(palette = input$type) +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab")
@@ -1977,13 +1977,14 @@ make_celldeps <- function(celldeps_data = achilles_long,
       {if(input$type == "gene" & (card | lineplot))ggiraph::geom_line_interactive(ggplot2::aes(group = name, tooltip = name, data_id = name))} +
       {if(input$type == "cell" & (card | lineplot))ggplot2::geom_line_interactive(ggplot2::aes(group = cell_line, tooltip = cell_line, data_id = cell_line))} +
       ## indicator lines dep. score
-      ggplot2::geom_hline(yintercept = mean, linetype = "dashed", color = "grey80") +
-      ggplot2::geom_hline(yintercept = 1, size = .2, color = "grey70") +
-      ggplot2::geom_hline(yintercept = -1, size = .2, color = "grey70") +
+      ggplot2::geom_hline(yintercept = mean, linetype = "dashed", color = "grey75") +
+      ggplot2::geom_hline(yintercept = 0, linetype = color = "grey60") +
+      ggplot2::geom_hline(yintercept = 1, size = .2, color = "grey75") +
+      ggplot2::geom_hline(yintercept = -1, size = .2, color = "grey75") +
       ## scales + legends
       #scale_x_discrete(expand = expansion(mult = 0.02), na.translate = FALSE) +
-      scale_color_ddh_d(palette = input$type) +
-      scale_fill_ddh_d(palette = input$type) +
+      ddh::scale_color_ddh_d(palette = input$type) +
+      ddh::scale_fill_ddh_d(palette = input$type) +
       ggplot2::guides(
         color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 4, stroke = .8)),
         fill = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 3.8, stroke = .8))
@@ -1996,7 +1997,7 @@ make_celldeps <- function(celldeps_data = achilles_long,
         fill = "Query"
       ) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
@@ -2159,8 +2160,8 @@ make_cellbar <- function(celldeps_data = achilles_long,
       ggplot2::geom_hline(yintercept = 0, size = .2, color = "grey70") +
       ## scales + legends
       ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = 0.02), na.translate = FALSE) +
-      scale_color_ddh_d(palette = input$type) +
-      scale_fill_ddh_d(palette = input$type) +
+      ddh::scale_color_ddh_d(palette = input$type) +
+      ddh::scale_fill_ddh_d(palette = input$type) +
       ggplot2::guides(
         color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 4, stroke = .8)),
         fill = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 3.8, stroke = .8))
@@ -2173,7 +2174,7 @@ make_cellbar <- function(celldeps_data = achilles_long,
         fill = "Query"
       ) +
       ## theme changes
-      theme_ddh() + #base_size = 15 default
+      ddh::theme_ddh() + #base_size = 15 default
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
@@ -2340,7 +2341,7 @@ make_cellbins <- function(cellbins_data = achilles_long,
         fill = ggplot2::guide_legend(size = 1, reverse = TRUE)
       ) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         legend.position = "none",
@@ -2505,7 +2506,7 @@ make_lineage <- function(celldeps_data = achilles_long,
       ggplot2::scale_x_continuous(
         sec.axis = ggplot2::dup_axis()
       ) +
-      scale_color_ddh_d(
+      ddh::scale_color_ddh_d(
         palette = input$type,
         shuffle = TRUE, seed = 5L, ## to return "correctly" ordered, sequential colors
         labels = c("95%", "50%", "5%"),#of the data fall in these ranges
@@ -2520,7 +2521,7 @@ make_lineage <- function(celldeps_data = achilles_long,
       ) +
       {if(highlight)gghighlight::gghighlight(lineage %in% stats_data$group2, use_direct_label = FALSE)} + # toggle
       ## theme changes
-      theme_ddh(grid = "none") +
+      ddh::theme_ddh(grid = "none") +
       ggplot2::theme(
         legend.position = "top",
         axis.line.y = ggplot2::element_blank(),
@@ -2686,7 +2687,7 @@ make_sublineage <- function(celldeps_data = achilles_long,
       ggplot2::scale_x_continuous(
         sec.axis = ggplot2::dup_axis()
       ) +
-      scale_color_ddh_d(
+      ddh::scale_color_ddh_d(
         palette = input$type,
         shuffle = TRUE, seed = 5L, ## to return "correctly" ordered, sequential colors
         labels = c("95%", "50%", "5%"), #of the data fall in these ranges
@@ -2701,7 +2702,7 @@ make_sublineage <- function(celldeps_data = achilles_long,
       ) +
       {if(highlight)gghighlight::gghighlight(lineage_subtype %in% stats_data$group2, use_direct_label = FALSE)} + # toggle
       ## theme changes
-      theme_ddh(grid = "none") +
+      ddh::theme_ddh(grid = "none") +
       ggplot2::theme(
         legend.position = "top",
         axis.line.y = ggplot2::element_blank(),
@@ -2841,8 +2842,8 @@ make_correlation <- function(table_data = achilles_cor_nest,
       size = 1.1, stroke = .1, alpha = 0.4) +
       ## scales + legends
       ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = 0.02), na.translate = FALSE) +
-      scale_color_ddh_d(palette = input$type) +
-      scale_fill_ddh_d(palette = input$type) +
+      ddh::scale_color_ddh_d(palette = input$type) +
+      ddh::scale_fill_ddh_d(palette = input$type) +
       ggplot2::guides(
         color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 5)),
         fill = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 5))
@@ -2855,7 +2856,7 @@ make_correlation <- function(table_data = achilles_cor_nest,
         fill = glue::glue("Query {text_var}")
       ) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
@@ -2977,8 +2978,8 @@ make_expdep <- function(expression_data = expression_long,
       {if(card == FALSE & input$type == "cell")ggpubr::stat_cor(ggplot2::aes(color = forcats::fct_reorder(cell_line, med)),
                                                                 digits = 3)} +
       ## scales + legends
-      scale_color_ddh_d(palette = input$type) +
-      scale_fill_ddh_d(palette = input$type) +
+      ddh::scale_color_ddh_d(palette = input$type) +
+      ddh::scale_fill_ddh_d(palette = input$type) +
       ggplot2::guides(
         color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 5)),
         fill = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 5))
@@ -2991,7 +2992,7 @@ make_expdep <- function(expression_data = expression_long,
         fill = ifelse(input$type == "gene", "Query Gene", "Query Cell Line")
       ) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab")
@@ -3142,8 +3143,8 @@ make_cell_similarity <- function(cell_sims_dep = cell_line_dep_sim,
       size = 1.1, stroke = .1, alpha = 0.4) +
       ## scales + legends
       ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = 0.02), na.translate = FALSE) +
-      scale_color_ddh_d(palette = input$type) +
-      scale_fill_ddh_d(palette = input$type) +
+      ddh::scale_color_ddh_d(palette = input$type) +
+      ddh::scale_fill_ddh_d(palette = input$type) +
       ggplot2::guides(
         color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 5)),
         fill = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 5))
@@ -3156,7 +3157,7 @@ make_cell_similarity <- function(cell_sims_dep = cell_line_dep_sim,
         fill = "Query Cell"
       ) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
@@ -3301,12 +3302,12 @@ make_functional_cell <- function(pathway_data = pathways,
                     y = "Gene Expression",
                     color = "Query Cell") +
       ggplot2::coord_flip() +
-      scale_color_ddh_d(palette = input$type) +
+      ddh::scale_color_ddh_d(palette = input$type) +
       ggplot2::guides(
         color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 5))
       ) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
@@ -3435,12 +3436,12 @@ make_metadata_cell <- function(input = list(),
       ggplot2::labs(x = "# Cell Lines",
                     y = NULL) +
       # scale_x_continuous(labels = scales::percent_format()) +
-      scale_fill_ddh_d(palette = input$type) +
+      ddh::scale_fill_ddh_d(palette = input$type) +
       ggplot2::guides(
         color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 5))
       ) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
