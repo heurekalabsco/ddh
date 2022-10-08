@@ -72,7 +72,8 @@ summary_list <- function(summary_gene = gene_summary,
 
     custom_list[custom_list == "NA"] <- NA
     custom_list[custom_list == ""] <- NA
-    custom_list[is.na(custom_list)] <- "No info."
+    custom_list <- custom_list %>%
+      dplyr::mutate_all(~ ifelse(is.na(.), "No info.", .))
 
     if(length(input$content) == 1) {
 
@@ -130,7 +131,8 @@ summary_list <- function(summary_gene = gene_summary,
 
     custom_list[custom_list == "NA"] <- NA
     custom_list[custom_list == ""] <- NA
-    custom_list[is.na(custom_list)] <- "No info."
+    custom_list <- custom_list %>%
+      dplyr::mutate_all(~ ifelse(is.na(.), "No info.", .))
 
     if(length(input$content) == 1) {
 
