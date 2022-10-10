@@ -1319,7 +1319,7 @@ make_pubmed <- function(pubmed_data = pubmed,
 #' make_cellanatogram(input = list(type = "gene", content = c("ROCK2")), card = TRUE)
 #' make_cellanatogram(input = list(type = "gene", query = "ROCK1", content = c("ROCK1", "ROCK2")))
 #' \dontrun{
-#' make_cellanatogram(input = list(type = 'gene', content = 'ROCK1'))
+#' make_cellanatogram(input = list(type = 'gene', content = 'ROCK2'))
 #' }
 make_cellanatogram <- function(cellanatogram_data = subcell,
                                input = list(),
@@ -1327,29 +1327,28 @@ make_cellanatogram <- function(cellanatogram_data = subcell,
   make_cellanatogram_raw <- function() {
     plot_data <-
       cellanatogram_data %>%
-      dplyr::filter_all(dplyr::any_vars(gene_name %in% input$content)) %>%
-      dplyr::filter(!is.na(type)) %>%
-      dplyr::select(-value) %>%
-      dplyr::add_count(main_location) %>%
-      dplyr::mutate(value = forcats::as_factor(n)) %>%
-      #dplyr::arrange(desc(row_number())) ## not sure this always works...
-      dplyr::mutate(
-        organ = stringr::str_replace_na(organ, "cytosol"),
-        type = factor(gene_name),
-        organ = forcats::fct_rev(organ)
-      )
+      dplyr::filter(gene_name %in% input$content) %>%
+      dplyr::select(organ, type, colour, value) %>%
+      tidyr::drop_na() %>%
+      dplyr::group_by(organ) %>%
+      dplyr::summarise(type = type[1], value = mean(value)) %>%
+      dplyr::ungroup() %>%
+      dplyr::arrange(dplyr::desc(value))
 
     plot_complete <-
       plot_data %>%
-      gganatogram(outline = TRUE, fillOutline = 'grey95', organism = "cell", fill = "value") +
+      gganatogram::gganatogram(outline = TRUE,
+                               fillOutline = "grey95",
+                               organism = "cell",
+                               fill = "value") +
       ggplot2::theme_void(base_size = 14) +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         plot.margin = ggplot2::margin(5, 10, 5, 5)
       ) +
       ggplot2::coord_fixed() +
-      scale_fill_ddh_d(palette = "protein") +
-      ggplot2::labs(fill = "Count") +
+      scale_fill_ddh_c(palette = "protein") +
+      ggplot2::labs(fill = "Expression") +
       NULL
 
     if(length(input$content) == 1){
@@ -1381,32 +1380,57 @@ make_cellanatogram <- function(cellanatogram_data = subcell,
 #'
 #' @export
 #' @examples
-#' make_cellanatogramfacet(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
+#' make_cellanatogramfacet(input = list(type = "gene", content = c("BRCA1", "ROCK2")))
 make_cellanatogramfacet <- function(cellanatogram_data = subcell,
                                     input = list()) {
   make_cellanatogramfacet_raw <- function() {
-    plot_complete <-
+    # plot_complete <-
+    #   cellanatogram_data %>%
+    #   dplyr::filter(gene_name %in% input$content,
+    #                 !is.na(type)) %>%
+    #   # dplyr::mutate(colour = scales::alpha(ddh_pal_d(palette = "protein")(1), .75)) %>%
+    #   # dplyr::full_join(dplyr::tibble(gene_name = input$content)) %>%
+    #   dplyr::mutate(
+    #     #colour = if_else(is.na(organ), "grey92", scales::alpha(ddh_pal_d(palette = "gene")(1), .75)),
+    #     organ = stringr::str_replace_na(organ, "cytosol"),
+    #     type = factor(gene_name),
+    #     organ = forcats::fct_rev(organ)
+    #   ) %>%
+    #   gganatogram(outline = TRUE, fillOutline = 'grey95', organism = "cell", fill = "colour") +
+    #   ggplot2::theme_void(base_size = 14) +
+    #   ggplot2::theme(
+    #     text = ggplot2::element_text(family = "Nunito Sans", face = "bold"),
+    #     plot.margin = ggplot2::margin(5, 10, 5, 5),
+    #     panel.spacing.y = ggplot2::unit(1.2, "lines")
+    #   ) +
+    #   ggplot2::facet_wrap(~ type, ncol = 3, drop = FALSE) +
+    #   ggplot2::coord_fixed() +
+    #   ggplot2::labs(fill = "Count") +
+    plot_data <-
       cellanatogram_data %>%
-      dplyr::filter(gene_name %in% input$content,
-                    !is.na(type)) %>%
-      dplyr::mutate(colour = scales::alpha(ddh_pal_d(palette = "protein")(1), .75)) %>%
-      dplyr::full_join(tibble(gene_name = input$content)) %>%
-      dplyr::mutate(
-        #colour = if_else(is.na(organ), "grey92", scales::alpha(ddh_pal_d(palette = "gene")(1), .75)),
-        organ = stringr::str_replace_na(organ, "cytosol"),
-        type = factor(gene_name),
-        organ = forcats::fct_rev(organ)
-      ) %>%
-      gganatogram(outline = TRUE, fillOutline = 'grey95', organism = "cell", fill = "colour") +
+      dplyr::filter(gene_name %in% input$content) %>%
+      dplyr::select(gene_name, organ, type, colour, value) %>%
+      tidyr::drop_na() %>%
+      dplyr::group_by(organ) %>%
+      dplyr::summarise(type = gene_name, value = mean(value)) %>%
+      dplyr::ungroup() %>%
+      dplyr::arrange(dplyr::desc(value))
+
+    plot_complete <-
+      plot_data %>%
+      gganatogram::gganatogram(outline = TRUE,
+                               fillOutline = "grey95",
+                               organism = "cell",
+                               fill = "value") +
       ggplot2::theme_void(base_size = 14) +
       ggplot2::theme(
-        text = ggplot2::element_text(family = "Nunito Sans", face = "bold"),
-        plot.margin = ggplot2::margin(5, 10, 5, 5),
-        panel.spacing.y = ggplot2::unit(1.2, "lines")
+        text = ggplot2::element_text(family = "Nunito Sans"),
+        plot.margin = ggplot2::margin(5, 10, 5, 5)
       ) +
-      ggplot2::facet_wrap(~ type, ncol = 3, drop = FALSE) +
       ggplot2::coord_fixed() +
-      ggplot2::labs(fill = "Count") +
+      scale_fill_ddh_c(palette = "protein") +
+      ggplot2::labs(fill = "Expression") +
+      ggplot2::facet_wrap(~ type, ncol = 3, drop = FALSE) +
       ggplot2::theme(panel.spacing.y = ggplot2::unit(1.2, "lines"),
                      strip.text = ggplot2::element_text(size = 18, family = "Roboto Slab", face = "plain")) +
       NULL
