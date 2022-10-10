@@ -25,6 +25,6 @@ make_cellanatogram(input = list(type = "gene", content = c("ROCK2")))
 make_cellanatogram(input = list(type = "gene", content = c("ROCK2")), card = TRUE)
 make_cellanatogram(input = list(type = "gene", query = "ROCK1", content = c("ROCK1", "ROCK2")))
 \dontrun{
-make_cellanatogram(input = list(type = 'gene', content = 'ROCK1'))
+make_cellanatogram(input = list(type = 'gene', content = 'ROCK2'))
 }
 }

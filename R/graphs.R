@@ -187,7 +187,7 @@ setup_graph <- function(toptable_data = master_top_table,
 
       return(related_table)
 
-    } else {
+    } else if (fun_input_list$type == "cell") {
       related_table <-
         table_var %>%
         # dplyr::filter(!!filter_var == content) %>%
@@ -371,13 +371,13 @@ make_graph <- function(toptable_data = master_top_table,
     }
 
     #get dep_network object
-    dep_network_list <- ddh::setup_graph(input_list = input,
-                                         setup_corrType = corrType,
-                                         setup_threshold = threshold,
-                                         cell_line_similarity = cell_line_similarity,
-                                         cell_dep = cell_line_dep_sim,
-                                         cell_exp = cell_line_exp_sim,
-                                         bonferroni_cutoff = bonferroni_cutoff)
+    dep_network_list <- setup_graph(input_list = input,
+                                    setup_corrType = corrType,
+                                    setup_threshold = threshold,
+                                    cell_line_similarity = cell_line_similarity,
+                                    cell_dep = cell_line_dep_sim,
+                                    cell_exp = cell_line_exp_sim,
+                                    bonferroni_cutoff = bonferroni_cutoff)
     #dep_network_list <<- dep_network_list #for testing, to see what I'm getting back out
 
     #add check for no genes list

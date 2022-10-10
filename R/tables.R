@@ -203,24 +203,21 @@ make_cellanatogram_table <- function(cellanatogram_data = subcell,
                                      input = list()) {
   make_cellanatogram_table_raw <- function() {
     cellanatogram_data %>%
-      dplyr::filter_all(dplyr::any_vars(gene_name %in% input$content)) %>%
-      dplyr::filter(!is.na(type)) %>%
-      dplyr::add_count(main_location) %>%
-      dplyr::transmute(Gene = gene_name,
-                       Reliability = reliability,
-                       Location = main_location,
-                       Count = forcats::as_factor(n)) %>%
-      dplyr::arrange(dplyr::desc(Count))
+      dplyr::filter(gene_name %in% input$content) %>%
+      dplyr::rename(Gene = gene_name,
+                    Reliability = reliability,
+                    Location = main_location,
+                    Expression = value) %>%
+      dplyr::arrange(Expression)
   }
   #error handling
   tryCatch(make_cellanatogram_table_raw(),
            error = function(e){
              return(cellanatogram_data %>%
-                      dplyr::add_count(main_location) %>%
-                      dplyr::transmute(Gene = gene_name,
-                                       Reliability = reliability,
-                                       Location = main_location,
-                                       Count = forcats::as_factor(n)) %>%
+                      dplyr::rename(Gene = gene_name,
+                                    Reliability = reliability,
+                                    Location = main_location,
+                                    Expression = value) %>%
                       dplyr::slice(0)
              )
              })
