@@ -42,7 +42,8 @@ make_barcode <- function(input = list(),
            error = function(e){
              message(e)
              if(card == TRUE){image_type = "card"} else {image_type = "plot"}
-             glue::glue('https://ddh-barcodes.s3.amazonaws.com/error_barcode_{image_type}.jpeg')})
+             glue::glue('https://ddh-barcodes.s3.amazonaws.com/error_barcode_{image_type}.jpeg')
+             })
 }
 
 ## IDEOGRAM PLOT --------------------------------------------------------
@@ -976,81 +977,35 @@ make_cluster_enrich <- function(input = list(),
 #' make_structure(input = list(type = 'gene', content = 'ROCK1'))
 #' }
 make_structure <- function(input = list(),
-                           card = FALSE) {
-  make_structure_raw <- function() {
+                           card = FALSE){
+  make_structure_raw <- function(){
     #if multiple, then pull single "rep" image; consider pulling >1 and using patchwork, eg.
     if(length(input$content > 1)){
-      fav_gene <- input$content[[1]] #sample(input$content, 1)
+      gene_symbol <- sample(input$content, 1) #input$content[[1]]
     } else {
-      fav_gene <- input$content
+      gene_symbol <- input$content
     }
 
-    file_name <- paste0(fav_gene, ".jpg") #need to rename glue::glue('{fav_gene}_structure_plot.jpg')
+    #image type
+    if(card == TRUE){image_type = "card"} else {image_type = "plot"}
 
-    # if(card == TRUE){
-    #   file_name <- glue::glue('{fav_gene}_structure_card.jpg')
-    # } else {
-    #   file_name <- glue::glue('{fav_gene}_structure_plot.jpg')
-    # }
+    #check if exists
+    url <- glue::glue('https://ddh-proteins.s3.amazonaws.com/{gene_symbol}_structure_{image_type}.jpg')
+    status <- httr::GET(url) %>% httr::status_code()
 
-    #fetch full image from aws
-    image_path <- paste0("https://ddh-proteins.s3.amazonaws.com/", file_name)
-
-    #checks to see if file exists by checking status code on public URL
-    status <- httr::HEAD(image_path) %>%
-      httr::http_status() %>%
-      purrr::pluck("reason")
-
-    #comment all of this out after moving to generate
-    if(card == TRUE && status == "OK"){
-      protein_image <-
-        magick::image_read(path = image_path)
-
-      #scale up if too small to make a square
-      image_details <- magick::image_info(protein_image)
-
-      #center when scaling by providing offset
-      orig_width <- image_details$width
-      orig_height <- image_details$height
-      #target
-      width <- 1080
-      height <- 1080
-      #split difference in pixels between scale
-      offset_x <- as.integer((width - orig_width) / 2)
-      offset_y <- as.integer((height - orig_height) / 2)
-      #build offsets
-      width_offset <- glue::glue('{width}x+{offset_x}')
-      height_offset <- glue::glue('x{height}+{offset_y}')
-      #perform scaling
-      if(image_details$width < 1080) {protein_image <- magick::image_scale(protein_image, width_offset)}
-      if(image_details$height < 1080) {protein_image <- magick::image_scale(protein_image, height_offset)}
-
-      protein_image <-
-        protein_image %>%
-        magick::image_crop("1080x1080")
-
-      #place image on ggplot
-      plot_complete <-
-        ggplot2::ggplot() +
-        ggpubr::background_image(protein_image) +
-        ggplot2::labs(x = "") + #, title = "Structure Information", caption = "more ...") +
-        ggplot2::theme_void()
-
-      return(plot_complete)
-    }
-
-    if(status == "OK"){
-      return(image_path)
+    if(status == 200){
+      return(url)
     } else {
-      return(NULL)
+      return(glue::glue('https://ddh-proteins.s3.amazonaws.com/error_structure_{image_type}.jpg'))
     }
-
   }
   #error handling
   tryCatch(make_structure_raw(),
            error = function(e){
              message(e)
-             make_bomb_plot()})
+             if(card == TRUE){image_type = "card"} else {image_type = "plot"}
+             glue::glue('https://ddh-proteins.s3.amazonaws.com/error_structure_{image_type}.jpg')
+             })
 }
 
 ## 3D STRUCTURE PLOT --------------------------------------------------------------------
