@@ -12,7 +12,7 @@
 #' make_barcode(input = list(type = "gene", query = "ROCK1", content = "ROCK1"))
 #' make_barcode(input = list(content = "ROCK1"))
 #' \dontrun{
-#' make_barcode(input = list(type = "gene", content = "ROCK1"))
+#' make_barcode(input = list(type = "gene", content = "ROCK1"), card = TRUE)
 #' }
 make_barcode <- function(input = list(),
                          card = FALSE) {
