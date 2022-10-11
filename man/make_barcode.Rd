@@ -21,6 +21,6 @@ The barcode image shows the location of the query gene(s) on human chromosomes i
 make_barcode(input = list(type = "gene", query = "ROCK1", content = "ROCK1"))
 make_barcode(input = list(content = "ROCK1"))
 \dontrun{
-make_barcode(input = list(type = "gene", content = "ROCK1"))
+make_barcode(input = list(type = "gene", content = "ROCK1"), card = TRUE)
 }
 }
