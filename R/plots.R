@@ -28,13 +28,13 @@ make_barcode <- function(input = list(),
     if(card == TRUE){image_type = "card"} else {image_type = "plot"}
 
     #check if exists
-    url <- glue::glue('https://ddh-barcodes.s3.amazonaws.com/{gene_symbol}_barcode_{image_type}.jpeg')
+    url <- glue::glue("https://{Sys.getenv('AWS_BARCODE_BUCKET_ID')}.s3.amazonaws.com/{gene_symbol}_barcode_{image_type}.jpeg")
     status <- httr::GET(url) %>% httr::status_code()
 
     if(status == 200){
       return(url)
     } else {
-      return(glue::glue('https://ddh-barcodes.s3.amazonaws.com/error_barcode_{image_type}.jpeg'))
+      return(glue::glue("https://{Sys.getenv('AWS_BARCODE_BUCKET_ID')}.s3.amazonaws.com/error_barcode_{image_type}.jpeg"))
     }
   }
   #error handling
@@ -42,7 +42,7 @@ make_barcode <- function(input = list(),
            error = function(e){
              message(e)
              if(card == TRUE){image_type = "card"} else {image_type = "plot"}
-             glue::glue('https://ddh-barcodes.s3.amazonaws.com/error_barcode_{image_type}.jpeg')
+             glue::glue("https://{Sys.getenv('AWS_BARCODE_BUCKET_ID')}.s3.amazonaws.com/error_barcode_{image_type}.jpeg")
              })
 }
 
@@ -990,13 +990,13 @@ make_structure <- function(input = list(),
     if(card == TRUE){image_type = "card"} else {image_type = "plot"}
 
     #check if exists
-    url <- glue::glue('https://ddh-proteins.s3.amazonaws.com/{gene_symbol}_structure_{image_type}.jpg')
+    url <- glue::glue("https://{Sys.getenv('AWS_PROTEINS_BUCKET_ID')}.s3.amazonaws.com/{gene_symbol}_structure_{image_type}.jpg")
     status <- httr::GET(url) %>% httr::status_code()
 
     if(status == 200){
       return(url)
     } else {
-      return(glue::glue('https://ddh-proteins.s3.amazonaws.com/error_structure_{image_type}.jpg'))
+      return(glue::glue("https://{Sys.getenv('AWS_PROTEINS_BUCKET_ID')}.s3.amazonaws.com/error_structure_{image_type}.jpg"))
     }
   }
   #error handling
@@ -1004,7 +1004,7 @@ make_structure <- function(input = list(),
            error = function(e){
              message(e)
              if(card == TRUE){image_type = "card"} else {image_type = "plot"}
-             glue::glue('https://ddh-proteins.s3.amazonaws.com/error_structure_{image_type}.jpg')
+             glue::glue("https://{Sys.getenv('AWS_PROTEINS_BUCKET_ID')}.s3.amazonaws.com/error_structure_{image_type}.jpg")
              })
 }
 
@@ -1026,8 +1026,7 @@ make_structure <- function(input = list(),
 #' }
 make_structure3d <- function(pdb_ids = uniprot_pdb_table,
                              protein_data = proteins,
-                             data_dir = app_data_dir,
-                             gene_id = NULL,
+                             gene_symbol = NULL,
                              pdb_id = NULL,
                              input = list(),
                              color = FALSE,
@@ -1040,23 +1039,23 @@ make_structure3d <- function(pdb_ids = uniprot_pdb_table,
                              elem = NULL
 ) {
   make_structure3d_raw <- function() {
-
-    if(is.null(gene_id)) {
+    #because this fun doesn't take multi-gene queries
+    if(is.null(gene_symbol)) {
       if(length(input$content) == 1) {
-        gene_id <- input$content
+        gene_symbol <- input$content
       } else {
-        gene_id <- input$content[1]
+        gene_symbol <- input$content[1]
       }
     }
-
-    pdb_path <- load_pdb(input = list(content = gene_id),
-                         data_dir = data_dir)
+    #check  to see if pdb file exists
+    pdb_path <- load_pdb(input = input)
 
     if(!is.null(pdb_path) & is.null(pdb_id)) {
       plot_data <- bio3d::read.pdb(pdb_path)
     } else {
-      plot_data <- protein_data %>%
-        dplyr::filter(gene_name %in% gene_id) %>%
+      plot_data <-
+        protein_data %>%
+        dplyr::filter(gene_name %in% gene_symbol) %>%
         dplyr::left_join(pdb_ids, by = c("uniprot_id" = "uniprot")) %>%
         tidyr::unnest(data) %>%
         {if (is.null(pdb_id)) dplyr::slice(., 1) else dplyr::filter(., pdb == pdb_id)} %>%
@@ -1064,7 +1063,8 @@ make_structure3d <- function(pdb_ids = uniprot_pdb_table,
         r3dmol::m_fetch_pdb()
     }
 
-    plot_complete <- r3dmol::r3dmol() %>%
+    plot_complete <-
+      r3dmol::r3dmol() %>%
       r3dmol::m_add_model(data = plot_data, format = "pdb") %>%
       r3dmol::m_center()
 

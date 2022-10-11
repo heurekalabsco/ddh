@@ -948,28 +948,38 @@ load_image <- function(data_dir = app_data_dir,
 #' Load PDB file
 #'
 #' @param input Expecting a list containing type and content variable.
-#' @param data_dir
 #'
-#' @return A PDB file.
+#' @return Path to a url containing a PDB file.
 #'
 #' @export
 #' @examples
 #' load_pdb(input = list(content = c("ROCK1")))
 #' load_pdb(input = list(content = c("ROCK3")))
 #' load_pdb(input = list(content = c("ROCK1", "ROCK2")))
-load_pdb <- function(data_dir = app_data_dir,
-                     input = list()
-                     ) {
-  name <- stringr::str_c(input$content, collapse = "-") #intended to fail with multigene query to return NULL
-  file_name <- glue::glue('{name}.pdb')
-  path <- here::here(data_dir, "images/gene", name)
+load_pdb <- function(input = list()){
+  load_pdb_raw <- function(){
+    if(length(input$content > 1)){
+      gene_symbol <- input$content[1]
+    } else {
+      gene_symbol <- input$content
+    }
 
-  #check to see if file exists
-  if(file.exists(glue::glue('{path}/{file_name}'))) {
-    return(glue::glue('{path}/{file_name}'))
-  } else {
-    return(NULL)
+    #check if exists
+    url <- glue::glue("https://{Sys.getenv('AWS_PROTEINS_BUCKET_ID')}.s3.amazonaws.com/{gene_symbol}.pdb")
+    status <- httr::GET(url) %>% httr::status_code()
+
+    if(status == 200){
+      return(url)
+    } else {
+      return(NULL)
+    }
   }
+  #error handling
+  tryCatch(load_pdb_raw(),
+           error = function(e){
+             message(e)
+             NULL
+           })
 }
 
 #' Format Path Part
