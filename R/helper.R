@@ -146,29 +146,38 @@ download_ddh_data <- function(app_data_dir,
 #'
 #' @export
 load_ddh_data <- function(app_data_dir,
-                          object_name = NULL) {
+                          object_name = NULL,
+                          rds = TRUE,
+                          qs = FALSE,
+                          db = FALSE) {
 
   # Load colors
   load_ddh_colors()
   message("loaded colors")
 
-  # Load .RDS files
-  load_ddh_rds(app_data_dir,
-               object_name)
-  message("loaded Rds files")
+  if(rds) {
+    # Load .RDS files
+    load_ddh_rds(app_data_dir,
+                 object_name)
+    message("loaded Rds files")
+  }
 
-  # Load .qs files
-  load_ddh_qs(app_data_dir,
-              object_name)
-  message("loaded qs files")
+  if(qs) {
+    # Load .qs files
+    load_ddh_qs(app_data_dir,
+                object_name)
+    message("loaded qs files")
+  }
 
   if(!is.null(object_name)){ #stop here
     return(message("done"))
   }
 
-  #load DB cons
-  load_ddh_db()
-  message("loaded db connections")
+  if(db) {
+    #load DB cons
+    load_ddh_db()
+    message("loaded db connections")
+  }
 
   message("finished loading")
 }
@@ -184,21 +193,18 @@ load_ddh_data <- function(app_data_dir,
 load_ddh_rds <- function(app_data_dir,
                          object_name = NULL) {
   if(is.null(object_name)){
-    all_objects <- list.files(app_data_dir, pattern = "\\.Rds") %>%
-      purrr::map_chr(stringr::str_remove, pattern = "\\.Rds")
+    all_objects <- fs::dir_ls(path = app_data_dir, regexp = "\\.Rds")
   } else {
-    all_objects <- object_name
+    all_objects <- paste0(app_data_dir, "/", object_name, ".Rds")
   }
 
   #file loader constructor
-  load_rds_object <- function(single_object){
-    file_name <- glue::glue("{single_object}.Rds")
+  load_rds_object <- function(filename) {
+    object <- sub(".*/", "", filename)
+    object <- sub("\\.Rds", "", object)
+    assign(object, readRDS(filename), envir = .GlobalEnv)
 
-    if(!exists(single_object)) {
-      assign(single_object, readRDS(here::here(app_data_dir, file_name)),
-             envir = .GlobalEnv)
-    }
-    message(glue::glue("loaded {single_object}"))
+    message(glue::glue("loaded {object}"))
   }
 
   #walk through to load all files
@@ -220,21 +226,18 @@ load_ddh_rds <- function(app_data_dir,
 load_ddh_qs <- function(app_data_dir,
                         object_name = NULL) {
   if(is.null(object_name)){
-    all_objects <- list.files(app_data_dir) %>%
-      purrr::discard(~ stringr::str_detect(., pattern = "\\.Rds"))
+    all_objects <- fs::dir_ls(path = app_data_dir, regexp = "\\.Rds", invert = TRUE)
   } else {
-    all_objects <- object_name
+    all_objects <- paste0(app_data_dir, "/", object_name, "_test")
   }
 
   #file loader constructor
-  load_qs_object <- function(single_object){
-    file_name <- single_object
+  load_qs_object <- function(filename) {
+    object <- sub(".*/", "", filename)
+    object <- sub("_test", "", object)
+    assign(object, qs::qread(filename), envir = .GlobalEnv)
 
-    if(!exists(single_object)) {
-      assign(single_object, qs::qread(here::here(app_data_dir, file_name)),
-             envir = .GlobalEnv)
-    }
-    message(glue::glue("loaded {single_object}"))
+    message(glue::glue("loaded {object}"))
   }
 
   #walk through to load all files
