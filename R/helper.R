@@ -653,56 +653,66 @@ plot_size_finder <- function(function_name){ #this function sets the output size
   type <-
     switch(function_name,
            make_ideogram = "portrait",
-           make_proteinsize = "landscape",
-           #make_sequence = "square",
+           make_proteinsize = "short",
+           #make_sequence is handeled in generate_sequences()
            #make_protein_domain_plot = "landscape",
            make_radial = "square",
            #make_umap_plot = "landscape",
            #make_cluster_enrich_plot = "square",
-           make_structure = "portrait",
            make_pubmed =  "landscape",
            make_cellanatogram =  "landscape",
            make_female_anatogram = "portrait",
            make_male_anatogram = "portrait",
-           make_tissue = "landscape",
+           make_tissue = "custom_tissue",
            make_celldeps = "landscape",
            make_cellbins = "landscape",
-           make_lineage = "portrait",
-           make_sublineage = "portrait",
+           make_lineage = "tall",
+           make_sublineage = "taller",
            make_correlation = "landscape",
-           make_cellexpression = "landscape",
-           make_cellgeneprotein = "landscape",
+           make_cellexpression = "short",
+           make_cellgeneprotein = "short",
            make_expdep = "landscape",
            stop("no such plot")
-
     )
-
   if(type == "portrait"){
     #Size: 1080 x 1920 px
     #Aspect Ratio: 9:16
-    # plot_size = list(plot_width = 1080,
-    #                  plot_height = 1920)
+    plot_size = list(plot_width = 1080,
+                     plot_height = 1920)
     # plot_size = list(plot_width = 480,
     #                  plot_height = 720)
-    plot_size = list(plot_width = 300,
-                     plot_height = 450)
+    # plot_size = list(plot_width = 300,
+    #                  plot_height = 450)
   } else if(type == "landscape") {
     #Size: 1920 x 1080 px
     #Aspect ratio: 16:9
-    # plot_size = list(plot_width = 1920,
-    #                  plot_height = 1080)
+    plot_size = list(plot_width = 1920,
+                     plot_height = 1080)
     # plot_size = list(plot_width = 720,
     #                  plot_height = 480)
-    plot_size = list(plot_width = 750,
-                     plot_height = 400)
+    # plot_size = list(plot_width = 750,
+    #                  plot_height = 400)
   } else if(type == "square"){
     #Aspect ratio: 1:1
-    plot_size = list(plot_width = 500,
-                     plot_height = 500)
+    plot_size = list(plot_width = 1920,
+                     plot_height = 1920)
+  } else if(type == "custom_tissue"){
+    #Aspect ratio: 1:1
+    plot_size = list(plot_width = 1920,
+                     plot_height = 3840) #1920*2
+  } else if(type == "short"){
+    plot_size = list(plot_width = 1920,
+                     plot_height = 720) #1080/1.5
+  } else if(type == "tall"){
+    #lineage
+    plot_size = list(plot_width = 2160, #1080*2
+                     plot_height = 2496) #1920*1.3
+  } else if(type == "taller"){
+    #sublineage
+    plot_size = list(plot_width = 2872, #1080*2.66
+                     plot_height = 4473) #1920*2.33
   } else {
-    #custom?
-    plot_size = list(plot_width = 720,
-                     plot_height = 720)
+    message("you need to define a plot size")
   }
   return(plot_size)
 }
