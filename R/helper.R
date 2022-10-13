@@ -37,8 +37,8 @@ download_ddh_data <- function(app_data_dir,
     if(!privateMode) {
       data_objects <- data_objects %>%
         purrr::discard(purrr::map_lgl(.x = 1:length(data_objects),
-                                   ~ stringr::str_detect(data_objects[[.x]][["Key"]],
-                                                         pattern = "_private")))
+                                      ~ stringr::str_detect(data_objects[[.x]][["Key"]],
+                                                            pattern = "_private")))
     }
 
     message(glue::glue('{length(data_objects)} objects in the {bucket_name} bucket'))
@@ -404,7 +404,7 @@ make_bomb_plot <- function(){
   circle <-
     circle %>%
     dplyr::mutate(distance_to_center = sqrt((x-x_center)^2 + (y-y_center)^2),
-           include = dplyr::if_else(distance_to_center < radius, TRUE, FALSE))
+                  include = dplyr::if_else(distance_to_center < radius, TRUE, FALSE))
 
   #add bomb top
   #target 1/3 of bomb width; target 1/6 for height
@@ -450,9 +450,9 @@ make_bomb_plot <- function(){
   fuse <-
     fuse %>%
     dplyr::mutate(y = fuse_fun(x,
-                        cube_var = cube,
-                        lin_var = lin,
-                        whole_var = whole))
+                               cube_var = cube,
+                               lin_var = lin,
+                               whole_var = whole))
 
   # fuse <-
   #   fuse %>%
@@ -618,7 +618,7 @@ make_bomb_plot <- function(){
   spark_lines <-
     spark_lines %>%
     dplyr::mutate(distance_to_center = sqrt((x-x_fuse)^2 + (y-y_fuse)^2),
-           include = dplyr::if_else(distance_to_center < spark_radius/3, FALSE, TRUE))
+                  include = dplyr::if_else(distance_to_center < spark_radius/3, FALSE, TRUE))
 
   #build plot with layers
   plot_complete <-
@@ -752,7 +752,7 @@ make_roxygen <- function(fun_name,
     "#' \\dontrun{",
     glue::glue("#' {fun_name}(input = list(type = 'gene', content = 'ROCK1'))"),
     "#' }"
-    )
+  )
   roxygen <- unlist(roxygen_c)
   output_file <- here::here("tmp.Rmd")
   writeLines(roxygen, con = output_file)
@@ -933,26 +933,38 @@ clean_colnames <- function(dataset,
 #' @export
 #' @examples
 #' load_image(input = list(type = "gene", content = c("ROCK3")), fun_name = "make_female_anatogram")
-#' load_image(input = list(type = "gene", content = c("ROCK1")), fun_name = "make_female_anatogram", image_type = "plot")
+#' load_image(input = list(type = "gene", content = c("ROCK1")), fun_name = "make_female_anatogram", card = TRUE)
 #' load_image(input = list(type = "gene", content = c("ROCK1", "ROCK2")), fun_name = "make_female_anatogram")
 #' load_image(input = list(type = "compound", content = c("aspirin")), fun_name = "make_celldeps")
 #' load_image(input = list(type = "compound", content = c("aspirin")), fun_name = "make_molecule_structure")
-load_image <- function(data_dir = app_data_dir,
-                       input = list(),
+load_image <- function(input = list(),
                        fun_name,
-                       image_type = "card") { #type is either card or plot
-  #build the input for the raw fun() & call function
-  name <- stringr::str_c(input$content, collapse="-") #intended to fail with multigene query to return NULL
-  fun <- stringr::str_remove(fun_name, "make_")
-  file_name <- glue::glue('{name}_{fun}_{image_type}.jpeg')
-  path <- here::here(data_dir, "images", input$type, name)
+                       card = FALSE) { #type is either card or plot
+  load_image_raw <- function(){
+    #build the input for the raw fun() & call function
+    name <- stringr::str_c(input$content, collapse="-") #intended to fail with multigene query to return NULL
+    fun <- stringr::str_remove(fun_name, "make_")
+    if(card == TRUE){image_type = "card"} else {image_type = "plot"}
 
-  #check to see if file exists
-  if(file.exists(glue::glue('{path}/{file_name}'))) {
-    return(glue::glue('{path}/{file_name}'))
-  } else {
-    return(NULL)
+    file_name <- glue::glue('{name}/{name}_{fun}_{image_type}.jpg')
+
+    #check to see if file exists
+    #check if exists
+    url <- glue::glue("https://{Sys.getenv('AWS_IMAGES_BUCKET_ID')}.s3.amazonaws.com/{file_name}")
+    status <- httr::GET(url) %>% httr::status_code()
+
+    if(status == 200){
+      return(url)
+    } else {
+      return(NULL)
+    }
   }
+  #error handling
+  tryCatch(load_image_raw(),
+           error = function(e){
+             message(e)
+             NULL
+           })
 }
 
 #' Load PDB file
