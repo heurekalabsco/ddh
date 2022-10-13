@@ -4,15 +4,13 @@
 \alias{load_pdb}
 \title{Load PDB file}
 \usage{
-load_pdb(data_dir = app_data_dir, input = list())
+load_pdb(input = list())
 }
 \arguments{
-\item{data_dir}{}
-
 \item{input}{Expecting a list containing type and content variable.}
 }
 \value{
-A PDB file.
+Path to a url containing a PDB file.
 }
 \description{
 Load PDB file
