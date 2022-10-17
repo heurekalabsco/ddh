@@ -43,7 +43,7 @@ make_barcode <- function(input = list(),
              message(e)
              if(card == TRUE){image_type = "card"} else {image_type = "plot"}
              glue::glue("https://{Sys.getenv('AWS_BARCODE_BUCKET_ID')}.s3.amazonaws.com/error_barcode_{image_type}.jpeg")
-             })
+           })
 }
 
 ## IDEOGRAM PLOT --------------------------------------------------------
@@ -1005,7 +1005,7 @@ make_structure <- function(input = list(),
              message(e)
              if(card == TRUE){image_type = "card"} else {image_type = "plot"}
              glue::glue("https://{Sys.getenv('AWS_PROTEINS_BUCKET_ID')}.s3.amazonaws.com/error_structure_{image_type}.jpg")
-             })
+           })
 }
 
 ## 3D STRUCTURE PLOT --------------------------------------------------------------------
@@ -1233,7 +1233,7 @@ make_pubmed <- function(pubmed_data = pubmed,
       plot_complete <-
         plot_complete +
         ggplot2::labs(y = "Cumulative Publications",
-             color = "Query")
+                      color = "Query")
     }
 
     if(card == TRUE){
@@ -1614,6 +1614,7 @@ make_cellexpression <- function(expression_data = expression_long,
       mean <- mean_gene
       upper_limit <- gene_expression_upr
       lower_limit <- gene_expression_lwr
+      color_type <- "gene"
     } else if (var == "protein") {
       plot_initial <-
         expression_data %>%
@@ -1622,6 +1623,7 @@ make_cellexpression <- function(expression_data = expression_long,
       mean <- mean_protein
       upper_limit <- protein_expression_upr
       lower_limit <- protein_expression_lwr
+      color_type <- "protein"
     } else {
       stop("declare your variable")
     }
@@ -1642,6 +1644,7 @@ make_cellexpression <- function(expression_data = expression_long,
                                      color = gene
         ))
     } else if (input$type == "cell") {
+      color_type <- "cell"
       plot_data <- plot_initial %>%
         dplyr::left_join(expression_join, by = "X1") %>%
         dplyr::select(-X1) %>%
@@ -1653,13 +1656,10 @@ make_cellexpression <- function(expression_data = expression_long,
         ggplot2::ggplot(ggplot2::aes(y = cell_fct,
                                      x = expression_var,
                                      text = paste0("Gene: ", gene),
-                                     color = cell_line
-        ))
-
+                                     color = cell_line))
       mean <- mean_virtual_achilles_cell_line
       upper_limit <- NULL
       lower_limit <- NULL
-
     }
 
     plot_complete <-
@@ -1670,8 +1670,8 @@ make_cellexpression <- function(expression_data = expression_long,
       ggplot2::geom_vline(xintercept = upper_limit, color = "lightgray", linetype = "dashed") +#3SD
       ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = 0.01)) +
       ggplot2::scale_y_discrete(expand = ggplot2::expansion(mult = 1 / length(input$content)), na.translate = FALSE) +
-      scale_color_ddh_d(palette = input$type) +
-      theme_ddh() +
+      ddh::scale_color_ddh_d(palette = color_type) + #req'd to get protein color
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
@@ -2990,27 +2990,36 @@ make_expdep <- function(expression_data = expression_long,
 #' @export
 #' @examples
 #' make_cell_image(input = list(content = "HEPG2"))
-make_cell_image <- function(data_dir = app_data_dir,
-                            input = list()) {
-  make_cell_image_raw <- function() {
-    #if multiple, then pull single "rep" image; consider pulling >1 and using patchwork, eg.
-    if(length(input$content > 1)) {
-      fav_cell <- sample(input$content, 1) #input$gene_symbols[[1]]
+make_cell_image <- function(input = list(),
+                            card = FALSE) {
+  make_cell_image_raw <- function(){
+    if(length(input$content > 1)){
+      cell_name <- sample(input$content, 1) #input$content[[1]]
     } else {
-      fav_cell <- input$content
+      cell_name <- input$content
     }
 
-    #fetch image path from dir, HARDCODED TO DATA DIR, NOT TEST DATA DIR
-    file_name <- glue::glue('{fav_cell}_cell_image_plot.jpeg')
-    image_path <- here::here(data_dir, "images", "cell", fav_cell, file_name)
+    #image type
+    if(card == TRUE){image_type = "card"} else {image_type = "plot"}
 
-    return(image_path)
+    #check if exists
+    url <- glue::glue("https://{Sys.getenv('AWS_CELLIMAGES_BUCKET_ID')}.s3.amazonaws.com/{cell_name}_cell_image_{image_type}.jpeg")
+    status <- httr::GET(url) %>% httr::status_code()
+
+    if(status == 200){
+      return(url)
+    } else {
+      num <- sample(1:5, 1)
+      return(glue::glue("https://{Sys.getenv('AWS_CELLIMAGES_BUCKET_ID')}.s3.amazonaws.com/error_cell_image{num}.jpg"))
+    }
   }
   #error handling
   tryCatch(make_cell_image_raw(),
            error = function(e){
              message(e)
-             make_bomb_plot()})
+             num <- sample(1:5, 1)
+             return(glue::glue("https://{Sys.getenv('AWS_CELLIMAGES_BUCKET_ID')}.s3.amazonaws.com/error_cell_image{num}.jpg"))
+           })
 }
 
 ## CO-ESSENTIALITY CELL LINE PLOT --------------------------------------------------------
@@ -3449,10 +3458,8 @@ make_metadata_cell <- function(input = list(),
 #' make_molecule_structure(input = list(content = "aspirin"))
 #' }
 make_molecule_structure <- function(input = list(),
-                                    #test = FALSE,
-                                    model_width = 800,
-                                    model_height = 800,
-                                    card = FALSE) {
+                                    card = FALSE,
+                                    file_name = NULL) {
   make_molecule_structure_raw <- function(){
     #Customize the material with toon shading
     shiny_toon_material = rayvertex::material_list(type="toon_phong",
@@ -3462,24 +3469,33 @@ make_molecule_structure <- function(input = list(),
     molecule <-
       raymolecule::get_molecule(input$content) %>%
       raymolecule::generate_full_scene(pathtrace=FALSE,
-                                       material_vertex = shiny_toon_material) %>%
-      raymolecule::render_model(width=model_width,
-                                height=model_height,
-                                background="white")
-
+                                       material_vertex = shiny_toon_material)
     if(card == TRUE){
-      molecule <-
-        molecule +
-        #annotate with image magick?
-        ggplot2::labs(x = "")#, title = "Gene Information", caption = "more ...")
+      model_width = 1080
+      model_height = 1080
+    } else {
+      model_width = 2160
+      model_height = 2160
     }
-
-    return(molecule)
+    if(!is.null(file_name)){
+      molecule %>%
+        raymolecule::render_model(width=model_width,
+                                  height=model_height,
+                                  fov=10,
+                                  background="white",
+                                  filename = file_name)
+      return(message(glue::glue('{input$content} saved to {file_name}')))
+    } else {
+      molecule %>%
+        raymolecule::render_model(width=model_width,
+                                  height=model_height,
+                                  background="white")
+    }
   }
   #error handling
   tryCatch(make_molecule_structure_raw(),
            error = function(e){
              message(e)
-             make_bomb_plot()})
+           })
 }
 

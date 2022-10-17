@@ -671,27 +671,23 @@ plot_size_finder <- function(function_name){ #this function sets the output size
            make_correlation = "landscape",
            make_cellexpression = "short",
            make_cellgeneprotein = "short",
-           make_expdep = "landscape",
-           stop("no such plot")
+           make_expdep = "landscape"
+           #stop("no such plot") #invisibly returns NULL for first conditional
     )
-  if(type == "portrait"){
+  if(is.null(type)){
+    #setting to NA let's ggplot decide on scales
+    plot_size = list(plot_width = NA,
+                     plot_height = NA)
+  } else if(type == "portrait"){
     #Size: 1080 x 1920 px
     #Aspect Ratio: 9:16
     plot_size = list(plot_width = 1080,
                      plot_height = 1920)
-    # plot_size = list(plot_width = 480,
-    #                  plot_height = 720)
-    # plot_size = list(plot_width = 300,
-    #                  plot_height = 450)
   } else if(type == "landscape") {
     #Size: 1920 x 1080 px
     #Aspect ratio: 16:9
     plot_size = list(plot_width = 1920,
                      plot_height = 1080)
-    # plot_size = list(plot_width = 720,
-    #                  plot_height = 480)
-    # plot_size = list(plot_width = 750,
-    #                  plot_height = 400)
   } else if(type == "square"){
     #Aspect ratio: 1:1
     plot_size = list(plot_width = 1920,
@@ -712,7 +708,9 @@ plot_size_finder <- function(function_name){ #this function sets the output size
     plot_size = list(plot_width = 2872, #1080*2.66
                      plot_height = 4473) #1920*2.33
   } else {
-    message("you need to define a plot size")
+    #setting to NA let's ggplot decide on scales
+    plot_size = list(plot_width = NA,
+                     plot_height = NA)
   }
   return(plot_size)
 }
