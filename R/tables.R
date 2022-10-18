@@ -13,7 +13,7 @@
 #'
 #' @export
 #' @examples
-#' make_pathway_list(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_pathway_list(input = list(type = 'gene', content = 'ROCK1'))
 #' \dontrun{
 #' make_pathway_list(input = list(type = 'gene', content = 'ROCK1'))
 #' }
@@ -134,7 +134,7 @@ make_compound_table <- function(data_prism_cor_nest = prism_cor_nest,
 #'
 #' @export
 #' @examples
-#' make_pubmed_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_pubmed_table(input = list(type = 'gene', content = 'ROCK1'))
 #' \dontrun{
 #' make_pubmed_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
@@ -172,7 +172,7 @@ make_pubmed_table <- function(data_pubmed = pubmed,
 #'
 #' @export
 #' @examples
-#' make_cellanatogram_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_cellanatogram_table(input = list(type = 'gene', content = 'ROCK1'))
 #' \dontrun{
 #' make_cellanatogram_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
@@ -213,7 +213,7 @@ make_cellanatogram_table <- function(data_subcell = subcell,
 #'
 #' @export
 #' @examples
-#' make_expression_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_expression_table(input = list(type = 'gene', content = 'ROCK1'))
 #' \dontrun{
 #' make_expression_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
@@ -290,7 +290,7 @@ make_expression_table <- function(data_expression_long = expression_long,
 #'
 #' @export
 #' @examples
-#' make_humananatogram_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_humananatogram_table(input = list(type = 'gene', content = 'ROCK1'))
 #' \dontrun{
 #' make_humananatogram_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
@@ -331,7 +331,7 @@ make_humananatogram_table <- function(data_tissue = tissue,
 #'
 #' @export
 #' @examples
-#' make_clustering_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_clustering_table(input = list(type = 'gene', content = 'ROCK1'))
 #' \dontrun{
 #' make_clustering_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
@@ -410,7 +410,7 @@ make_clustering_table <- function(data_sequence_clusters = sequence_clusters,
 #'
 #' @export
 #' @examples
-#' make_clustering_enrichment_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_clustering_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
 #' \dontrun{
 #' make_clustering_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
@@ -508,9 +508,9 @@ make_structure3d_table <- function(data_uniprot_pdb_table = uniprot_pdb_table,
 #'
 #' @export
 #' @examples
-#' make_dep_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-#' make_dep_table(input = list(type = 'compound', query = 'aspirin', content = 'aspirin'))
-#' make_dep_table(input = list(type = 'cell', query = 'HEPG2', content = 'HEPG2'))
+#' make_dep_table(input = list(type = 'gene', content = 'ROCK1'))
+#' make_dep_table(input = list(type = 'compound', content = 'aspirin'))
+#' make_dep_table(input = list(type = 'cell', content = 'HEPG2'))
 #' \dontrun{
 #' make_dep_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
@@ -593,7 +593,7 @@ make_dep_table <- function(data_achilles_long = achilles_long,
 #'
 #' @export
 #' @examples
-#' make_top_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_top_table(input = list(type = 'gene', content = 'ROCK1'))
 #' \dontrun{
 #' make_top_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
@@ -657,7 +657,7 @@ make_top_table <- function(data_master_top_table = master_top_table,
 #'
 #' @export
 #' @examples
-#' make_bottom_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_bottom_table(input = list(type = 'gene', content = 'ROCK1'))
 #' \dontrun{
 #' make_bottom_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
@@ -748,7 +748,7 @@ censor <- function(top_table,
 #'
 #' @export
 #' @examples
-#' make_enrichment_top(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_enrichment_top(input = list(type = 'gene', content = 'ROCK1'))
 #' \dontrun{
 #' make_enrichment_top(input = list(type = 'gene', content = 'ROCK1'))
 #' }
@@ -790,7 +790,7 @@ make_enrichment_top <- function(data_master_positive = master_positive,
 #'
 #' @export
 #' @examples
-#' make_enrichment_bottom(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_enrichment_bottom(input = list(type = 'gene', content = 'ROCK1'))
 #' \dontrun{
 #' make_enrichment_bottom(input = list(type = 'gene', content = 'ROCK1'))
 #' }
@@ -990,7 +990,7 @@ make_drug_genes_cor_table <- function(data_drug_genes_cor_table = drug_genes_cor
 #'
 #' @export
 #' @examples
-#' make_gene_drugs_cor_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_gene_drugs_cor_table(input = list(type = 'gene', content = 'ROCK1'))
 #' \dontrun{
 #' make_gene_drugs_cor_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
@@ -1134,11 +1134,11 @@ make_cell_drugs_table <- function(data_prism_long = prism_long,
 #'
 #' @export
 #' @examples
-#' make_metabolite_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_metabolite_table(input = list(type = 'gene', content = 'ROCK1'))
 #' make_metabolite_table(input = list(type = "gene", content = "ROCK2"))
 #' make_metabolite_table(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 #' make_metabolite_table(input = list(type = "compound", content = "NAD"))
-#' make_metabolite_table(input = list(type = "cell", query = "HEPG2", content = "HEPG2"))
+#' make_metabolite_table(input = list(type = "cell", content = "HEPG2"))
 #' \dontrun{
 #' make_metabolite_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
