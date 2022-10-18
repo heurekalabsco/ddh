@@ -64,8 +64,8 @@ make_barcode <- function(input = list(),
 #' \dontrun{
 #' make_ideogram(input = list(type = "gene", content = "ROCK1"))
 #' }
-make_ideogram <- function(location_data = gene_location,
-                          chromosome_data = chromosome,
+make_ideogram <- function(data_gene_location = gene_location,
+                          data_chromosome = chromosome,
                           input = list(),
                           card = FALSE) {
   make_ideogram_raw <- function() {
@@ -79,7 +79,7 @@ make_ideogram <- function(location_data = gene_location,
 
     #get some pq arms for the background images
     pq <-
-      chromosome_data %>%
+      data_chromosome %>%
       dplyr::mutate(centromere = (centromereposition_mbp * 1000000), #correct for n adjustment here
                     p = centromere + (n/2),
                     q = (basepairs+n) - p) %>% #correct for n adjustment here
@@ -95,13 +95,13 @@ make_ideogram <- function(location_data = gene_location,
 
     #get max lengths for left_join below to normalize transcript sites to maximum, so bands are plotted in the right direction
     max_lengths <-
-      chromosome_data %>%
+      data_chromosome %>%
       dplyr::select(chromosome_name = id, basepairs) %>%
       dplyr::mutate(basepairs = basepairs + n) #correct for n adjustment here
 
     #make some bands
     band_boundaries <-
-      location_data %>%
+      data_gene_location %>%
       dplyr::group_by(chromosome_name, band) %>%
       dplyr::summarize(abs_min = min(transcript_start),
                        abs_max = max(transcript_end),
@@ -117,7 +117,7 @@ make_ideogram <- function(location_data = gene_location,
     #adding if (is.null(gene_symbol)), gene_symbol=NULL allows me to generate a plot, even without gene_symbol data, #no data filters, #drop geom_point here
     #get location data for each gene query
     gene_loci <-
-      location_data %>%
+      data_gene_location %>%
       dplyr::filter(approved_symbol %in% input$content) %>%
       dplyr::select(approved_symbol, chromosome_name, transcript_start, transcript_end) %>%
       dplyr::left_join(max_lengths, by = "chromosome_name") %>% #need to flip the query gene start site around b/c chromosome positions count from the top, but ggplots from the bottom
@@ -208,7 +208,7 @@ make_ideogram <- function(location_data = gene_location,
 #' \dontrun{
 #' make_proteinsize(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_proteinsize <- function(protein_data = proteins,
+make_proteinsize <- function(data_proteins = proteins,
                              input = list(),
                              card = FALSE) {
   make_proteinsize_raw <- function() {
@@ -234,7 +234,7 @@ make_proteinsize <- function(protein_data = proteins,
 
     last_gene <- gene_symbol[length(gene_symbol)]
     last_mass <-
-      protein_data %>%
+      data_proteins %>%
       dplyr::filter(gene_name == last_gene) %>%
       dplyr::pull(mass)
 
@@ -244,7 +244,7 @@ make_proteinsize <- function(protein_data = proteins,
                                 max_mass = last_mass) {
 
       selected <-
-        protein_data %>%
+        data_proteins %>%
         dplyr::filter(gene_name %in% var)
 
       if(card_var == TRUE){ #this solves for a single case
@@ -361,7 +361,7 @@ make_proteinsize <- function(protein_data = proteins,
 #' \dontrun{
 #' make_sequence(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_sequence <- function(sequence_data = proteins,
+make_sequence <- function(data_proteins = proteins,
                           input = list(),
                           card = FALSE) {
   make_sequence_raw <- function() {
@@ -373,7 +373,7 @@ make_sequence <- function(sequence_data = proteins,
     # }
 
     sequence_string <-
-      sequence_data %>%
+      data_proteins %>%
       dplyr::filter(gene_name %in% input$content) %>%
       dplyr::pull("sequence") %>%
       stringr::str_sub(start = 1L, end = 100L) %>%
@@ -453,30 +453,35 @@ make_sequence <- function(sequence_data = proteins,
 #' make_protein_domain(input = list(content = "ROCK2"), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
 #' }
 make_protein_domain <- function(input = list(),
-                                domain_data = protein_domains,
+                                data_protein_domains = protein_domains,
                                 dom_var = NULL,
                                 ptm_var = NULL) {
 
   make_protein_domain_raw <- function() {
 
-    gene_symbol <- domain_data %>%
+    gene_symbol <-
+      data_protein_domains %>%
       dplyr::filter(gene_name %in% input$content) %>%
       dplyr::pull(gene_name) %>%
       unique()
 
-    lengths_data <- domain_data %>%
+    lengths_data <-
+      data_protein_domains %>%
       dplyr::filter(gene_name %in% input$content) %>%
       dplyr::filter(!duplicated(gene_name))
 
-    plot_data <- domain_data %>%
+    plot_data <-
+      data_protein_domains %>%
       dplyr::filter(gene_name %in% input$content) %>%
       dplyr::mutate(order = 1)
 
-    prots_dr <- plot_data %>%
+    prots_dr <-
+      plot_data %>%
       dplyr::filter(type %in% c("DOMAIN", "REGION")) %>%
       tidyr::drop_na(description)
 
-    prots_ptm <- plot_data %>%
+    prots_ptm <-
+      plot_data %>%
       dplyr::filter(category == "PTM") %>%
       tidyr::drop_na(description)
 
@@ -599,30 +604,30 @@ make_protein_domain <- function(input = list(),
 #' \dontrun{
 #' make_radial(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_radial <- function(cluster_data = sequence_clusters,
-                        signature_data = signatures,
+make_radial <- function(data_sequence_clusters = sequence_clusters,
+                        data_signatures = signatures,
                         input = list(),
                         relative = TRUE,
                         cluster = FALSE,
                         barplot = FALSE,
                         card = FALSE) {
   make_radial_raw <- function() {
-    # sequence_data_clean <- cluster_data %>%
+    # data_proteins_clean <- data_sequence_clusters %>%
     #   dplyr::filter(clust != 0)
 
-    sequence_data_clean <- cluster_data
+    data_proteins_clean <- data_sequence_clusters
 
     if(cluster) {
       query_clust <-
-        sequence_data_clean %>%
+        data_proteins_clean %>%
         dplyr::filter(gene_name %in% input$content) %>%
         dplyr::pull(clust) %>%
         unique()
 
       signature_cluster_means_prep <-
-        signature_data %>%
+        data_signatures %>%
         dplyr::select(uniprot_id, A:Y) %>%
-        dplyr::inner_join(cluster_data, by = "uniprot_id") %>%
+        dplyr::inner_join(data_sequence_clusters, by = "uniprot_id") %>%
         dplyr::select(-gene_name, -X1, -X2, -member_prob)
 
       signature_cluster_means_query <-
@@ -652,7 +657,7 @@ make_radial <- function(cluster_data = sequence_clusters,
 
     } else {
       signature_cluster_means_prep <-
-        signature_data %>%
+        data_signatures %>%
         dplyr::select(gene_name, A:Y)
 
       signature_cluster_means_query <-
@@ -833,32 +838,32 @@ make_radial_bar <- function(input = list(),
 #' \dontrun{
 #' make_umap_plot(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_umap_plot <- function(cluster_data = sequence_clusters,
+make_umap_plot <- function(data_sequence_clusters = sequence_clusters,
                            input = list(),
                            show_subset = FALSE,
                            labels = FALSE) {
   make_umap_plot_raw <- function() {
 
-    sequence_data_clean <- cluster_data %>%
+    data_proteins_clean <- data_sequence_clusters %>%
       # dplyr::filter(clust != 0) %>%
       dplyr::mutate(clust = paste0("Cluster ", clust))
 
-    query_clust <- sequence_data_clean %>%
+    query_clust <- data_proteins_clean %>%
       dplyr::filter(gene_name %in% input$content) %>%
       dplyr::pull(clust) %>%
       unique()
 
-    cluster_genes <- sequence_data_clean %>%
+    cluster_genes <- data_proteins_clean %>%
       dplyr::filter(clust %in% query_clust)
 
     colors <- ddh_pal_c(palette = "protein")(length(query_clust))
 
     # UMAP PLOT
     plot_complete <- ggplot2::ggplot() +
-      {if(!show_subset)ggplot2::geom_point(data = sequence_data_clean %>%
+      {if(!show_subset)ggplot2::geom_point(data = data_proteins_clean %>%
                                              dplyr::filter(!uniprot_id %in% cluster_genes$uniprot_id),
                                            ggplot2::aes(X1, X2), size = 0.8, color = "grey80")} +
-      ggplot2::geom_point(data = sequence_data_clean %>%
+      ggplot2::geom_point(data = data_proteins_clean %>%
                             dplyr::filter(uniprot_id %in% cluster_genes$uniprot_id),
                           ggplot2::aes(X1, X2, color = clust), size = 0.8) +
       {if(labels)ggrepel::geom_label_repel(data = cluster_genes %>%
@@ -868,7 +873,7 @@ make_umap_plot <- function(cluster_data = sequence_clusters,
                     y = "UMAP 2") +
       ggplot2::scale_color_manual(
         values = rep(colors, length.out =
-                       nrow(sequence_data_clean %>%
+                       nrow(data_proteins_clean %>%
                               dplyr::filter(uniprot_id %in% cluster_genes$uniprot_id)))
       ) +
       ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 3))) +
@@ -913,13 +918,17 @@ make_umap_plot <- function(cluster_data = sequence_clusters,
 #' \dontrun{
 #' make_cluster_enrich(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_cluster_enrich <- function(input = list(),
+make_cluster_enrich <- function(data_sequence_clusters = sequence_clusters,
+                                data_protein_cluster_enrichment = protein_cluster_enrichment,
+                                input = list(),
                                 ontology = "BP",
                                 num_terms = 20) {
 
   make_cluster_enrich_plot_raw <- function() {
 
-    plot_data <- make_clustering_enrichment_table(input = input,
+    plot_data <- make_clustering_enrichment_table(data_sequence_clusters,
+                                                  data_protein_cluster_enrichment,
+                                                  input = input,
                                                   ontology = ontology)
 
     plot_complete <-
@@ -1024,8 +1033,8 @@ make_structure <- function(input = list(),
 #' \dontrun{
 #' make_structure3d(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_structure3d <- function(pdb_ids = uniprot_pdb_table,
-                             protein_data = proteins,
+make_structure3d <- function(data_uniprot_pdb_table = uniprot_pdb_table,
+                             data_proteins = proteins,
                              gene_symbol = NULL,
                              pdb_id = NULL,
                              input = list(),
@@ -1054,9 +1063,9 @@ make_structure3d <- function(pdb_ids = uniprot_pdb_table,
       plot_data <- bio3d::read.pdb(pdb_path)
     } else {
       plot_data <-
-        protein_data %>%
+        data_proteins %>%
         dplyr::filter(gene_name %in% gene_symbol) %>%
-        dplyr::left_join(pdb_ids, by = c("uniprot_id" = "uniprot")) %>%
+        dplyr::left_join(data_uniprot_pdb_table, by = c("uniprot_id" = "uniprot")) %>%
         tidyr::unnest(data) %>%
         {if (is.null(pdb_id)) dplyr::slice(., 1) else dplyr::filter(., pdb == pdb_id)} %>%
         dplyr::pull(pdb) %>%
@@ -1127,12 +1136,12 @@ make_structure3d <- function(pdb_ids = uniprot_pdb_table,
 #' \dontrun{
 #' make_pubmed(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_pubmed <- function(pubmed_data = pubmed,
+make_pubmed <- function(data_pubmed = pubmed,
                         input = list(),
                         card = FALSE) {
   make_pubmed_raw <- function() {
     plot_data <-
-      pubmed_data %>%
+      data_pubmed %>%
       dplyr::filter(name %in% input$content) %>%
       tidyr::unnest(data) %>%
       dplyr::ungroup() %>%
@@ -1276,12 +1285,12 @@ make_pubmed <- function(pubmed_data = pubmed,
 #' \dontrun{
 #' make_cellanatogram(input = list(type = 'gene', content = 'ROCK2'))
 #' }
-make_cellanatogram <- function(cellanatogram_data = subcell,
+make_cellanatogram <- function(data_subcell = subcell,
                                input = list(),
                                card = FALSE) {
   make_cellanatogram_raw <- function() {
     plot_data <-
-      cellanatogram_data %>%
+      data_subcell %>%
       dplyr::filter(gene_name %in% input$content) %>%
       dplyr::select(organ, type, colour, value) %>%
       tidyr::drop_na() %>%
@@ -1336,11 +1345,11 @@ make_cellanatogram <- function(cellanatogram_data = subcell,
 #' @export
 #' @examples
 #' make_cellanatogramfacet(input = list(type = "gene", content = c("BRCA1", "ROCK2")))
-make_cellanatogramfacet <- function(cellanatogram_data = subcell,
+make_cellanatogramfacet <- function(data_subcell = subcell,
                                     input = list()) {
   make_cellanatogramfacet_raw <- function() {
     plot_data <-
-      cellanatogram_data %>%
+      data_subcell %>%
       dplyr::filter(gene_name %in% input$content) %>%
       dplyr::select(gene_name, organ, type, colour, value) %>%
       tidyr::drop_na() %>%
@@ -1403,14 +1412,14 @@ make_female_anatogram <- function(anatogram = "female",
                                   card = FALSE) {
   make_female_anatogram_raw <- function() {
     if(anatogram == "female"){
-      raw_body_data = female_tissue
+      data_tissue = female_tissue
     } else if(anatogram == "male") {
-      raw_body_data = male_tissue
+      data_tissue = male_tissue
     } else {
       return("declare your anatogram type")
     }
     body_data <-
-      raw_body_data %>%
+      data_tissue %>%
       dplyr::filter_all(dplyr::any_vars(gene_name %in% input$content)) %>%
       dplyr::filter(!is.na(type)) %>%
       dplyr::arrange(dplyr::desc(-value))
@@ -1498,12 +1507,12 @@ make_male_anatogram <- function(anatogram = "male",
 #' \dontrun{
 #' make_tissue(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_tissue <- function(tissue_data = tissue,
+make_tissue <- function(data_tissue = tissue,
                         input = list(),
                         card = FALSE) {
   make_tissue_raw <- function() {
     plot_data <-
-      tissue_data %>%
+      data_tissue %>%
       dplyr::filter_all(dplyr::any_vars(gene_name %in% input$content)) %>%
       dplyr::group_by(organ) %>%
       dplyr::mutate(sum_value = sum(value),
@@ -1594,49 +1603,49 @@ make_tissue <- function(tissue_data = tissue,
 #' \dontrun{
 #' make_cellexpression(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_cellexpression <- function(expression_data = expression_long,
-                                expression_join = expression_names,
-                                gene_expression_upr = gene_expression_upper,
-                                gene_expression_lwr = gene_expression_lower,
-                                protein_expression_upr = protein_expression_upper,
-                                protein_expression_lwr = protein_expression_lower,
-                                mean_gene = mean_virtual_gene_expression,
-                                mean_protein = mean_virtual_protein_expression,
+make_cellexpression <- function(data_expression_long = expression_long,
+                                data_expression_names = expression_names,
+                                data_gene_expression_upper = gene_expression_upper,
+                                data_gene_expression_lower = gene_expression_lower,
+                                data_protein_expression_upper = protein_expression_upper,
+                                data_protein_expression_lower = protein_expression_lower,
+                                data_mean_virtual_gene_expression = mean_virtual_gene_expression,
+                                data_mean_virtual_protein_expression = mean_virtual_protein_expression,
                                 input = list(),
                                 var = "gene",
                                 card = FALSE) {
   make_cellexpression_raw <- function() {
     if (var == "gene") {
       plot_initial <-
-        expression_data %>%
+        data_expression_long %>%
         dplyr::select(dplyr::any_of(c("X1", "gene", "gene_expression"))) %>%
         dplyr::rename("expression_var" = "gene_expression")
-      mean <- mean_gene
-      upper_limit <- gene_expression_upr
-      lower_limit <- gene_expression_lwr
+      mean <- data_mean_virtual_gene_expression
+      upper_limit <- data_gene_expression_upper
+      lower_limit <- data_gene_expression_lower
       color_type <- "gene"
     } else if (var == "protein") {
       plot_initial <-
-        expression_data %>%
-        dplyr::select(X1, gene, protein_expression) %>%
+        data_expression_long %>%
+        dplyr::select(dplyr::any_of(c("X1", "gene", "protein_expression"))) %>%
         dplyr::rename("expression_var" = "protein_expression")
-      mean <- mean_protein
-      upper_limit <- protein_expression_upr
-      lower_limit <- protein_expression_lwr
+      mean <- data_mean_virtual_protein_expression
+      upper_limit <- data_protein_expression_upper
+      lower_limit <- data_protein_expression_lower
       color_type <- "protein"
     } else {
       stop("declare your variable")
     }
 
     if (input$type == "gene") {
-      plot_data <- plot_initial %>%
+      plot_data <-
+        plot_initial %>%
         dplyr::filter(gene %in% input$content,
                       !is.na(expression_var)) %>%
-        dplyr::left_join(expression_join, by = "X1") %>%
+        dplyr::left_join(data_expression_names, by = "X1") %>%
         dplyr::select(-X1) %>%
         dplyr::select(cell_line, lineage, lineage_subtype, dplyr::everything()) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
-        #dplyr::mutate(gene_fct = fct_reorder(gene, expression_var, .fun = max, .desc = TRUE)) %>%
         dplyr::mutate(gene_fct = forcats::fct_inorder(gene)) %>%
         ggplot2::ggplot(ggplot2::aes(y = gene_fct,
                                      x = expression_var,
@@ -1645,8 +1654,9 @@ make_cellexpression <- function(expression_data = expression_long,
         ))
     } else if (input$type == "cell") {
       color_type <- "cell"
-      plot_data <- plot_initial %>%
-        dplyr::left_join(expression_join, by = "X1") %>%
+      plot_data <-
+        plot_initial %>%
+        dplyr::left_join(data_expression_names, by = "X1") %>%
         dplyr::select(-X1) %>%
         dplyr::select(cell_line, lineage, lineage_subtype, dplyr::everything()) %>%
         dplyr::filter(cell_line %in% input$content,
@@ -1722,17 +1732,18 @@ make_cellexpression <- function(expression_data = expression_long,
 #' \dontrun{
 #' make_cellgeneprotein(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_cellgeneprotein <- function(expression_data = expression_long,
-                                 expression_join = expression_names,
+make_cellgeneprotein <- function(data_expression_long = expression_long,
+                                 data_expression_names = expression_names,
                                  input = list(),
                                  card = FALSE) {
   make_cellgeneprotein_raw <- function() {
     if (input$type == "gene") {
-      plot_initial <- expression_data %>%
+      plot_initial <-
+        data_expression_long %>%
         dplyr::filter(gene %in% input$content,
                       !is.na(gene_expression),
                       !is.na(protein_expression)) %>%
-        dplyr::left_join(expression_join, by = "X1") %>%
+        dplyr::left_join(data_expression_names, by = "X1") %>%
         dplyr::select(-X1) %>%
         dplyr::select(cell_line, lineage, lineage_subtype, dplyr::everything()) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
@@ -1743,8 +1754,9 @@ make_cellgeneprotein <- function(expression_data = expression_long,
                                      group = gene)
         )
     } else if (input$type == "cell") {
-      plot_initial <- expression_data %>%
-        dplyr::left_join(expression_join, by = "X1") %>%
+      plot_initial <-
+        data_expression_long %>%
+        dplyr::left_join(data_expression_names, by = "X1") %>%
         dplyr::select(-X1) %>%
         dplyr::select(cell_line, lineage, lineage_subtype, dplyr::everything()) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
@@ -1826,12 +1838,12 @@ make_cellgeneprotein <- function(expression_data = expression_long,
 #' \dontrun{
 #' make_celldeps(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_celldeps <- function(celldeps_data = achilles_long,
-                          prism_data = prism_long,
-                          expression_data = expression_names,
-                          mean_achilles = mean_virtual_achilles,
-                          mean_prism = mean_virtual_prism_cor,
-                          mean_cell_line = mean_virtual_achilles_cell_line,
+make_celldeps <- function(data_achilles_long = achilles_long,
+                          data_prism_long = prism_long,
+                          data_expression_names = expression_names,
+                          data_mean_virtual_achilles = mean_virtual_achilles,
+                          data_mean_virtual_prism_cor = mean_virtual_prism_cor,
+                          data_mean_virtual_achilles_cell_line = mean_virtual_achilles_cell_line,
                           input = list(),
                           card = FALSE,
                           lineplot = FALSE,
@@ -1841,12 +1853,12 @@ make_celldeps <- function(celldeps_data = achilles_long,
       aes_var <- rlang::sym("name")
       var_title <- "Gene"
       ylab <- "Dependecy Score"
-      mean <- mean_achilles
+      mean <- data_mean_virtual_achilles
 
       plot_data <-
-        celldeps_data %>% #plot setup
+        data_achilles_long %>% #plot setup
         dplyr::filter(gene %in% input$content) %>%
-        dplyr::left_join(expression_data, by = "X1") %>%
+        dplyr::left_join(data_expression_names, by = "X1") %>%
         dplyr::select(-X1) %>%
         dplyr::group_by(gene) %>%
         dplyr::arrange(dep_score) %>%
@@ -1861,12 +1873,12 @@ make_celldeps <- function(celldeps_data = achilles_long,
       aes_var <- rlang::sym("name")
       var_title <- "Compound"
       ylab <- "Log2FC"
-      mean <- mean_prism
+      mean <- data_mean_virtual_prism_cor
 
       plot_data <-
-        prism_data %>% #plot setup
+        data_prism_long %>% #plot setup
         dplyr::filter(name %in% input$content) %>%
-        dplyr::left_join(expression_data, by = c("x1" = "X1")) %>%
+        dplyr::left_join(data_expression_names, by = c("x1" = "X1")) %>%
         dplyr::select(-1) %>%
         dplyr::group_by(name) %>%
         dplyr::arrange(log2fc) %>%
@@ -1881,11 +1893,11 @@ make_celldeps <- function(celldeps_data = achilles_long,
       aes_var <- rlang::sym("cell_line")
       var_title <- "Gene"
       ylab <- "Dependecy Score"
-      mean <- mean_cell_line
+      mean <- data_mean_virtual_achilles_cell_line
 
       plot_data <-
-        celldeps_data %>% #plot setup
-        dplyr::left_join(expression_data, by = "X1") %>%
+        data_achilles_long %>% #plot setup
+        dplyr::left_join(data_expression_names, by = "X1") %>%
         dplyr::filter(cell_line %in% input$content) %>%
         dplyr::select(-X1) %>%
         dplyr::group_by(cell_line) %>%
@@ -1909,12 +1921,14 @@ make_celldeps <- function(celldeps_data = achilles_long,
         scale <- 0.3
       }
       if(input$type == "gene") {
-        plot_data <- plot_data %>%
+        plot_data <-
+          plot_data %>%
           dplyr::group_by(name) %>%
           dplyr::sample_n(scale*dplyr::n()) %>%
           dplyr::ungroup()
       } else {
-        plot_data <- plot_data %>%
+        plot_data <-
+          plot_data %>%
           dplyr::group_by(cell_line) %>%
           dplyr::sample_n(scale*dplyr::n()) %>%
           dplyr::ungroup()
@@ -2007,12 +2021,12 @@ make_celldeps <- function(celldeps_data = achilles_long,
 #' \dontrun{
 #' make_cellbar(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_cellbar <- function(celldeps_data = achilles_long,
-                         prism_data = prism_long,
-                         expression_data = expression_names,
-                         mean_achilles = mean_virtual_achilles,
-                         mean_prism = mean_virtual_prism_cor,
-                         mean_cell_line = mean_virtual_achilles_cell_line,
+make_cellbar <- function(data_achilles_long = achilles_long,
+                         data_prism_long = prism_long,
+                         data_expression_names = expression_names,
+                         data_mean_virtual_achilles = mean_virtual_achilles,
+                         data_mean_virtual_prism_cor = mean_virtual_prism_cor,
+                         data_mean_virtual_achilles_cell_line = mean_virtual_achilles_cell_line,
                          input = list(),
                          card = FALSE,
                          scale = NULL) {
@@ -2021,12 +2035,12 @@ make_cellbar <- function(celldeps_data = achilles_long,
       aes_var <- rlang::sym("name")
       var_title <- "Gene"
       ylab <- "Dependecy Score"
-      mean <- mean_achilles
+      mean <- data_mean_virtual_achilles
 
       plot_data <-
-        celldeps_data %>% #plot setup
+        data_achilles_long %>% #plot setup
         dplyr::filter(gene %in% input$content) %>%
-        dplyr::left_join(expression_data, by = "X1") %>%
+        dplyr::left_join(data_expression_names, by = "X1") %>%
         dplyr::select(-X1) %>%
         dplyr::group_by(gene) %>%
         dplyr::arrange(dep_score) %>%
@@ -2042,12 +2056,12 @@ make_cellbar <- function(celldeps_data = achilles_long,
       aes_var <- rlang::sym("name")
       var_title <- "Compound"
       ylab <- "Log2FC"
-      mean <- mean_prism
+      mean <- data_mean_virtual_prism_cor
 
       plot_data <-
-        prism_data %>% #plot setup
+        data_prism_long %>% #plot setup
         dplyr::filter(name %in% input$content) %>%
-        dplyr::left_join(expression_data, by = c("x1" = "X1")) %>%
+        dplyr::left_join(data_expression_names, by = c("x1" = "X1")) %>%
         dplyr::select(-1) %>%
         dplyr::group_by(name) %>%
         dplyr::arrange(log2fc) %>%
@@ -2063,11 +2077,11 @@ make_cellbar <- function(celldeps_data = achilles_long,
       aes_var <- rlang::sym("cell_line")
       var_title <- "Gene"
       ylab <- "Dependecy Score"
-      mean <- mean_cell_line
+      mean <- data_mean_virtual_achilles_cell_line
 
       plot_data <-
-        celldeps_data %>% #plot setup
-        dplyr::left_join(expression_data, by = "X1") %>%
+        data_achilles_long %>% #plot setup
+        dplyr::left_join(data_expression_names, by = "X1") %>%
         dplyr::filter(cell_line %in% input$content) %>%
         dplyr::select(-X1) %>%
         dplyr::group_by(cell_line) %>%
@@ -2087,12 +2101,14 @@ make_cellbar <- function(celldeps_data = achilles_long,
         scale <- 0.3
       }
       if(input$type == "gene") {
-        plot_data <- plot_data %>%
+        plot_data <-
+          plot_data %>%
           dplyr::group_by(name) %>%
           dplyr::sample_n(scale*dplyr::n()) %>%
           dplyr::ungroup()
       } else {
-        plot_data <- plot_data %>%
+        plot_data <-
+          plot_data %>%
           dplyr::group_by(cell_line) %>%
           dplyr::sample_n(scale*dplyr::n()) %>%
           dplyr::ungroup()
@@ -2153,7 +2169,6 @@ make_cellbar <- function(celldeps_data = achilles_long,
         ggplot2::labs(x = "") +
         ggplot2::theme(legend.position = "none")
     }
-
     return(plot_complete)
   }
   #error handling
@@ -2182,9 +2197,9 @@ make_cellbar <- function(celldeps_data = achilles_long,
 #' \dontrun{
 #' make_cellbins(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_cellbins <- function(cellbins_data = achilles_long,
-                          prism_data = prism_long,
-                          expression_data = expression_names,
+make_cellbins <- function(data_achilles_long = achilles_long,
+                          data_prism_long = prism_long,
+                          data_expression_names = expression_names,
                           input = list(),
                           card = FALSE) {
   make_cellbins_raw <- function() {
@@ -2193,9 +2208,9 @@ make_cellbins <- function(cellbins_data = achilles_long,
       aes_var <- rlang::sym("name")
 
       plot_data <-
-        cellbins_data %>% #plot setup
+        data_achilles_long %>% #plot setup
         dplyr::filter(gene %in% input$content) %>%
-        dplyr::left_join(expression_data, by = "X1") %>%
+        dplyr::left_join(data_expression_names, by = "X1") %>%
         dplyr::select(-X1) %>%
         dplyr::group_by(gene) %>%
         dplyr::arrange(dep_score) %>%
@@ -2209,9 +2224,9 @@ make_cellbins <- function(cellbins_data = achilles_long,
       aes_var <- rlang::sym("name")
 
       plot_data <-
-        prism_data %>% #plot setup
+        data_prism_long %>% #plot setup
         dplyr::filter(name %in% input$content) %>%
-        dplyr::left_join(expression_data, by = c("x1" = "X1")) %>%
+        dplyr::left_join(data_expression_names, by = c("x1" = "X1")) %>%
         dplyr::select(-1) %>%
         dplyr::group_by(name) %>%
         dplyr::arrange(log2fc) %>%
@@ -2227,8 +2242,8 @@ make_cellbins <- function(cellbins_data = achilles_long,
       aes_var <- rlang::sym("cell_line")
 
       plot_data <-
-        cellbins_data %>% #plot setup
-        dplyr::left_join(expression_data, by = "X1") %>%
+        data_achilles_long %>% #plot setup
+        dplyr::left_join(data_expression_names, by = "X1") %>%
         dplyr::filter(cell_line %in% input$content) %>%
         dplyr::select(-X1) %>%
         dplyr::group_by(cell_line) %>%
@@ -2343,9 +2358,9 @@ make_cellbins <- function(cellbins_data = achilles_long,
 #' \dontrun{
 #' make_lineage(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_lineage <- function(celldeps_data = achilles_long,
-                         prism_data = prism_long,
-                         expression_data = expression_names,
+make_lineage <- function(data_achilles_long = achilles_long,
+                         data_prism_long = prism_long,
+                         data_expression_names = expression_names,
                          input = list(),
                          card = FALSE,
                          highlight = FALSE) {
@@ -2355,9 +2370,9 @@ make_lineage <- function(celldeps_data = achilles_long,
       title_var <- glue::glue('Cell lineage dependencies for {stringr::str_c(input$content, collapse = ", ")}')
 
       data_full <-
-        celldeps_data %>% #plot setup
+        data_achilles_long %>% #plot setup
         dplyr::filter(gene %in% input$content) %>%
-        dplyr::left_join(expression_data, by = "X1") %>%
+        dplyr::left_join(data_expression_names, by = "X1") %>%
         dplyr::select(-X1) %>%
         dplyr::mutate_at("lineage", function(str) {
           str <- stringr::str_replace_all(str, "\\_", " ")
@@ -2380,9 +2395,9 @@ make_lineage <- function(celldeps_data = achilles_long,
       title_var <- glue::glue('Cell lineage dependencies for {stringr::str_c(input$content, collapse = ", ")}')
 
       data_full <-
-        prism_data %>% #plot setup
+        data_prism_long %>% #plot setup
         dplyr::filter(name %in% input$content) %>%
-        dplyr::left_join(expression_data, by = c("x1" = "X1")) %>%
+        dplyr::left_join(data_expression_names, by = c("x1" = "X1")) %>%
         dplyr::select(-1) %>%
         dplyr::mutate_at("lineage", function(str) {
           str <- stringr::str_replace_all(str, "\\_", " ")
@@ -2525,9 +2540,9 @@ make_lineage <- function(celldeps_data = achilles_long,
 #' \dontrun{
 #' make_sublineage(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_sublineage <- function(celldeps_data = achilles_long,
-                            prism_data = prism_long,
-                            expression_data = expression_names,
+make_sublineage <- function(data_achilles_long = achilles_long,
+                            data_prism_long = prism_long,
+                            data_expression_names = expression_names,
                             input = list(),
                             card = FALSE,
                             highlight = FALSE) {
@@ -2537,9 +2552,9 @@ make_sublineage <- function(celldeps_data = achilles_long,
       title_var <- glue::glue('Cell sub-lineage dependencies for {stringr::str_c(input$content, collapse = ", ")}')
 
       data_full <-
-        celldeps_data %>% #plot setup
+        data_achilles_long %>% #plot setup
         dplyr::filter(gene %in% input$content) %>%
-        dplyr::left_join(expression_data, by = "X1") %>%
+        dplyr::left_join(data_expression_names, by = "X1") %>%
         dplyr::select(-X1) %>%
         dplyr::mutate_at("lineage_subtype", function(str) {
           str <- stringr::str_replace_all(str, "\\_", " ")
@@ -2562,9 +2577,9 @@ make_sublineage <- function(celldeps_data = achilles_long,
       title_var <- glue::glue('Cell sub-lineage dependencies for {stringr::str_c(input$content, collapse = ", ")}')
 
       data_full <-
-        prism_data %>% #plot setup
+        data_prism_long %>% #plot setup
         dplyr::filter(name %in% input$content) %>%
-        dplyr::left_join(expression_data, by = c("x1" = "X1")) %>%
+        dplyr::left_join(data_expression_names, by = c("x1" = "X1")) %>%
         dplyr::select(-1) %>%
         dplyr::mutate_at("lineage_subtype", function(str) {
           str <- stringr::str_replace_all(str, "\\_", " ")
@@ -2706,30 +2721,30 @@ make_sublineage <- function(celldeps_data = achilles_long,
 #' \dontrun{
 #' make_correlation(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_correlation <- function(table_data = achilles_cor_nest,
-                             cell_line_data = achilles_cell_line_cor_nest,
-                             prism_data = prism_cor_nest,
-                             achilles_upr = achilles_upper,
-                             achilles_lwr = achilles_lower,
-                             prism_cor_upr = prism_cor_upper,
-                             prism_cor_lwr = prism_cor_lower,
-                             mean_achilles = mean_virtual_achilles,
-                             mean_prism = mean_virtual_prism_cor,
+make_correlation <- function(data_achilles_cor_nest = achilles_cor_nest,
+                             #data_achilles_cell_line_cor_nest = achilles_cell_line_cor_nest,
+                             data_prism_cor_nest = prism_cor_nest,
+                             data_achilles_upper = achilles_upper,
+                             data_achilles_lower = achilles_lower,
+                             data_prism_cor_upper = prism_cor_upper,
+                             data_prism_cor_lower = prism_cor_lower,
+                             data_mean_virtual_achilles = mean_virtual_achilles,
+                             data_mean_virtual_prism_cor = mean_virtual_prism_cor,
                              input = list(),
                              card = FALSE,
                              scale = NULL) { #no card option, but need this to prevent error
   make_correlation_raw <- function() {
     if(input$type == "gene") {
-      mean <- mean_achilles
-      upper_limit <- achilles_upr
-      lower_limit <- achilles_lwr
+      mean <- data_mean_virtual_achilles
+      upper_limit <- data_achilles_upper
+      lower_limit <- data_achilles_lower
       var <- rlang::sym("fav_gene") #from https://rlang.r-lib.org/reference/quasiquotation.html
       label_var <- "Gene Rank"
       text_var <- "Gene"
       content_var <- glue::glue_collapse(input$content, sep = ", ")
 
       plot_data <-
-        table_data %>%
+        data_achilles_cor_nest %>%
         dplyr::filter(fav_gene %in% input$content) %>%
         tidyr::unnest(data) %>%
         dplyr::group_by(fav_gene) %>%
@@ -2742,16 +2757,16 @@ make_correlation <- function(table_data = achilles_cor_nest,
         dplyr::rename(name = gene) #for plot name
 
     } else if(input$type == "compound") {
-      mean <- mean_prism
-      upper_limit <- prism_cor_upr
-      lower_limit <- prism_cor_lwr
+      mean <- data_mean_virtual_prism_cor
+      upper_limit <- data_prism_cor_upper
+      lower_limit <- data_prism_cor_lower
       var <- rlang::sym("fav_drug") #from https://rlang.r-lib.org/reference/quasiquotation.html
       label_var <- "Drug Rank"
       text_var <- "Compound"
       content_var <- glue::glue_collapse(input$content, sep = ", ")
 
       plot_data <-
-        prism_data %>%
+        data_prism_cor_nest %>%
         dplyr::filter(fav_drug %in% input$content) %>%
         tidyr::unnest(data) %>%
         dplyr::group_by(fav_drug) %>%
@@ -2761,7 +2776,6 @@ make_correlation <- function(table_data = achilles_cor_nest,
           med = median(r2, na.rm= TRUE)
         ) %>%
         dplyr::ungroup()
-
     }
 
     if(!is.null(scale) & !card){
@@ -2857,9 +2871,9 @@ make_correlation <- function(table_data = achilles_cor_nest,
 #' \dontrun{
 #' make_expdep(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_expdep <- function(expression_data = expression_long,
-                        celldeps_data = achilles_long,
-                        expression_join = expression_names,
+make_expdep <- function(data_expression_long = expression_long,
+                        data_achilles_long = achilles_long,
+                        data_expression_names = expression_names,
                         plot_se = TRUE,
                         input = list(),
                         card = FALSE) {
@@ -2867,12 +2881,12 @@ make_expdep <- function(expression_data = expression_long,
 
     if (input$type == "gene") {
       exp_data <-
-        expression_data %>% #plot setup
+        data_expression_long %>% #plot setup
         dplyr::select(X1, gene, gene_expression) %>%
         dplyr::filter(gene %in% input$content)
 
       dep_data <-
-        celldeps_data %>% #plot setup
+        data_achilles_long %>% #plot setup
         dplyr::filter(gene %in% input$content)
 
       combined_data <-
@@ -2882,20 +2896,20 @@ make_expdep <- function(expression_data = expression_long,
                       !is.na(gene_expression)) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
         dplyr::mutate(med = median(dep_score, na.rm = TRUE)) %>%
-        dplyr::left_join(expression_join, by = "X1") %>%
+        dplyr::left_join(data_expression_names, by = "X1") %>%
         dplyr::select(gene, gene_expression, dep_score, med, cell_line, lineage)
     }
 
     else if (input$type == "cell") {
       exp_data <-
-        expression_data %>% #plot setup
-        dplyr::left_join(expression_join, by = "X1") %>%
+        data_expression_long %>% #plot setup
+        dplyr::left_join(data_expression_names, by = "X1") %>%
         dplyr::select(gene, cell_line, gene_expression) %>%
         dplyr::filter(cell_line %in% input$content)
 
       dep_data <-
-        celldeps_data %>% #plot setup
-        dplyr::left_join(expression_join, by = "X1") %>%
+        data_achilles_long %>% #plot setup
+        dplyr::left_join(data_expression_names, by = "X1") %>%
         dplyr::filter(cell_line %in% input$content)
 
       combined_data <-
@@ -3040,8 +3054,8 @@ make_cell_image <- function(input = list(),
 #' \dontrun{
 #' make_cell_similarity(input = list(type = "cell", query = "HEPG2", content = "HEPG2"))
 #' }
-make_cell_similarity <- function(cell_sims_dep = cell_line_dep_sim,
-                                 cell_sims_exp = cell_line_exp_sim,
+make_cell_similarity <- function(data_cell_line_dep_sim = cell_line_dep_sim,
+                                 data_cell_line_exp_sim = cell_line_exp_sim,
                                  similarity = "dependency",
                                  input = list(),
                                  card = FALSE,
@@ -3049,9 +3063,9 @@ make_cell_similarity <- function(cell_sims_dep = cell_line_dep_sim,
   make_similarity_raw <- function() {
 
     if(similarity == "dependency") {
-      cell_sims <- cell_sims_dep
+      cell_sims <- data_cell_line_dep_sim
     } else if(similarity == "expression") {
-      cell_sims <- cell_sims_exp
+      cell_sims <- data_cell_line_exp_sim
     }
 
     cell_sim_table <-
@@ -3164,9 +3178,9 @@ make_cell_similarity <- function(cell_sims_dep = cell_line_dep_sim,
 #' \dontrun{
 #' make_functional_cell(input = list(type = "cell", query = "HEPG2", content = "HEPG2"))
 #' }
-make_functional_cell <- function(pathway_data = pathways,
-                                 expression_data = expression_long,
-                                 expression_metadata = expression_meta,
+make_functional_cell <- function(data_pathways = pathways,
+                                 data_expression_long = expression_long,
+                                 data_expression_meta = expression_meta,
                                  input = list(),
                                  num_pathways = 10,
                                  nwords = 5,
@@ -3175,12 +3189,13 @@ make_functional_cell <- function(pathway_data = pathways,
                                  card = FALSE) {
   make_functional_cell_raw <- function() {
 
-    plot_data <- pathway_data %>%
+    plot_data <-
+      data_pathways %>%
       tidyr::unnest(data) %>%
-      dplyr::left_join(expression_data, by = "gene") %>%
+      dplyr::left_join(data_expression_long, by = "gene") %>%
       dplyr::select(pathway, go, gene, gene_expression, X1) %>%
       tidyr::drop_na() %>%
-      dplyr::left_join(expression_metadata %>%
+      dplyr::left_join(data_expression_meta %>%
                          dplyr::select(X1, cell_line), by = "X1") %>%
       dplyr::select(-X1) %>%
       dplyr::mutate(pathway_short = ifelse(stringr::str_count(pathway) >= nwords,
@@ -3188,7 +3203,8 @@ make_functional_cell <- function(pathway_data = pathways,
                                            pathway)
       )
 
-    med_cell <- plot_data %>%
+    med_cell <-
+      plot_data %>%
       dplyr::filter(cell_line %in% input$content) %>%
       dplyr::group_by(go, cell_line) %>%
       dplyr::mutate(genes_num = dplyr::n()) %>%
@@ -3209,7 +3225,8 @@ make_functional_cell <- function(pathway_data = pathways,
     }
 
     if(length(input$content) == 1) {
-      diff_cell <- plot_data %>%
+      diff_cell <-
+        plot_data %>%
         dplyr::filter(!cell_line %in% input$content) %>%
         dplyr::group_by(go) %>%
         dplyr::mutate(genes_num = dplyr::n()) %>%
@@ -3230,7 +3247,8 @@ make_functional_cell <- function(pathway_data = pathways,
                            dplyr::filter(!duplicated(go)),
                          by = "go")
     } else {
-      diff_cell <- med_cell %>%
+      diff_cell <-
+        med_cell %>%
         dplyr::group_by(go) %>%
         dplyr::summarise(diff = abs(diff(med))) %>%
         dplyr::ungroup() %>%
@@ -3242,14 +3260,16 @@ make_functional_cell <- function(pathway_data = pathways,
                          by = "go")
     }
 
-    med_cell <- med_cell %>%
+    med_cell <-
+      med_cell %>%
       dplyr::filter(go %in% diff_cell$go) %>%
       dplyr::left_join(diff_cell %>%
                          dplyr::select(-pathway_short) %>%
                          dplyr::filter(!duplicated(go)),
                        by = "go")
 
-    background <- plot_data %>%
+    background <-
+      plot_data %>%
       dplyr::filter(go %in% diff_cell$go) %>%
       dplyr::filter(!cell_line %in% input$content) %>%
       dplyr::group_by(cell_line, go) %>%
@@ -3258,7 +3278,8 @@ make_functional_cell <- function(pathway_data = pathways,
       dplyr::filter(med != 0) %>% # decide if filter zero expressions
       dplyr::left_join(diff_cell, by = "go")
 
-    plot_complete <- ggplot2::ggplot() +
+    plot_complete <-
+      ggplot2::ggplot() +
       ggplot2::geom_jitter(data = background, ggplot2::aes(reorder(pathway_short, diff), med), color = "gray69", alpha = 0.5, width = 0.25) +
       ggplot2::geom_crossbar(data = med_cell,
                              ggplot2::aes(reorder(pathway_short, diff), med, ymin = med, ymax = med, color = cell_line)) +
@@ -3331,14 +3352,18 @@ make_functional_cell <- function(pathway_data = pathways,
 #' \dontrun{
 #' make_metadata_cell(input = list(type = "cell", content = c("HEPG2")))
 #' }
-make_metadata_cell <- function(input = list(),
+make_metadata_cell <- function(data_cell_line_dep_sim = cell_line_dep_sim,
+                               data_cell_line_exp_sim = cell_line_exp_sim,
+                               input = list(),
                                cell_line_similarity = "dependency",
                                metadata = "lineage",
                                bonferroni_cutoff = 0.05,
                                card = FALSE) {
   make_metadata_cell_raw <- function() {
 
-    plot_data <- make_cell_sim_table(similarity = cell_line_similarity,
+    plot_data <- make_cell_sim_table(data_cell_line_dep_sim,
+                                     data_cell_line_exp_sim,
+                                     similarity = cell_line_similarity,
                                      bonferroni_cutoff = 1.1, # to include bonf == 1
                                      input = input) %>%
       dplyr::bind_rows() %>%
@@ -3350,13 +3375,14 @@ make_metadata_cell <- function(input = list(),
       dplyr::as_tibble()
 
     if(metadata == "lineage") {
-
-      siglin <- plot_data %>%
+      siglin <-
+        plot_data %>%
         dplyr::filter(bonferroni < bonferroni_cutoff) %>%
         dplyr::pull(lineage) %>%
         unique()
 
-      plot_data <- plot_data %>%
+      plot_data <-
+        plot_data %>%
         dplyr::filter(lineage %in% siglin)
 
       if(card & nrow(plot_data) > 6) {
@@ -3367,11 +3393,13 @@ make_metadata_cell <- function(input = list(),
           dplyr::slice(1:6) %>%
           dplyr::pull(lineage)
 
-        plot_data <- plot_data %>%
+        plot_data <-
+          plot_data %>%
           dplyr::filter(., lineage %in% most_associated)
       }
 
-      plot_complete <- plot_data %>%
+      plot_complete <-
+        plot_data %>%
         dplyr::filter(!is.na(lineage)) %>%
         dplyr::group_by(lineage, group) %>%
         dplyr::count() %>%
@@ -3379,16 +3407,18 @@ make_metadata_cell <- function(input = list(),
         ggplot2::ggplot(ggplot2::aes(x = n, y = lineage, fill = group, group = group))
     }
     else if (metadata == "sublineage") {
-
-      sigsublin <- plot_data %>%
+      sigsublin <-
+        plot_data %>%
         dplyr::filter(bonferroni < bonferroni_cutoff) %>%
         dplyr::pull(lineage_subtype) %>%
         unique()
 
-      plot_data <- plot_data %>%
+      plot_data <-
+        plot_data %>%
         dplyr::filter(lineage_subtype %in% sigsublin)
 
-      plot_complete <- plot_data %>%
+      plot_complete <-
+        plot_data %>%
         dplyr::filter(!is.na(lineage_subtype)) %>%
         dplyr::group_by(lineage_subtype, group) %>%
         dplyr::count() %>%
@@ -3396,7 +3426,8 @@ make_metadata_cell <- function(input = list(),
         ggplot2::ggplot(ggplot2::aes(x = n, y = lineage_subtype, fill = group, group = group))
     }
 
-    plot_complete <- plot_complete +
+    plot_complete <-
+      plot_complete +
       ggplot2::geom_col() +
       ggplot2::labs(x = "# Cell Lines",
                     y = NULL) +
@@ -3425,7 +3456,6 @@ make_metadata_cell <- function(input = list(),
                        legend.position = "none"
         )
     }
-
     return(plot_complete)
   }
 
@@ -3458,8 +3488,8 @@ make_metadata_cell <- function(input = list(),
 #' make_molecule_structure(input = list(content = "aspirin"))
 #' }
 make_molecule_structure <- function(input = list(),
-                                    card = FALSE,
-                                    file_name = NULL) {
+                                    # file_name = NULL,
+                                    card = FALSE) {
   make_molecule_structure_raw <- function(){
     #Customize the material with toon shading
     shiny_toon_material = rayvertex::material_list(type="toon_phong",
@@ -3477,20 +3507,20 @@ make_molecule_structure <- function(input = list(),
       model_width = 2160
       model_height = 2160
     }
-    if(!is.null(file_name)){
-      molecule %>%
-        raymolecule::render_model(width=model_width,
-                                  height=model_height,
-                                  fov=10,
-                                  background="white",
-                                  filename = file_name)
-      return(message(glue::glue('{input$content} saved to {file_name}')))
-    } else {
+    # if(!is.null(file_name)){
+    #   molecule %>%
+    #     raymolecule::render_model(width=model_width,
+    #                               height=model_height,
+    #                               fov=10,
+    #                               background="white",
+    #                               filename = file_name)
+    #   return(message(glue::glue('{input$content} saved to {file_name}')))
+    # } else {
       molecule %>%
         raymolecule::render_model(width=model_width,
                                   height=model_height,
                                   background="white")
-    }
+    # }
   }
   #error handling
   tryCatch(make_molecule_structure_raw(),
@@ -3498,4 +3528,3 @@ make_molecule_structure <- function(input = list(),
              message(e)
            })
 }
-
