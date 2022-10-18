@@ -4,23 +4,23 @@
 #' @importFrom magrittr %>%
 #'
 #' @export
-setup_graph <- function(toptable_data = master_top_table,
-                        bottomtable_data = master_bottom_table,
-                        compound_data = prism_cor_nest,
+setup_graph <- function(data_master_top_table = master_top_table,
+                        data_master_bottom_table = master_bottom_table,
+                        data_prism_cor_nest = prism_cor_nest,
                         input_list = list(), #changed name here to prevent var naming overlap for nested funs()
                         setup_threshold,
                         setup_corrType,
                         cell_line_similarity = "dependency",
-                        cell_dep = cell_line_dep_sim,
-                        cell_exp = cell_line_exp_sim,
+                        data_cell_line_dep_sim = cell_line_dep_sim,
+                        data_cell_line_exp_sim = cell_line_exp_sim,
                         bonferroni_cutoff = 0.05) {
 
   # this is the equivalent of master top/bottom table
   if(cell_line_similarity == "dependency") {
-    cell_top_data <- cell_dep %>%
+    cell_top_data <- data_cell_line_dep_sim %>%
       dplyr::filter(bonferroni < bonferroni_cutoff)
   } else if (cell_line_similarity == "expression") {
-    cell_top_data <- cell_exp %>%
+    cell_top_data <- data_cell_line_exp_sim %>%
       dplyr::filter(bonferroni < bonferroni_cutoff)
   }
 
@@ -31,10 +31,11 @@ setup_graph <- function(toptable_data = master_top_table,
     #either find top/bottom correlated genes if given single gene, or take list to fill gene_list
     if(length(input_list$content) == 1){
       #find top and bottom correlations for fav_gene
-      query <- input_list$content
+      query <-
+        input_list$content
       if(setup_corrType == "Positive" | setup_corrType == "Positive and Negative") {
         top <-
-          toptable_data %>%
+          data_master_top_table %>%
           dplyr::filter(fav_gene %in% input_list$content) %>%
           tidyr::unnest(data) %>%
           dplyr::arrange(dplyr::desc(r2)) %>%
@@ -43,7 +44,7 @@ setup_graph <- function(toptable_data = master_top_table,
       }
       if(setup_corrType == "Negative" | setup_corrType == "Positive and Negative") {
         bottom <-
-          bottomtable_data %>%
+          data_master_bottom_table %>%
           dplyr::filter(fav_gene %in% input_list$content) %>%
           tidyr::unnest(data) %>%
           dplyr::arrange(r2) %>%
@@ -96,7 +97,7 @@ setup_graph <- function(toptable_data = master_top_table,
       query <- input$content
       if(setup_corrType == "Positive" | setup_corrType == "Positive and Negative") {
         top <-
-          compound_data %>%
+          data_prism_cor_nest %>%
           dplyr::filter(fav_drug %in% input_list$content) %>%
           tidyr::unnest("data") %>%
           dplyr::ungroup() %>%
@@ -107,7 +108,7 @@ setup_graph <- function(toptable_data = master_top_table,
       }
       if(setup_corrType == "Negative" | setup_corrType == "Positive and Negative") {
         bottom <-
-          compound_data %>%
+          data_prism_cor_nest %>%
           dplyr::filter(fav_drug %in% input_list$content) %>%
           tidyr::unnest("data") %>%
           dplyr::ungroup() %>%
@@ -135,11 +136,11 @@ setup_graph <- function(toptable_data = master_top_table,
       rename_var <- rlang::sym("gene")
       if(top == TRUE) {
         message_var <- "top"
-        table_var <- toptable_data
+        table_var <- data_master_top_table
         origin_var <- "pos"
       } else {
         message_var <- "bottom"
-        table_var <- bottomtable_data
+        table_var <- data_master_bottom_table
         origin_var <- "neg"
       }
     } else if(fun_input_list$type == "cell") {
@@ -159,11 +160,11 @@ setup_graph <- function(toptable_data = master_top_table,
       rename_var <- rlang::sym("name")
       if(top == TRUE) {
         message_var <- "top"
-        table_var <- compound_data
+        table_var <- data_prism_cor_nest
         origin_var <- "pos"
       } else {
         message_var <- "bottom"
-        table_var <- compound_data
+        table_var <- data_prism_cor_nest
         origin_var <- "neg"
       }
     } else {
@@ -304,8 +305,8 @@ setup_graph <- function(toptable_data = master_top_table,
 #' visualization containing the top/bottom threshold for each of the top/bottom threshold of the gene query list
 #' using visNetwork.
 #'
-#' @param toptable_data A tibble of genes and their associated top correlated genes
-#' @param bottomtable_data A tibble of genes and their associated bottom correlated genes
+#' @param data_master_top_table A tibble of genes and their associated top correlated genes
+#' @param data_master_bottom_table A tibble of genes and their associated bottom correlated genes
 #' @param input A list containing character vector of gene_symbols used to create network graph
 #' @param threshold A numerical representing the number of genes to pull from top and bottom tables
 #' @param deg A numerical representing the minimum number of connections for a gene to be connected to the network
@@ -333,16 +334,16 @@ setup_graph <- function(toptable_data = master_top_table,
 #' \dontrun{
 #' make_graph(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_graph <- function(toptable_data = master_top_table,
-                       bottomtable_data = master_bottom_table,
-                       compound_data = prism_cor_nest,
-                       summary = gene_summary,
+make_graph <- function(data_master_top_table = master_top_table,
+                       data_master_bottom_table = master_bottom_table,
+                       data_prism_cor_nest = prism_cor_nest,
+                       data_gene_summary = gene_summary,
                        input = list(),
                        threshold = 10,
                        deg = 2,
                        cell_line_similarity = "dependency",
-                       cell_dep = cell_line_dep_sim,
-                       cell_exp = cell_line_exp_sim,
+                       data_cell_line_dep_sim = cell_line_dep_sim,
+                       data_cell_line_exp_sim = cell_line_exp_sim,
                        bonferroni_cutoff = 0.05,
                        corrType = "Positive",
                        displayHeight = '90vh',
@@ -357,10 +358,12 @@ make_graph <- function(toptable_data = master_top_table,
 
       # this is the equivalent of master top/bottom table
       if(cell_line_similarity == "dependency") {
-        cell_top_data <- cell_dep %>%
+        cell_top_data <-
+          data_cell_line_dep_sim %>%
           dplyr::filter(bonferroni < bonferroni_cutoff)
       } else if (cell_line_similarity == "expression") {
-        cell_top_data <- cell_exp %>%
+        cell_top_data <-
+          data_cell_line_exp_sim %>%
           dplyr::filter(bonferroni < bonferroni_cutoff)
       }
 
@@ -375,8 +378,8 @@ make_graph <- function(toptable_data = master_top_table,
                                     setup_corrType = corrType,
                                     setup_threshold = threshold,
                                     cell_line_similarity = cell_line_similarity,
-                                    cell_dep = cell_line_dep_sim,
-                                    cell_exp = cell_line_exp_sim,
+                                    data_cell_line_dep_sim = cell_line_dep_sim,
+                                    data_cell_line_exp_sim = cell_line_exp_sim,
                                     bonferroni_cutoff = bonferroni_cutoff)
     #dep_network_list <<- dep_network_list #for testing, to see what I'm getting back out
 
@@ -464,7 +467,8 @@ make_graph <- function(toptable_data = master_top_table,
       nodes_filtered <- nodes_filtered %>%
         dplyr::mutate(value = 0)
     } else if(length(input$content > 1) & length(degVec) != dim(nodes_filtered)[1]){ # handle cases where some query genes are disconnected
-      genesWithConnections <- degVec %>%
+      genesWithConnections <-
+        degVec %>%
         names() %>%
         as.numeric()
       nodes_filtered <- nodes_filtered %>%
@@ -475,12 +479,14 @@ make_graph <- function(toptable_data = master_top_table,
         }
       }
     }else{
-      nodes_filtered <- nodes_filtered[degVec %>% names() %>% as.numeric() +1,] %>%
+      nodes_filtered <-
+        nodes_filtered[degVec %>% names() %>% as.numeric() +1,] %>%
         dplyr::mutate(value = degVec)
     }
 
     # make sure query gene is at the start so legend shows proper order
-    nodes_filtered <- nodes_filtered %>%
+    nodes_filtered <-
+      nodes_filtered %>%
       dplyr::arrange(id)
 
     #check to see if query gene is missing; if so, then adds a dummy so it shows up on graph, but disconnected
@@ -499,18 +505,20 @@ make_graph <- function(toptable_data = master_top_table,
 
     if(input$type == "gene") {
       for(gene in nodes_filtered$name){
-        newVal <- summary %>%
+        newVal <-
+          data_gene_summary %>%
           dplyr::filter(approved_symbol==gene) %>%
           dplyr::pull(approved_name)
         if(length(newVal)==0){
-          nameTable <- tibble::add_row(nameTable, name = "No gene summary available")# handles cases where the gene is not in the gene summary table
+          nameTable <- tibble::add_row(nameTable, name = "No gene data_gene_summary available")# handles cases where the gene is not in the gene data_gene_summary table
         } else{
           nameTable <- tibble::add_row(nameTable, name=newVal)
         }
       }
     } else if(input$type == "cell") {
       for(cell in nodes_filtered$name){
-        newVal <- cell_top_data %>%
+        newVal <-
+          cell_top_data %>%
           dplyr::filter(cell1_name == cell | cell2_name == cell)
 
         # Swap cols (based on query)
@@ -524,11 +532,12 @@ make_graph <- function(toptable_data = master_top_table,
           }
         }
 
-        newVal <- newVal %>%
+        newVal <-
+          newVal %>%
           dplyr::pull(cell2_name)
 
         if(length(newVal) == 0){
-          nameTable <- tibble::add_row(nameTable, name = "No cell line available")# handles cases where the gene is not in the gene summary table
+          nameTable <- tibble::add_row(nameTable, name = "No cell line available")# handles cases where the gene is not in the gene data_gene_summary table
         } else{
           nameTable <- tibble::add_row(nameTable, name=newVal)
         }
@@ -539,7 +548,7 @@ make_graph <- function(toptable_data = master_top_table,
           dplyr::filter(name==drug) %>%
           dplyr::pull(moa)
         if(length(newVal)==0){
-          nameTable <- tibble::add_row(nameTable, name = "No drug MOA available")# handles cases where the gene is not in the gene summary table
+          nameTable <- tibble::add_row(nameTable, name = "No drug MOA available")# handles cases where the gene is not in the gene data_gene_summary table
         } else{
           nameTable <- tibble::add_row(nameTable, name=newVal)
         }
@@ -550,20 +559,24 @@ make_graph <- function(toptable_data = master_top_table,
 
     # add title information (tooltip that appears on hover)
     if(!tooltipLink){ # Do not form a url when just making the standalone graph while testing or making reports
-      nodes_filtered <- nodes_filtered %>%
+      nodes_filtered <-
+        nodes_filtered %>%
         dplyr::mutate(title=paste0("<center><p>", name,"<br>",name, '</p>'),
                       label = name )
     } else {
       if(input$type == "gene") {
-        nodes_filtered <- nodes_filtered %>%
+        nodes_filtered <-
+          nodes_filtered %>%
           dplyr::mutate(title=paste0("<center><p>",name,"<br>",name ,'<br><a target="_blank" href="?show=gene&query=',name,'">Gene Link</a></p>'),
                         label = name )
       } else if(input$type == "cell") {
-        nodes_filtered <- nodes_filtered %>%
+        nodes_filtered <-
+          nodes_filtered %>%
           dplyr::mutate(title=paste0("<center><p>", name,"<br>",name ,'<br><a target="_blank" href="?show=cell&query=',name,'">Cell Line Link</a></p>'),
                         label = name )
       } else if(input$type == "compound") {
-        nodes_filtered <- nodes_filtered %>%
+        nodes_filtered <-
+          nodes_filtered %>%
           dplyr::mutate(title=paste0("<center><p>", name,"<br>",name ,'<br><a target="_blank" href="?show=compound&query=',name,'">Drug Link</a></p>'),
                         label = name )
       } else {
@@ -663,11 +676,11 @@ graph_legend_list <- "Each point represents one of the queried genes, and then t
 #' \dontrun{
 #' make_bipartite_graph(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_bipartite_graph <- function(toptable_data = master_top_table,
-                                 bottomtable_data = master_bottom_table,
-                                 protein_data = hmdb_proteins,
-                                 metabolite_data = hmdb_metabolites,
-                                 summary = gene_summary,
+make_bipartite_graph <- function(data_master_top_table = master_top_table,
+                                 data_master_bottom_table = master_bottom_table,
+                                 data_hmdb_proteins = hmdb_proteins,
+                                 data_hmdb_metabolites = hmdb_metabolites,
+                                 data_gene_summary = gene_summary,
                                  input = list(),
                                  censor = character(), #removes most common metabolites
                                  collapsed = TRUE,
@@ -699,7 +712,7 @@ make_bipartite_graph <- function(toptable_data = master_top_table,
 
       #first two cols to generate graph
       hmdb_network <-
-        protein_data %>%
+        data_hmdb_proteins %>%
         dplyr::filter(fav_gene %in% genes)
 
       #check for nrow
@@ -746,7 +759,7 @@ make_bipartite_graph <- function(toptable_data = master_top_table,
     } else if (input$type == "compound") {
       #first two cols to generate graph
       hmdb_network <-
-        metabolite_data %>%
+        data_hmdb_metabolites %>%
         dplyr::filter(fav_metabolite %in% input$content)
 
       #check for nrow
@@ -782,9 +795,9 @@ make_bipartite_graph <- function(toptable_data = master_top_table,
                                 <p>
                                 {.x}
                                 <br>
-                                {if(length(summary %>% dplyr::filter(approved_symbol == .x) %>% dplyr::pull(approved_name)) != 0) {
-                                summary %>% dplyr::filter(approved_symbol == .x) %>% dplyr::pull(approved_name)} else {
-                                "No summary"}
+                                {if(length(data_gene_summary %>% dplyr::filter(approved_symbol == .x) %>% dplyr::pull(approved_name)) != 0) {
+                                data_gene_summary %>% dplyr::filter(approved_symbol == .x) %>% dplyr::pull(approved_name)} else {
+                                "No data_gene_summary"}
                                 }
                                 <br>
                                 <a target="_blank" href="?show=gene&query={.x}">Link</a>
@@ -846,4 +859,3 @@ make_bipartite_graph <- function(toptable_data = master_top_table,
              make_empty_graph()
            })
 }
-
