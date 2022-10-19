@@ -849,12 +849,14 @@ make_umap_plot <- function(data_signature_clusters = signature_clusters,
       # dplyr::filter(clust != 0) %>%
       dplyr::mutate(clust = paste0("Cluster ", clust))
 
-    query_clust <- data_proteins_clean %>%
+    query_clust <-
+      data_proteins_clean %>%
       dplyr::filter(gene_name %in% input$content) %>%
       dplyr::pull(clust) %>%
       unique()
 
-    cluster_genes <- data_proteins_clean %>%
+    cluster_genes <-
+      data_proteins_clean %>%
       dplyr::filter(clust %in% query_clust)
 
     colors <- ddh_pal_c(palette = "protein")(length(query_clust))
