@@ -838,13 +838,14 @@ make_radial_bar <- function(input = list(),
 #' \dontrun{
 #' make_umap_plot(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_umap_plot <- function(data_sequence_clusters = sequence_clusters,
+make_umap_plot <- function(data_signature_clusters = signature_clusters,
                            input = list(),
                            show_subset = FALSE,
                            labels = FALSE) {
   make_umap_plot_raw <- function() {
 
-    data_proteins_clean <- data_sequence_clusters %>%
+    data_proteins_clean <-
+      data_signature_clusters %>%
       # dplyr::filter(clust != 0) %>%
       dplyr::mutate(clust = paste0("Cluster ", clust))
 
