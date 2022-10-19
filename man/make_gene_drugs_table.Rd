@@ -4,7 +4,7 @@
 \alias{make_gene_drugs_table}
 \title{Gene Drugs Table}
 \usage{
-make_gene_drugs_table(table_data = gene_drugs_table, input = list())
+make_gene_drugs_table(data_gene_drugs_table = gene_drugs_table, input = list())
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}

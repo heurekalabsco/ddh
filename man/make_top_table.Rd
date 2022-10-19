@@ -5,9 +5,9 @@
 \title{Top Table}
 \usage{
 make_top_table(
-  toptable_data = master_top_table,
-  toptable_data_cell = master_top_table_cell_line,
-  upper = achilles_upper,
+  data_master_top_table = master_top_table,
+  data_master_top_table_cell = master_top_table_cell_line,
+  data_achilles_upper = achilles_upper,
   gls = FALSE,
   input = list()
 )
@@ -25,7 +25,7 @@ If no error, then returns a top Table. If an error is thrown, then will return a
 This is a table function that takes a gene name and returns a top Table
 }
 \examples{
-make_top_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_top_table(input = list(type = 'gene', content = 'ROCK1'))
 \dontrun{
 make_top_table(input = list(type = 'gene', content = 'ROCK1'))
 }

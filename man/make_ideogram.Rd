@@ -5,8 +5,8 @@
 \title{Ideogram Plot}
 \usage{
 make_ideogram(
-  location_data = gene_location,
-  chromosome_data = chromosome,
+  data_gene_location = gene_location,
+  data_chromosome = chromosome,
   input = list(),
   card = FALSE
 )

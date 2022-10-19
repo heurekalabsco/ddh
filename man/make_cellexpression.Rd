@@ -5,14 +5,14 @@
 \title{Cell Expression Plot}
 \usage{
 make_cellexpression(
-  expression_data = expression_long,
-  expression_join = expression_names,
-  gene_expression_upr = gene_expression_upper,
-  gene_expression_lwr = gene_expression_lower,
-  protein_expression_upr = protein_expression_upper,
-  protein_expression_lwr = protein_expression_lower,
-  mean_gene = mean_virtual_gene_expression,
-  mean_protein = mean_virtual_protein_expression,
+  data_expression_long = expression_long,
+  data_expression_names = expression_names,
+  data_gene_expression_upper = gene_expression_upper,
+  data_gene_expression_lower = gene_expression_lower,
+  data_protein_expression_upper = protein_expression_upper,
+  data_protein_expression_lower = protein_expression_lower,
+  data_mean_virtual_gene_expression = mean_virtual_gene_expression,
+  data_mean_virtual_protein_expression = mean_virtual_protein_expression,
   input = list(),
   var = "gene",
   card = FALSE

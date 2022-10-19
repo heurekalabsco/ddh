@@ -4,7 +4,7 @@
 \alias{make_cellanatogram}
 \title{Cellanatogram Plot}
 \usage{
-make_cellanatogram(cellanatogram_data = subcell, input = list(), card = FALSE)
+make_cellanatogram(data_subcell = subcell, input = list(), card = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}

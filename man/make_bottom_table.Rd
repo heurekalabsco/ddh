@@ -5,9 +5,9 @@
 \title{Bottom Table}
 \usage{
 make_bottom_table(
-  bottomtable_data = master_bottom_table,
-  bottomtable_data_cell = master_bottom_table_cell_line,
-  lower = achilles_lower,
+  data_master_bottom_table = master_bottom_table,
+  data_master_bottom_table_cell = master_bottom_table_cell_line,
+  data_achilles_lower = achilles_lower,
   gls = FALSE,
   input = list()
 )
@@ -25,7 +25,7 @@ If no error, then returns a bottom Table. If an error is thrown, then will retur
 This is a table function that takes a gene name and returns a bottom Table
 }
 \examples{
-make_bottom_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_bottom_table(input = list(type = 'gene', content = 'ROCK1'))
 \dontrun{
 make_bottom_table(input = list(type = 'gene', content = 'ROCK1'))
 }

@@ -5,9 +5,10 @@
 \title{Metabolite Table}
 \usage{
 make_metabolite_table(
-  protein_data = hmdb_proteins,
-  metabolite_data = hmdb_metabolites,
-  cell_data = cell_metabolites,
+  data_hmdb_proteins = hmdb_proteins,
+  data_hmdb_metabolites = hmdb_metabolites,
+  data_cell_metabolites = cell_metabolites,
+  data_expression_names = expression_names,
   input = list()
 )
 }
@@ -24,11 +25,11 @@ If no error, then returns a metabolite Table. If an error is thrown, then will r
 This is a table function that takes a gene name and returns a metabolite Table
 }
 \examples{
-make_metabolite_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_metabolite_table(input = list(type = 'gene', content = 'ROCK1'))
 make_metabolite_table(input = list(type = "gene", content = "ROCK2"))
 make_metabolite_table(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 make_metabolite_table(input = list(type = "compound", content = "NAD"))
-make_metabolite_table(input = list(type = "cell", query = "HEPG2", content = "HEPG2"))
+make_metabolite_table(input = list(type = "cell", content = "HEPG2"))
 \dontrun{
 make_metabolite_table(input = list(type = 'gene', content = 'ROCK1'))
 }

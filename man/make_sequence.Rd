@@ -4,7 +4,7 @@
 \alias{make_sequence}
 \title{Sequence Plot}
 \usage{
-make_sequence(sequence_data = proteins, input = list(), card = FALSE)
+make_sequence(data_proteins = proteins, input = list(), card = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}

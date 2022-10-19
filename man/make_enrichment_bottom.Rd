@@ -4,7 +4,7 @@
 \alias{make_enrichment_bottom}
 \title{Enrichment Bottom Table}
 \usage{
-make_enrichment_bottom(enrichmentbottom_data = master_negative, input = list())
+make_enrichment_bottom(data_master_negative = master_negative, input = list())
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -19,7 +19,7 @@ If no error, then returns a enrichment bottom table. If an error is thrown, then
 This is a table function that takes a gene name and returns a enrichment bottom table
 }
 \examples{
-make_enrichment_bottom(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_enrichment_bottom(input = list(type = 'gene', content = 'ROCK1'))
 \dontrun{
 make_enrichment_bottom(input = list(type = 'gene', content = 'ROCK1'))
 }

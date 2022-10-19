@@ -5,9 +5,9 @@
 \title{Expression Table}
 \usage{
 make_expression_table(
-  expression_data = expression_long,
-  expression_join = expression_names,
-  gene_data = gene_summary,
+  data_expression_long = expression_long,
+  data_expression_names = expression_names,
+  data_gene_summary = gene_summary,
   input = list(),
   var = "gene"
 )
@@ -25,7 +25,7 @@ If no error, then returns a expression Table. If an error is thrown, then will r
 This is a table function that takes a gene name and returns a expression Table
 }
 \examples{
-make_expression_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_expression_table(input = list(type = 'gene', content = 'ROCK1'))
 \dontrun{
 make_expression_table(input = list(type = 'gene', content = 'ROCK1'))
 }

@@ -4,7 +4,13 @@
 \alias{make_cluster_enrich}
 \title{Cluster Enrichment Plot}
 \usage{
-make_cluster_enrich(input = list(), ontology = "BP", num_terms = 20)
+make_cluster_enrich(
+  data_sequence_clusters = sequence_clusters,
+  data_protein_cluster_enrichment = protein_cluster_enrichment,
+  input = list(),
+  ontology = "BP",
+  num_terms = 20
+)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}

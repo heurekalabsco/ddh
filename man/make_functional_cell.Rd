@@ -5,9 +5,9 @@
 \title{Differential Pathway Expression Plot}
 \usage{
 make_functional_cell(
-  pathway_data = pathways,
-  expression_data = expression_long,
-  expression_metadata = expression_meta,
+  data_pathways = pathways,
+  data_expression_long = expression_long,
+  data_expression_meta = expression_meta,
   input = list(),
   num_pathways = 10,
   nwords = 5,

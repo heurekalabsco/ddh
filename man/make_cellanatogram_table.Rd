@@ -4,7 +4,7 @@
 \alias{make_cellanatogram_table}
 \title{Cellanatogram Table}
 \usage{
-make_cellanatogram_table(cellanatogram_data = subcell, input = list())
+make_cellanatogram_table(data_subcell = subcell, input = list())
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -19,7 +19,7 @@ If no error, then returns a cellanatogram Table. If an error is thrown, then wil
 This is a table function that takes a gene name and returns a cellanatogram Table
 }
 \examples{
-make_cellanatogram_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_cellanatogram_table(input = list(type = 'gene', content = 'ROCK1'))
 \dontrun{
 make_cellanatogram_table(input = list(type = 'gene', content = 'ROCK1'))
 }

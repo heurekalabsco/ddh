@@ -5,15 +5,15 @@
 \title{Setup graph parameters}
 \usage{
 setup_graph(
-  toptable_data = master_top_table,
-  bottomtable_data = master_bottom_table,
-  compound_data = prism_cor_nest,
+  data_master_top_table = master_top_table,
+  data_master_bottom_table = master_bottom_table,
+  data_prism_cor_nest = prism_cor_nest,
   input_list = list(),
   setup_threshold,
   setup_corrType,
   cell_line_similarity = "dependency",
-  cell_dep = cell_line_dep_sim,
-  cell_exp = cell_line_exp_sim,
+  data_cell_line_dep_sim = cell_line_dep_sim,
+  data_cell_line_exp_sim = cell_line_exp_sim,
   bonferroni_cutoff = 0.05
 )
 }

@@ -4,7 +4,10 @@
 \alias{make_drug_genes_cor_table}
 \title{Drug Genes Cor Table}
 \usage{
-make_drug_genes_cor_table(table_data = drug_genes_cor_table, drug)
+make_drug_genes_cor_table(
+  data_drug_genes_cor_table = drug_genes_cor_table,
+  drug
+)
 }
 \description{
 \code{make_drug_genes_cor_table} takes a drug name and returns a table of genes

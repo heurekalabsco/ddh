@@ -4,7 +4,7 @@
 \alias{make_cell_line_table}
 \title{Cell Summary Table}
 \usage{
-make_cell_line_table(cell_data_meta = expression_meta, input = list())
+make_cell_line_table(data_expression_meta = expression_meta, input = list())
 }
 \description{
 Cell Summary Table

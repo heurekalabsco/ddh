@@ -4,7 +4,7 @@
 \alias{make_proteinsize}
 \title{Protein Size Plot}
 \usage{
-make_proteinsize(protein_data = proteins, input = list(), card = FALSE)
+make_proteinsize(data_proteins = proteins, input = list(), card = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}

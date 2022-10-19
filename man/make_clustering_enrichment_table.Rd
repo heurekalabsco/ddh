@@ -5,9 +5,9 @@
 \title{Clustering Enrichment Table}
 \usage{
 make_clustering_enrichment_table(
-  cluster_data = sequence_clusters,
+  data_sequence_clusters = sequence_clusters,
+  data_protein_cluster_enrichment = protein_cluster_enrichment,
   input = list(),
-  enrichment_tables = protein_cluster_enrichment,
   ontology = "BP",
   filter_noise = FALSE
 )
@@ -25,7 +25,7 @@ If no error, then returns a clustering enrichment Table. If an error is thrown, 
 This is a table function that takes a gene name and returns a clustering enrichment Table
 }
 \examples{
-make_clustering_enrichment_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_clustering_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
 \dontrun{
 make_clustering_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
 }

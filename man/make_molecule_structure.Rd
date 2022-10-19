@@ -4,7 +4,7 @@
 \alias{make_molecule_structure}
 \title{Molecule Structure Plot}
 \usage{
-make_molecule_structure(input = list(), card = FALSE, file_name = NULL)
+make_molecule_structure(input = list(), card = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
