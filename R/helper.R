@@ -112,8 +112,8 @@ load_ddh_data <- function(app_data_dir,
 
   if(feather == TRUE) {
     # Load .RDS files
-    load_ddh_rds(app_data_dir,
-                 object_name)
+    load_ddh_feather(app_data_dir,
+                     object_name)
     message("loaded Rds files")
   }
 
