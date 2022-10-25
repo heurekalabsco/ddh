@@ -5,15 +5,9 @@
 \title{Co-essentiality Correlation Plot}
 \usage{
 make_correlation(
-  table_data = achilles_cor_nest,
-  cell_line_data = achilles_cell_line_cor_nest,
-  prism_data = prism_cor_nest,
-  achilles_upr = achilles_upper,
-  achilles_lwr = achilles_lower,
-  prism_cor_upr = prism_cor_upper,
-  prism_cor_lwr = prism_cor_lower,
-  mean_achilles = mean_virtual_achilles,
-  mean_prism = mean_virtual_prism_cor,
+  data_gene_achilles_cor_nest = gene_achilles_cor_nest,
+  data_prism_cor_nest = prism_cor_nest,
+  data_universal_stats_summary = universal_stats_summary,
   input = list(),
   card = FALSE,
   scale = NULL

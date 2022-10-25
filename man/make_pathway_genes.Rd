@@ -4,7 +4,11 @@
 \alias{make_pathway_genes}
 \title{Pathway Genes Table}
 \usage{
-make_pathway_genes(table_name = pathways, table_join = gene_summary, go_id)
+make_pathway_genes(
+  data_gene_pathways = gene_pathways,
+  data_universal_gene_summary = universal_gene_summary,
+  go_id
+)
 }
 \description{
 Pathway Genes Table

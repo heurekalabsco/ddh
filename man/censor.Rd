@@ -4,7 +4,12 @@
 \alias{censor}
 \title{Censor}
 \usage{
-censor(top_table, censor_data = censor_genes, choice = FALSE, greater_than)
+censor(
+  data_gene_master_top_table = gene_master_top_table,
+  data_gene_censor = gene_censor,
+  choice = FALSE,
+  greater_than
+)
 }
 \description{
 Censor is used to remove genes from similarity table that are garbage (too many associations)

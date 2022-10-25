@@ -4,7 +4,11 @@
 \alias{make_pubmed}
 \title{Pubmed Plot}
 \usage{
-make_pubmed(pubmed_data = pubmed, input = list(), card = FALSE)
+make_pubmed(
+  data_universal_pubmed = universal_pubmed,
+  input = list(),
+  card = FALSE
+)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}

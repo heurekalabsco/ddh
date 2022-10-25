@@ -4,7 +4,10 @@
 \alias{make_enrichment_top}
 \title{Enrichment Top Table}
 \usage{
-make_enrichment_top(enrichmenttop_data = master_positive, input = list())
+make_enrichment_top(
+  data_gene_master_positive = gene_master_positive,
+  input = list()
+)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -19,7 +22,7 @@ If no error, then returns a enrichment top table. If an error is thrown, then wi
 This is a table function that takes a gene name and returns a enrichment top table
 }
 \examples{
-make_enrichment_top(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_enrichment_top(input = list(type = 'gene', content = 'ROCK1'))
 \dontrun{
 make_enrichment_top(input = list(type = 'gene', content = 'ROCK1'))
 }

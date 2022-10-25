@@ -5,9 +5,9 @@
 \title{Dependency Lineage Plot}
 \usage{
 make_lineage(
-  celldeps_data = achilles_long,
-  prism_data = prism_long,
-  expression_data = expression_names,
+  data_universal_achilles_long = universal_achilles_long,
+  data_universal_prism_long = universal_prism_long,
+  data_cell_expression_names = cell_expression_names,
   input = list(),
   card = FALSE,
   highlight = FALSE

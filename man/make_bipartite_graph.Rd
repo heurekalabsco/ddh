@@ -5,11 +5,11 @@
 \title{Bipartite Graph Graph}
 \usage{
 make_bipartite_graph(
-  toptable_data = master_top_table,
-  bottomtable_data = master_bottom_table,
-  protein_data = hmdb_proteins,
-  metabolite_data = hmdb_metabolites,
-  summary = gene_summary,
+  data_master_top_table = master_top_table,
+  data_master_bottom_table = master_bottom_table,
+  data_hmdb_proteins = hmdb_proteins,
+  data_hmdb_metabolites = hmdb_metabolites,
+  data_gene_summary = gene_summary,
   input = list(),
   censor = character(),
   collapsed = TRUE,

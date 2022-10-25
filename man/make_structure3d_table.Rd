@@ -5,8 +5,8 @@
 \title{Plot for 3D protein structure table}
 \usage{
 make_structure3d_table(
-  pdb_ids = uniprot_pdb_table,
-  protein_data = proteins,
+  data_gene_uniprot_pdb_table = gene_uniprot_pdb_table,
+  data_universal_proteins = universal_proteins,
   input = list()
 )
 }

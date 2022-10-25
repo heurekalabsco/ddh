@@ -1462,7 +1462,7 @@ make_female_anatogram <- function(data_gene_female_tissue = gene_female_tissue,
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #'
-#' @return
+#' @return If no error, then returns a male anatogram plot. If an error is thrown, then will return a bomb plot.
 #'
 #' @import gganatogram
 #' @importFrom magrittr %>%

@@ -5,10 +5,11 @@
 \title{Dependency Table}
 \usage{
 make_dep_table(
-  achilles_data = achilles_long,
-  prism_data = prism_long,
-  prism_summary = prism_names,
-  expression_data = expression_names,
+  data_universal_achilles_long = universal_achilles_long,
+  data_universal_prism_long = universal_prism_long,
+  data_compound_prism_names = compound_prism_names,
+  data_cell_expression_names = cell_expression_names,
+  data_universal_gene_summary = universal_gene_summary,
   input = list(),
   var = "gene"
 )
@@ -26,9 +27,9 @@ If no error, then returns a dep Table. If an error is thrown, then will return a
 This is a table function that takes a gene name and returns a dep Table
 }
 \examples{
-make_dep_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-make_dep_table(input = list(type = 'compound', query = 'aspirin', content = 'aspirin'))
-make_dep_table(input = list(type = 'cell', query = 'HEPG2', content = 'HEPG2'))
+make_dep_table(input = list(type = 'gene', content = 'ROCK1'))
+make_dep_table(input = list(type = 'compound', content = 'aspirin'))
+make_dep_table(input = list(type = 'cell', content = 'HEPG2'))
 \dontrun{
 make_dep_table(input = list(type = 'gene', content = 'ROCK1'))
 }

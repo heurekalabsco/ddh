@@ -5,9 +5,9 @@
 \title{Clustering Table}
 \usage{
 make_clustering_table(
-  cluster_data = sequence_clusters,
-  signature_data = signatures,
-  cluster_names = protein_cluster_names,
+  data_gene_signature_clusters = gene_signature_clusters,
+  data_gene_signatures = gene_signatures,
+  data_gene_signature_cluster_names = gene_signature_cluster_names,
   input = list(),
   cluster = FALSE,
   show_signature = FALSE
@@ -26,7 +26,7 @@ If no error, then returns a clustering Table. If an error is thrown, then will r
 This is a table function that takes a gene name and returns a clustering Table
 }
 \examples{
-make_clustering_table(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_clustering_table(input = list(type = 'gene', content = 'ROCK1'))
 \dontrun{
 make_clustering_table(input = list(type = 'gene', content = 'ROCK1'))
 }

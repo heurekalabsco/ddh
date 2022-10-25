@@ -4,7 +4,13 @@
 \alias{make_female_anatogram}
 \title{Female Anatogram Plot}
 \usage{
-make_female_anatogram(anatogram = "female", input = list(), card = FALSE)
+make_female_anatogram(
+  data_gene_female_tissue = gene_female_tissue,
+  data_gene_male_tissue = gene_male_tissue,
+  anatogram = "female",
+  input = list(),
+  card = FALSE
+)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}

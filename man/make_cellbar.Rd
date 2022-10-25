@@ -5,12 +5,10 @@
 \title{Cell Dependencies Bar Plot}
 \usage{
 make_cellbar(
-  celldeps_data = achilles_long,
-  prism_data = prism_long,
-  expression_data = expression_names,
-  mean_achilles = mean_virtual_achilles,
-  mean_prism = mean_virtual_prism_cor,
-  mean_cell_line = mean_virtual_achilles_cell_line,
+  data_universal_achilles_long = universal_achilles_long,
+  data_universal_prism_long = universal_prism_long,
+  data_cell_expression_names = cell_expression_names,
+  data_universal_stats_summary = universal_stats_summary,
   input = list(),
   card = FALSE,
   scale = NULL

@@ -5,9 +5,9 @@
 \title{Gene Dependency versus Expression}
 \usage{
 make_expdep(
-  expression_data = expression_long,
-  celldeps_data = achilles_long,
-  expression_join = expression_names,
+  data_universal_expression_long = universal_expression_long,
+  data_universal_achilles_long = universal_achilles_long,
+  data_cell_expression_names = cell_expression_names,
   plot_se = TRUE,
   input = list(),
   card = FALSE

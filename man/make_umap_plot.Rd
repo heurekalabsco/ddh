@@ -5,7 +5,7 @@
 \title{UMAP Plot}
 \usage{
 make_umap_plot(
-  cluster_data = sequence_clusters,
+  data_gene_signature_clusters = gene_signature_clusters,
   input = list(),
   show_subset = FALSE,
   labels = FALSE

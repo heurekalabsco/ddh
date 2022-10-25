@@ -5,16 +5,16 @@
 \title{Create network graph visualization using visNetwork}
 \usage{
 make_graph(
-  toptable_data = master_top_table,
-  bottomtable_data = master_bottom_table,
-  compound_data = prism_cor_nest,
-  summary = gene_summary,
+  data_master_top_table = master_top_table,
+  data_master_bottom_table = master_bottom_table,
+  data_prism_cor_nest = prism_cor_nest,
+  data_gene_summary = gene_summary,
   input = list(),
   threshold = 10,
   deg = 2,
   cell_line_similarity = "dependency",
-  cell_dep = cell_line_dep_sim,
-  cell_exp = cell_line_exp_sim,
+  data_cell_line_dep_sim = cell_line_dep_sim,
+  data_cell_line_exp_sim = cell_line_exp_sim,
   bonferroni_cutoff = 0.05,
   corrType = "Positive",
   displayHeight = "90vh",
@@ -24,9 +24,9 @@ make_graph(
 )
 }
 \arguments{
-\item{toptable_data}{A tibble of genes and their associated top correlated genes}
+\item{data_master_top_table}{A tibble of genes and their associated top correlated genes}
 
-\item{bottomtable_data}{A tibble of genes and their associated bottom correlated genes}
+\item{data_master_bottom_table}{A tibble of genes and their associated bottom correlated genes}
 
 \item{input}{A list containing character vector of gene_symbols used to create network graph}
 

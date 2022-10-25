@@ -5,8 +5,8 @@
 \title{Gene Expression versus Protein Expression}
 \usage{
 make_cellgeneprotein(
-  expression_data = expression_long,
-  expression_join = expression_names,
+  data_universal_expression_long = universal_expression_long,
+  data_cell_expression_names = cell_expression_names,
   input = list(),
   card = FALSE
 )

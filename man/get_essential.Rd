@@ -5,8 +5,9 @@
 \title{Get Essential}
 \usage{
 get_essential(
-  achilles_data = achilles_long,
-  prism_data = prism_long,
+  data_universal_achilles_long = universal_achilles_long,
+  data_universal_prism_long = universal_prism_long,
+  data_cell_expression_names = cell_expression_names,
   input = list()
 )
 }
@@ -17,7 +18,7 @@ Gets number of cells lines a gene is essential within
 get_essential(input = list(type = "gene", content = "ROCK1"))
 get_essential(input = list(type = "gene", content = "ROCK2"))
 get_essential(input = list(type = "gene", content = c("ROCK2", "ROCK1")))
-get_essential(input = list(type = "gene", query = "custom_gene_list", content = c("RDX", "ROCK2", "DTX3L", "MSN", "SORL1", "EZR")))
+get_essential(input = list(type = "gene", subtype = "custom_gene_list", content = c("RDX", "ROCK2", "DTX3L", "MSN", "SORL1", "EZR")))
 get_essential(input = list(type = "cell", content = "HEPG2"))
 get_essential(input = list(type = "cell", content = c("HEPG2", "HUH7")))
 get_essential(input = list(type = "compound", content = "aspirin"))

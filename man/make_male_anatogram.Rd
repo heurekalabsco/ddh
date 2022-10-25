@@ -12,7 +12,7 @@ make_male_anatogram(anatogram = "male", input = list(), card = FALSE)
 \item{card}{A boolean that sets whether the plot should be scaled down to be a card}
 }
 \value{
-
+If no error, then returns a male anatogram plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
 This is a plot function that takes a gene name and returns a male anatogram plot
