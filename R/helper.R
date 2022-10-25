@@ -12,9 +12,9 @@
 download_ddh_data <- function(app_data_dir,
                               object_name = NULL,
                               test = FALSE,
-                              overwrite = FALSE,
-                              privateMode = TRUE,
-                              raw = FALSE){
+                              private = TRUE,
+                              overwrite = FALSE
+){
   #delete dir to overwrite
   if(overwrite == TRUE) {
     if(is.null(object_name)){all_objects <- ""} else {all_objects <- object_name}
@@ -25,117 +25,73 @@ download_ddh_data <- function(app_data_dir,
   if(!dir.exists(app_data_dir)){
     dir.create(app_data_dir)
   }
+
   #get_data function
-  get_aws_data <- function(bucket_id,
+  get_aws_data <- function(bucket, #public, private, test
                            object_name){
-    bucket_name <- Sys.getenv(bucket_id)
+    bucket_var <-
+      switch(bucket,
+             public = "AWS_DATA_BUCKET_ID",
+             private = "AWS_DATA_BUCKET_ID_PRIVATE",
+             # raw = "AWS_DATA_BUCKET_ID_RAW",
+             test = "AWS_DATA_BUCKET_ID_TEST")
+
     s3 <- paws::s3()
     data_objects <-
-      s3$list_objects(Bucket = bucket_name) %>%
+      s3$list_objects(Bucket = Sys.getenv(bucket_var)) %>%
       purrr::pluck("Contents")
 
-    if(!privateMode) {
-      data_objects <- data_objects %>%
-        purrr::discard(purrr::map_lgl(.x = 1:length(data_objects),
-                                      ~ stringr::str_detect(data_objects[[.x]][["Key"]],
-                                                            pattern = "_private")))
-    }
-
-    message(glue::glue('{length(data_objects)} objects in the {bucket_name} bucket'))
-
-    #detect directories
-    names_with_dir <- data_objects %>%
-      purrr::keep(purrr::map_lgl(.x = 1:length(data_objects),
-                                 ~ stringr::str_detect(data_objects[[.x]][["Key"]],
-                                                       pattern = "/")))
-
-    names_with_dir <- lapply(names_with_dir, `[[`, 1)
-    new_dirs <- sub("/[^/]+$", "", names_with_dir) # remove everything (filename) after the last /
-    new_dirs <- new_dirs[!duplicated(new_dirs)]
-
-    # #make new dirs
-    for (i in 1:length(new_dirs)) {
-      if(!dir.exists(paste0(app_data_dir, "/", new_dirs[i]))) {
-        dir.create(paste0(app_data_dir, "/", new_dirs[i]))
-      }
-    }
+    message(glue::glue('{length(data_objects)} objects in the {bucket} bucket'))
 
     #filter list for single object
     if(!is.null(object_name)){
-      file_name <- object_name
+      key_name <- glue::glue('_data/{object_name}')
       data_objects <-
         data_objects %>% #take full list
         purrr::keep(purrr::map_lgl(.x = 1:length(data_objects),
-                                   ~ data_objects[[.x]][["Key"]] %in% file_name)) #pass map_lgl to keep to filter names to keep
-      message(glue::glue('filtered to keep only {length(data_objects)}'))
+                                   ~ data_objects[[.x]][["Key"]] %in% key_name)) #pass map_lgl to keep to filter names to keep
+      message(glue::glue('filtered to keep {length(data_objects)}'))
+    }
+
+    #check for no objects
+    if(length(data_objects) == 0){
+      return(message(glue::glue("No objects found. Check your object name.")))
     }
 
     for (i in 1:length(data_objects)) {
-      #check for no objects
-      if(length(data_objects) == 0){
-        message(glue::glue("file downloaded: {file_name}"))
+      key_name <- data_objects[[i]][["Key"]]
+      file_name <- stringr::str_remove(data_objects[[i]][["Key"]], "_data/") #remove subfolder structure
+
+      #check if files exists
+      if(file.exists(glue::glue("{app_data_dir}/{file_name}"))){
+        message(glue::glue("file already exists: {file_name}"))
       } else {
-        file_name <- data_objects[[i]][["Key"]]
-        #check if files exists
-        if(file.exists(glue::glue("{app_data_dir}/{file_name}"))){
-          message(glue::glue("file already exists: {file_name}"))
-        } else {
-          #if not, then download
-          s3$download_file(Bucket = bucket_name,
-                           Key = as.character(file_name),
-                           Filename = as.character(glue::glue("{app_data_dir}/{file_name}")))
-          message(glue::glue("file downloaded: {file_name}"))
-        }
+        #if not, then download
+        s3$download_file(Bucket = Sys.getenv(bucket_var),
+                         Key = as.character(key_name),
+                         Filename = as.character(glue::glue("{app_data_dir}/{file_name}")))
+        message(glue::glue("file downloaded: {file_name}"))
       }
     }
-
-    temp_dir <- tempfile(pattern = "tmpdir", tmpdir = app_data_dir)
-    dir.create(temp_dir)
-
-    #make tempdir our working directory
-    owd <- getwd()
-    setwd(temp_dir)
-    on.exit(setwd(owd))
-
-    # copy the file into our current directory
-    files_from <- list.files(path = app_data_dir, full.names = TRUE, recursive = TRUE)
-    files_to <- list.files(path = app_data_dir, full.names = FALSE, recursive = TRUE)
-    files_to <- sub(".*\\/", "", files_to)
-    # files_to <- paste0(temp_dir, "/", files_to)
-    file.copy(files_from, files_to, overwrite = TRUE) #setting wd makes this happen
-
-    # Remove original files
-    file.remove(from = files_from)
-
-    setwd(app_data_dir)
-
-    files_from <- list.files(path = temp_dir, full.names = TRUE)
-    files_to <- list.files(path = temp_dir, full.names = FALSE)
-    file.copy(files_from, files_to, overwrite = TRUE) #setting wd makes this happen
-
-    #remove all sub-directories
-    unlink(list.dirs(app_data_dir, recursive = FALSE), recursive = TRUE)
   }
 
-  #get raw data
-  if (raw == TRUE) {
-    get_aws_data(object_name,
-                 bucket_id = "AWS_DATA_BUCKET_ID_RAW")
-    return(message("raw data download complete"))
-  } else {
-    #get test data
-    if(test == TRUE){
-      get_aws_data(object_name,
-                   bucket_id = "AWS_DATA_BUCKET_ID_TEST")
-      return(message("test data download complete"))
-    }
-    #get data
-    else {
-      get_aws_data(object_name,
-                   bucket_id = "AWS_DATA_BUCKET_ID")
-      return(message("data download complete"))
-    }
+  #test data
+  if(test == TRUE){
+    get_aws_data(bucket = "test",
+                 object_name = object_name)
+    return(message("test data download complete"))
   }
+  #get private data
+  if(private == TRUE){
+    get_aws_data(bucket = "private",
+                 object_name = object_name)
+    #no return
+  }
+
+  #get data
+  get_aws_data(bucket = "public",
+               object_name = object_name)
+  return(message("data download complete"))
 }
 
 #' Function to Load All DDH Data Including .Rds Files and Colors
@@ -147,26 +103,18 @@ download_ddh_data <- function(app_data_dir,
 #' @export
 load_ddh_data <- function(app_data_dir,
                           object_name = NULL,
-                          rds = TRUE,
-                          qs = FALSE,
+                          feather = TRUE,
                           db = FALSE) {
 
   # Load colors
   load_ddh_colors()
   message("loaded colors")
 
-  if(rds) {
+  if(feather == TRUE) {
     # Load .RDS files
     load_ddh_rds(app_data_dir,
                  object_name)
     message("loaded Rds files")
-  }
-
-  if(qs) {
-    # Load .qs files
-    load_ddh_qs(app_data_dir,
-                object_name)
-    message("loaded qs files")
   }
 
   if(!is.null(object_name)){ #stop here
@@ -182,7 +130,7 @@ load_ddh_data <- function(app_data_dir,
   message("finished loading")
 }
 
-#' Function to load all DDH .RDS files
+#' Function to load all DDH files
 #'
 #' @param app_data_dir Data directory path.
 #' @param object_name Optional object name to load a single file; default loads all files
@@ -190,62 +138,29 @@ load_ddh_data <- function(app_data_dir,
 #' @importFrom magrittr %>%
 #'
 #' @export
-load_ddh_rds <- function(app_data_dir,
-                         object_name = NULL) {
+load_ddh_feather <- function(app_data_dir,
+                             object_name = NULL) {
   if(is.null(object_name)){
-    all_objects <- fs::dir_ls(path = app_data_dir, regexp = "\\.Rds")
+    all_objects <- fs::dir_ls(path = app_data_dir)
   } else {
-    all_objects <- paste0(app_data_dir, "/", object_name, ".Rds")
+    all_objects <- glue::glue('{app_data_dir}/{object_name}')
   }
 
   #file loader constructor
-  load_rds_object <- function(filename) {
-    object <- sub(".*/", "", filename)
-    object <- sub("\\.Rds", "", object)
-    assign(object, readRDS(filename), envir = .GlobalEnv)
-
-    message(glue::glue("loaded {object}"))
-  }
-
-  #walk through to load all files
-  all_objects %>%
-    purrr::walk(load_rds_object)
-
-  #print done
-  message("finished loading Rds")
-}
-
-#' Function to load all DDH qs files
-#'
-#' @param app_data_dir Data directory path.
-#' @param object_name Optional object name to load a single file; default loads all files
-#'
-#' @importFrom magrittr %>%
-#'
-#' @export
-load_ddh_qs <- function(app_data_dir,
-                        object_name = NULL) {
-  if(is.null(object_name)){
-    all_objects <- fs::dir_ls(path = app_data_dir, regexp = "\\.Rds", invert = TRUE)
-  } else {
-    all_objects <- paste0(app_data_dir, "/", object_name, "_test")
-  }
-
-  #file loader constructor
-  load_qs_object <- function(filename) {
-    object <- sub(".*/", "", filename)
+  load_feather_object <- function(filename) {
+    object <- basename(filename) #removes filepath
     object <- sub("_test", "", object)
-    assign(object, qs::qread(filename), envir = .GlobalEnv)
+    assign(object, arrow::read_feather(filename))
 
     message(glue::glue("loaded {object}"))
   }
 
   #walk through to load all files
   all_objects %>%
-    purrr::walk(load_qs_object)
+    purrr::walk(load_feather_object)
 
   #print done
-  message("finished loading qs")
+  message("finished loading feathers")
 }
 
 #' Function to load all DDH db connections
@@ -279,7 +194,7 @@ load_ddh_db <- function(object_name = NULL) {
 #'
 #' @export
 load_ddh_colors <- function() {
-  ## MAIN COLORS -----------------------------------------------------------------
+  ## MAIN COLORS
   ##2EC09C  ## cyan
   ##BE34EF  ## violet
   ##E06B12  ## orange
@@ -921,6 +836,26 @@ clean_colnames <- function(dataset,
     }
   }
   return(dataset)
+}
+
+#' Get Stats
+#'
+#' @param data_universal_stats_summary Dataframe of stats summary generated in ddh_data.
+#' @param data_set A character indicating data set from which the stats were generated, typically one of achilles, expression_gene, expression_protein, or prism name.
+#' @param var A character indicating the variable to extract from the stats summary dataframe, typically one of threshold, sd, mean, upper, pr lower.
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' get_stats(data_set = "achilles", var = "sd")
+get_stats <- function(data_universal_stats_summary = universal_stats_summary,
+                      data_set,
+                      var){
+  stat <-
+    data_universal_stats_summary %>%
+    dplyr::filter(id == data_set) %>%
+    dplyr::pull(var)
 }
 
 #CARD HELPERS----
