@@ -140,10 +140,9 @@ load_ddh_data <- function(app_data_dir,
 #' @export
 load_ddh_feather <- function(app_data_dir,
                              object_name = NULL) {
-  special_objects <- c("gene", "cell", "compound")
   if(is.null(object_name)){ #all objects
     all_objects <- fs::dir_ls(path = app_data_dir)
-  } else if(object_name %in% special_objects) { #object "group"
+  } else if(object_name %in% c("gene", "cell", "compound")) { #object "group"
     object_regex <- stringr::str_c(object_name, "universal", sep = "|")
     all_objects <-
       fs::dir_ls(path = app_data_dir) %>%
