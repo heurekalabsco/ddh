@@ -7,7 +7,7 @@
 #' @examples
 #' make_summary_gene(input = list(content = "ROCK1"), var = "approved_symbol")
 #' make_summary_gene(input = list(content = "ROCK1"), var = "aka")
-#' make_summary_gene(data_universal_gene_summary = gene_location, input = list(content = "ROCK1"), var = "cds_length")
+#' make_summary_gene(input = list(content = "ROCK1"), var = "cds_length")
 make_summary_gene <- function(data_universal_gene_summary = universal_gene_summary,
                               input = list(),
                               var = "approved_symbol") { #default so no error if empty, but this pulls the var out of the df
