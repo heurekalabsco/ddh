@@ -155,7 +155,7 @@ load_ddh_feather <- function(app_data_dir,
   load_feather_object <- function(filename) {
     object <- basename(filename) #removes filepath
     object <- sub("_test", "", object)
-    assign(object, arrow::read_feather(filename))
+    assign(object, arrow::read_feather(filename), envir = .GlobalEnv)
 
     message(glue::glue("loaded {object}"))
   }
