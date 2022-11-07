@@ -1409,11 +1409,12 @@ make_female_anatogram <- function(data_gene_female_tissue = gene_female_tissue,
   make_female_anatogram_raw <- function() {
     if(anatogram == "female"){
       data_tissue = data_gene_female_tissue
-    } else if(anatogram == "male") {
+    } else if (anatogram == "male") {
       data_tissue = data_gene_male_tissue
     } else {
-      return("declare your anatogram type")
+      print("Declare your anatogram type")
     }
+
     body_data <-
       data_tissue %>%
       dplyr::filter_all(dplyr::any_vars(gene_name %in% input$content)) %>%

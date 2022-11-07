@@ -1227,7 +1227,7 @@ lit_linkr <- function(summary_table = universal_gene_summary,
 #'
 #' @export
 drug_linkr <- function(query) {
-  if ((query %in% prism_names$name) == TRUE) {
+  if ((query %in% compound_prism_names$name) == TRUE) {
     query_link <- paste0('<a href="?show=compound&query=',
                          query,
                          '" target="_blank">',
@@ -1246,7 +1246,7 @@ drug_linkr <- function(query) {
 #'
 #' @export
 moa_linkr <- function(query) {
-  if ((query %in% prism_names$moa) == TRUE) {
+  if ((query %in% compound_prism_names$moa) == TRUE) {
     query_link <- paste0('<a href="?show=moa&query=',
                          stringr::str_replace_all(query, " ", "%20"),
                          '" target="_blank">',
@@ -1265,7 +1265,7 @@ moa_linkr <- function(query) {
 #'
 #' @export
 metabolite_linkr <- function(query) {
-  if ((query %in% hmdb_names$name) == TRUE) {
+  if ((query %in% compound_hmdb_names$name) == TRUE) {
     query_link <- paste0('<a href="?show=compound&query=', #fix me
                          query,
                          '" target="_blank">',
@@ -1290,7 +1290,9 @@ cell_linkr <- function(query, type) {
                       lineage = "?show=lineage&query=",
                       lineage_subtype = "?show=lineage_subtype&query="
   )
-  if (query %in% expression_names$cell_line | query %in% expression_names$lineage | query %in% expression_names$lineage_subtype) {
+  if (query %in% cell_expression_names$cell_line |
+      query %in% cell_expression_names$lineage |
+      query %in% cell_expression_names$lineage_subtype) {
     query_no_space <- stringr::str_replace_all(query, " ", "%20")
     query_title <- query #stringr::str_to_title(query)
     query_link <- glue::glue('<a href="{type_url}{query_no_space}" target="_blank">{query_title}</a>')
