@@ -1408,9 +1408,9 @@ make_female_anatogram <- function(data_gene_female_tissue = gene_female_tissue,
                                   card = FALSE) {
   make_female_anatogram_raw <- function() {
     if(anatogram == "female"){
-      data_tissue = data_gene_female_tissue
+      data_tissue <- data_gene_female_tissue
     } else if (anatogram == "male") {
-      data_tissue = data_gene_male_tissue
+      data_tissue <- data_gene_male_tissue
     } else {
       print("Declare your anatogram type")
     }
@@ -1478,9 +1478,10 @@ make_female_anatogram <- function(data_gene_female_tissue = gene_female_tissue,
 make_male_anatogram <- function(anatogram = "male",
                                 input = list(),
                                 card = FALSE){
-  male_anatogram <- make_female_anatogram(anatogram,
-                                          input,
-                                          card)
+
+  male_anatogram <- make_female_anatogram(anatogram = anatogram,
+                                          input = input,
+                                          card = card)
   return(male_anatogram)
 }
 
