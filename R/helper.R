@@ -810,7 +810,7 @@ make_legend <- function(fun,
 #'
 #' @export
 fix_names <- function(wrong_name,
-                      summary_df = gene_summary) {
+                      summary_df = universal_gene_summary) {
   var <- stringr::str_which(summary_df$aka, paste0("(?<![:alnum:])", wrong_name, "(?![:alnum:]|\\-)")) #finds index
   df <- summary_df[var,]
   right_name <- df$approved_symbol
@@ -831,7 +831,7 @@ fix_names <- function(wrong_name,
 #'
 #' @export
 clean_colnames <- function(dataset,
-                           summary_df = gene_summary) {
+                           summary_df = universal_gene_summary) {
   for (name in names(dataset)) {
     if (name %in% summary_df$approved_symbol == FALSE) {
       fixed_name <- fix_names(name, summary_df = summary_df)
@@ -1175,7 +1175,7 @@ bracketr <- function(query) {
 #' @importFrom magrittr %>%
 #'
 #' @export
-gene_linkr <- function(summary_table = gene_summary, query) { #best to use with lit_linkr, which takes a char_vec
+gene_linkr <- function(summary_table = universal_gene_summary, query) { #best to use with lit_linkr, which takes a char_vec
   query_clean <- stringr::str_extract(query, "[^[:punct:]]+") #anything but punct, one or more
   if ((query_clean %in% summary_table$approved_symbol) == TRUE) {
     query_link <- paste0('<a href="?show=gene&query=',
@@ -1204,7 +1204,7 @@ gene_linkr <- function(summary_table = gene_summary, query) { #best to use with 
 #' @importFrom magrittr %>%
 #'
 #' @export
-lit_linkr <- function(summary_table = gene_summary,
+lit_linkr <- function(summary_table = universal_gene_summary,
                       lit_string) { #split into char_vec, map function, glue back together, and then treat as htmlOutput in shiny_text
   lit_string <- stringr::str_replace_all(lit_string, "PubMed ", "PubMed:") #if space, then str_split breaks
   lit_string <- stringr::str_replace_all(lit_string, "PubMed=", "PubMed:") #for CC
@@ -1215,7 +1215,7 @@ lit_linkr <- function(summary_table = gene_summary,
     purrr::map_chr(pubmed_linkr) %>% #make pubmed links
     purrr::map_chr(uniprot_linkr) %>%  #make uniprot links
     purrr::map_chr(bracketr) %>% #annotate bracket
-    purrr::map_chr(gene_linkr, summary_table = gene_summary) #add some internal links
+    purrr::map_chr(gene_linkr, summary_table = universal_gene_summary) #add some internal links
   lit_string_link <- stringr::str_c(lit_links, collapse = " ")
   return(lit_string_link)
 }
