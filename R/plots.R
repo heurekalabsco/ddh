@@ -316,7 +316,7 @@ make_proteinsize <- function(data_universal_proteins = universal_proteins,
       plot_complete <- make_mass_strip(var = gene_symbol)
 
       mass <- #get mass to center clipping in next step
-        proteins %>%
+        data_universal_proteins %>%
         dplyr::filter(gene_name %in% input$content) %>%
         dplyr::pull(mass) %>%
         median(na.rm = TRUE)
