@@ -378,8 +378,8 @@ make_graph <- function(data_master_top_table = gene_master_top_table,
                                     setup_corrType = corrType,
                                     setup_threshold = threshold,
                                     cell_line_similarity = cell_line_similarity,
-                                    data_cell_line_dep_sim = cell_line_dep_sim,
-                                    data_cell_line_exp_sim = cell_line_exp_sim,
+                                    data_cell_line_dep_sim = cell_dependency_sim,
+                                    data_cell_line_exp_sim = cell_expression_sim,
                                     bonferroni_cutoff = bonferroni_cutoff)
     #dep_network_list <<- dep_network_list #for testing, to see what I'm getting back out
 
