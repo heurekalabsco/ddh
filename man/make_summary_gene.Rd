@@ -16,5 +16,5 @@ Make Gene Summary
 \examples{
 make_summary_gene(input = list(content = "ROCK1"), var = "approved_symbol")
 make_summary_gene(input = list(content = "ROCK1"), var = "aka")
-make_summary_gene(data_universal_gene_summary = gene_location, input = list(content = "ROCK1"), var = "cds_length")
+make_summary_gene(input = list(content = "ROCK1"), var = "cds_length")
 }

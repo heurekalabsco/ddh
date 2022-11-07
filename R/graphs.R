@@ -4,15 +4,15 @@
 #' @importFrom magrittr %>%
 #'
 #' @export
-setup_graph <- function(data_master_top_table = master_top_table,
-                        data_master_bottom_table = master_bottom_table,
-                        data_prism_cor_nest = prism_cor_nest,
+setup_graph <- function(data_master_top_table = gene_master_top_table,
+                        data_master_bottom_table = gene_master_bottom_table,
+                        data_prism_cor_nest = compound_prism_cor_nest,
                         input_list = list(), #changed name here to prevent var naming overlap for nested funs()
                         setup_threshold,
                         setup_corrType,
                         cell_line_similarity = "dependency",
-                        data_cell_line_dep_sim = cell_line_dep_sim,
-                        data_cell_line_exp_sim = cell_line_exp_sim,
+                        data_cell_line_dep_sim = cell_dependency_sim,
+                        data_cell_line_exp_sim = cell_expression_sim,
                         bonferroni_cutoff = 0.05) {
 
   # this is the equivalent of master top/bottom table
@@ -334,16 +334,16 @@ setup_graph <- function(data_master_top_table = master_top_table,
 #' \dontrun{
 #' make_graph(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_graph <- function(data_master_top_table = master_top_table,
-                       data_master_bottom_table = master_bottom_table,
-                       data_prism_cor_nest = prism_cor_nest,
-                       data_gene_summary = gene_summary,
+make_graph <- function(data_master_top_table = gene_master_top_table,
+                       data_master_bottom_table = gene_master_bottom_table,
+                       data_prism_cor_nest = compound_prism_cor_nest,
+                       data_gene_summary = universal_gene_summary,
                        input = list(),
                        threshold = 10,
                        deg = 2,
                        cell_line_similarity = "dependency",
-                       data_cell_line_dep_sim = cell_line_dep_sim,
-                       data_cell_line_exp_sim = cell_line_exp_sim,
+                       data_cell_line_dep_sim = cell_dependency_sim,
+                       data_cell_line_exp_sim = cell_expression_sim,
                        bonferroni_cutoff = 0.05,
                        corrType = "Positive",
                        displayHeight = '90vh',
@@ -676,11 +676,11 @@ graph_legend_list <- "Each point represents one of the queried genes, and then t
 #' \dontrun{
 #' make_bipartite_graph(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_bipartite_graph <- function(data_master_top_table = master_top_table,
-                                 data_master_bottom_table = master_bottom_table,
-                                 data_hmdb_proteins = hmdb_proteins,
-                                 data_hmdb_metabolites = hmdb_metabolites,
-                                 data_gene_summary = gene_summary,
+make_bipartite_graph <- function(data_master_top_table = gene_master_top_table,
+                                 data_master_bottom_table = gene_master_bottom_table,
+                                 data_hmdb_proteins = compound_hmdb_proteins,
+                                 data_hmdb_metabolites = compound_hmdb_metabolites,
+                                 data_gene_summary = universal_gene_summary,
                                  input = list(),
                                  censor = character(), #removes most common metabolites
                                  collapsed = TRUE,
