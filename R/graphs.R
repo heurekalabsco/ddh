@@ -260,7 +260,7 @@ setup_graph <- function(data_master_top_table = gene_master_top_table,
     network_list <- unique(bottom)
     top <- NULL #reset unused var to NULL so factors and labels work
     for (i in network_list){
-      dep_bottom_related <- make_graph_table(fun_input_list = input,
+      dep_bottom_related <- make_graph_table(fun_input_list = input_list,
                                              content = i,
                                              setup_threshold,
                                              top = FALSE)
