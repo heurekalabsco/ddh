@@ -37,21 +37,30 @@ download_ddh_data <- function(app_data_dir,
              test = "AWS_DATA_BUCKET_ID_TEST")
 
     s3 <- paws::s3()
-    data_objects <-
+    all_objects <-
       s3$list_objects(Bucket = Sys.getenv(bucket_var)) %>%
       purrr::pluck("Contents")
 
     message(glue::glue('{length(data_objects)} objects in the {bucket} bucket'))
 
-    #filter list for single object
-    if(!is.null(object_name)){
+    #filter lists using same logic as load
+    if(is.null(object_name)){ #all objects
+      data_objects <- all_objects
+    } else if(object_name %in% c("gene", "cell", "compound")) { #object "group"
+      object_regex <- stringr::str_c(object_name, "universal", sep = "|")
+      data_objects <-
+        all_objects %>% #take full list
+        purrr::keep(purrr::map_lgl(.x = 1:length(all_objects),
+                                   ~ stringr::str_detect(all_objects[[.x]][["Key"]], pattern = object_regex))) #pass map_lgl to keep to filter names to keep
+      message(glue::glue('filtered to keep {length(data_objects)}'))
+    } else { #single object
       key_name <- glue::glue('_data/{object_name}')
       data_objects <-
-        data_objects %>% #take full list
+        all_objects %>% #take full list
         purrr::keep(purrr::map_lgl(.x = 1:length(data_objects),
                                    ~ data_objects[[.x]][["Key"]] %in% key_name)) #pass map_lgl to keep to filter names to keep
-      message(glue::glue('filtered to keep {length(data_objects)}'))
-    }
+      message(glue::glue('filtered to keep {length(data_objects)}'))    }
+
 
     #check for no objects
     if(length(data_objects) == 0){
