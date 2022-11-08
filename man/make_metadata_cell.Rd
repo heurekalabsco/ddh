@@ -5,8 +5,13 @@
 \title{Lineage Similarity Plot}
 \usage{
 make_metadata_cell(
+<<<<<<< HEAD
+  data_cell_dependency_sim = cell_dependency_sim,
+  data_cell_expression_sim = cell_expression_sim,
+=======
   data_cell_line_dep_sim = cell_line_dep_sim,
   data_cell_line_exp_sim = cell_line_exp_sim,
+>>>>>>> main
   input = list(),
   cell_line_similarity = "dependency",
   metadata = "lineage",

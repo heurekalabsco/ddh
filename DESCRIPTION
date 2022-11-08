@@ -1,7 +1,7 @@
 Package: ddh
 Type: Package
 Title: Utility Functions and Data Sets for datadrivenhypothesis
-Version: 0.1.70
+Version: 0.2.0
 Authors@R: c(
     person(given = "Matthew",
            family = "Hirschey",
@@ -29,6 +29,7 @@ LazyData: true
 Depends: 
     R (>= 3.1)
 Imports:
+    arrow,
     bio3d,
     BiocManager,
     colorspace,
@@ -54,7 +55,6 @@ Imports:
     patchwork,
     paws,
     purrr,
-    qs,
     quarto,
     raymolecule,
     r3dmol,
@@ -81,6 +81,6 @@ Remotes:
 VignetteBuilder: knitr
 URL: https://github.com/matthewhirschey/ddh
 BugReports: https://github.com/matthewhirschey/ddh/issues
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1
 Language: en-US
 Config/testthat/edition: 3

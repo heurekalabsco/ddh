@@ -5,9 +5,14 @@
 \title{Bottom Table}
 \usage{
 make_bottom_table(
+<<<<<<< HEAD
+  data_gene_master_bottom_table = gene_master_bottom_table,
+  data_universal_stats_summary = universal_stats_summary,
+=======
   data_master_bottom_table = master_bottom_table,
   data_master_bottom_table_cell = master_bottom_table_cell_line,
   data_achilles_lower = achilles_lower,
+>>>>>>> main
   gls = FALSE,
   input = list()
 )

@@ -5,9 +5,15 @@
 \title{Expression Table}
 \usage{
 make_expression_table(
+<<<<<<< HEAD
+  data_universal_expression_long = universal_expression_long,
+  data_cell_expression_names = cell_expression_names,
+  data_universal_gene_summary = universal_gene_summary,
+=======
   data_expression_long = expression_long,
   data_expression_names = expression_names,
   data_gene_summary = gene_summary,
+>>>>>>> main
   input = list(),
   var = "gene"
 )

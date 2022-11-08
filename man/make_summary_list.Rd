@@ -5,10 +5,17 @@
 \title{Make List Summary}
 \usage{
 make_summary_list(
+<<<<<<< HEAD
+  data_universal_gene_summary = universal_gene_summary,
+  data_gene_location = gene_location,
+  data_cell_expression_meta = cell_expression_meta,
+  data_cell_osaurus = cell_osaurus,
+=======
   data_gene_summary = gene_summary,
   data_gene_location = gene_location,
   data_expression_meta = expression_meta,
   data_cellosaurus = cellosaurus,
+>>>>>>> main
   summary_len = 40,
   input = list()
 )

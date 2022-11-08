@@ -5,11 +5,19 @@
 \title{Dependency Table}
 \usage{
 make_dep_table(
+<<<<<<< HEAD
+  data_universal_achilles_long = universal_achilles_long,
+  data_universal_prism_long = universal_prism_long,
+  data_compound_prism_names = compound_prism_names,
+  data_cell_expression_names = cell_expression_names,
+  data_universal_gene_summary = universal_gene_summary,
+=======
   data_achilles_long = achilles_long,
   data_prism_long = prism_long,
   data_prism_names = prism_names,
   data_expression_names = expression_names,
   data_gene_summary = gene_summary,
+>>>>>>> main
   input = list(),
   var = "gene"
 )

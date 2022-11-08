@@ -4,7 +4,7 @@
 \alias{fix_names}
 \title{Fix names}
 \usage{
-fix_names(wrong_name, summary_df = gene_summary)
+fix_names(wrong_name, summary_df = universal_gene_summary)
 }
 \arguments{
 \item{wrong_name}{A gene name that is not its official symbol}

@@ -5,9 +5,15 @@
 \title{Differential Pathway Expression Plot}
 \usage{
 make_functional_cell(
+<<<<<<< HEAD
+  data_gene_pathways = gene_pathways,
+  data_universal_expression_long = universal_expression_long,
+  data_cell_expression_meta = cell_expression_meta,
+=======
   data_pathways = pathways,
   data_expression_long = expression_long,
   data_expression_meta = expression_meta,
+>>>>>>> main
   input = list(),
   num_pathways = 10,
   nwords = 5,
@@ -17,7 +23,7 @@ make_functional_cell(
 )
 }
 \description{
-The colored vertical bars indicate the pathway median expression for the queried cell line/s while the background grey points indicate the pathway median expression of all the other cell lines. If the query includes only one cell line, the difference between the median pathway expression of that cell line and the median pathway expression of all the other cell lines will be computed and the pathways with higher differences will appear first in the plot. Otherwise, the biggest difference between pathway medians of the queried cell lines will be used to rank the pathways in the plot. Those pathways with higher differences will appear first in the plot.
+The colored vertical bars indicate the pathway median expression for the queried cell line/s while the background grey points indicate the pathway median expression of all the other cell lines. If the query includes only one cell line, the difference between the median pathway expression of that cell line and the median pathway expression of all the other cell lines will be computed and the gene_pathways with higher differences will appear first in the plot. Otherwise, the biggest difference between pathway medians of the queried cell lines will be used to rank the gene_pathways in the plot. Those gene_pathways with higher differences will appear first in the plot.
 }
 \examples{
 make_functional_cell(input = list(type = "cell", query = "HEPG2", content = "HEPG2"))

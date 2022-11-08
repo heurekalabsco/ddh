@@ -5,12 +5,19 @@
 \title{Dependency Curve Plot}
 \usage{
 make_celldeps(
+<<<<<<< HEAD
+  data_universal_achilles_long = universal_achilles_long,
+  data_universal_prism_long = universal_prism_long,
+  data_universal_stats_summary = universal_stats_summary,
+  data_cell_expression_names = cell_expression_names,
+=======
   data_achilles_long = achilles_long,
   data_prism_long = prism_long,
   data_expression_names = expression_names,
   data_mean_virtual_achilles = mean_virtual_achilles,
   data_mean_virtual_prism_cor = mean_virtual_prism_cor,
   data_mean_virtual_achilles_cell_line = mean_virtual_achilles_cell_line,
+>>>>>>> main
   input = list(),
   card = FALSE,
   lineplot = FALSE,

@@ -5,7 +5,11 @@
 \title{Make Metabolite Summary}
 \usage{
 make_summary_metabolite(
+<<<<<<< HEAD
+  data_compound_hmdb_names = compound_hmdb_names,
+=======
   data_hmdb_names = hmdb_names,
+>>>>>>> main
   input = list(),
   var = "name"
 )

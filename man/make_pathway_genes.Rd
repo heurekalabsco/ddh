@@ -5,8 +5,13 @@
 \title{Pathway Genes Table}
 \usage{
 make_pathway_genes(
+<<<<<<< HEAD
+  data_gene_pathways = gene_pathways,
+  data_universal_gene_summary = universal_gene_summary,
+=======
   data_pathways = pathways,
   data_gene_summary = gene_summary,
+>>>>>>> main
   go_id
 )
 }

@@ -4,7 +4,7 @@
 \alias{gene_linkr}
 \title{Gene Linkr}
 \usage{
-gene_linkr(summary_table = gene_summary, query)
+gene_linkr(summary_table = universal_gene_summary, query)
 }
 \description{
 Gene Linkr

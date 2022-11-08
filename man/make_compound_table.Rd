@@ -5,11 +5,18 @@
 \title{Compound Table}
 \usage{
 make_compound_table(
+<<<<<<< HEAD
+  data_compound_prism_cor_nest = compound_prism_cor_nest,
+  data_compound_prism_names = compound_prism_names,
+  input = list(),
+  data_universal_stats_summary = universal_stats_summary,
+=======
   data_prism_cor_nest = prism_cor_nest,
   data_prism_names = prism_names,
   input = list(),
   data_prism_cor_upper = prism_cor_upper,
   data_prism_cor_lower = prism_cor_lower,
+>>>>>>> main
   top = TRUE
 )
 }

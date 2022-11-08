@@ -5,8 +5,13 @@
 \title{Cluster Enrichment Plot}
 \usage{
 make_cluster_enrich(
+<<<<<<< HEAD
+  data_gene_signature_clusters = gene_signature_clusters,
+  data_gene_signature_cluster_enrichment = gene_signature_cluster_enrichment,
+=======
   data_sequence_clusters = sequence_clusters,
   data_protein_cluster_enrichment = protein_cluster_enrichment,
+>>>>>>> main
   input = list(),
   ontology = "BP",
   num_terms = 20

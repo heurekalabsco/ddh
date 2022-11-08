@@ -5,10 +5,17 @@
 \title{Metabolite Table}
 \usage{
 make_metabolite_table(
+<<<<<<< HEAD
+  data_compound_hmdb_proteins = compound_hmdb_proteins,
+  data_compound_hmdb_metabolites = compound_hmdb_metabolites,
+  data_cell_metabolites = cell_metabolites,
+  data_cell_expression_names = cell_expression_names,
+=======
   data_hmdb_proteins = hmdb_proteins,
   data_hmdb_metabolites = hmdb_metabolites,
   data_cell_metabolites = cell_metabolites,
   data_expression_names = expression_names,
+>>>>>>> main
   input = list()
 )
 }

@@ -6,7 +6,11 @@
 \usage{
 make_ideogram(
   data_gene_location = gene_location,
+<<<<<<< HEAD
+  data_gene_chromosome = gene_chromosome,
+=======
   data_chromosome = chromosome,
+>>>>>>> main
   input = list(),
   card = FALSE
 )

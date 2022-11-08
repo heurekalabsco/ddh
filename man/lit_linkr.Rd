@@ -4,7 +4,7 @@
 \alias{lit_linkr}
 \title{Lit Linkr}
 \usage{
-lit_linkr(summary_table = gene_summary, lit_string)
+lit_linkr(summary_table = universal_gene_summary, lit_string)
 }
 \description{
 Lit Linkr

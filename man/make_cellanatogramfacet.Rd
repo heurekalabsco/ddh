@@ -4,7 +4,11 @@
 \alias{make_cellanatogramfacet}
 \title{Cell Anatogram Facet}
 \usage{
+<<<<<<< HEAD
+make_cellanatogramfacet(data_gene_subcell = gene_subcell, input = list())
+=======
 make_cellanatogramfacet(data_subcell = subcell, input = list())
+>>>>>>> main
 }
 \description{
 Cell Anatogram Facet

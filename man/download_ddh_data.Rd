@@ -8,9 +8,8 @@ download_ddh_data(
   app_data_dir,
   object_name = NULL,
   test = FALSE,
-  overwrite = FALSE,
-  privateMode = TRUE,
-  raw = FALSE
+  private = TRUE,
+  overwrite = FALSE
 )
 }
 \arguments{
