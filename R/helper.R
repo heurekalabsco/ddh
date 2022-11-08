@@ -57,8 +57,8 @@ download_ddh_data <- function(app_data_dir,
       key_name <- glue::glue('_data/{object_name}')
       data_objects <-
         all_objects %>% #take full list
-        purrr::keep(purrr::map_lgl(.x = 1:length(data_objects),
-                                   ~ data_objects[[.x]][["Key"]] %in% key_name)) #pass map_lgl to keep to filter names to keep
+        purrr::keep(purrr::map_lgl(.x = 1:length(all_objects),
+                                   ~ all_objects[[.x]][["Key"]] %in% key_name)) #pass map_lgl to keep to filter names to keep
       message(glue::glue('filtered to keep {length(data_objects)}'))    }
 
 
@@ -135,7 +135,6 @@ load_ddh_data <- function(app_data_dir,
     load_ddh_db()
     message("loaded db connections")
   }
-
   message("finished loading")
 }
 
