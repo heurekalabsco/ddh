@@ -4,7 +4,11 @@
 \alias{make_humananatogram_table}
 \title{Human Anatogram Table}
 \usage{
+<<<<<<< HEAD
 make_humananatogram_table(data_gene_tissue = gene_tissue, input = list())
+=======
+make_humananatogram_table(data_tissue = tissue, input = list())
+>>>>>>> main
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}

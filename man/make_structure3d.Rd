@@ -5,8 +5,13 @@
 \title{Protein 3D Structure Plot}
 \usage{
 make_structure3d(
+<<<<<<< HEAD
   data_gene_uniprot_pdb_table = gene_uniprot_pdb_table,
   data_universal_proteins = universal_proteins,
+=======
+  data_uniprot_pdb_table = uniprot_pdb_table,
+  data_proteins = proteins,
+>>>>>>> main
   gene_symbol = NULL,
   pdb_id = NULL,
   input = list(),

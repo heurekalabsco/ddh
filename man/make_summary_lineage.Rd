@@ -5,7 +5,11 @@
 \title{Make Lineage Summary}
 \usage{
 make_summary_lineage(
+<<<<<<< HEAD
   data_cell_expression_names = cell_expression_names,
+=======
+  data_expression_names = expression_names,
+>>>>>>> main
   input = list(),
   var = "cell_line"
 )

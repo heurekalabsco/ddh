@@ -5,7 +5,11 @@
 \title{Drug Genes Cor Table}
 \usage{
 make_drug_genes_cor_table(
+<<<<<<< HEAD
   data_compound_genes_cor_table = compound_genes_cor_table,
+=======
+  data_drug_genes_cor_table = drug_genes_cor_table,
+>>>>>>> main
   drug
 )
 }

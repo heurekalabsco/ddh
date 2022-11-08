@@ -2,20 +2,35 @@
 % Please edit documentation in R/text.R
 \name{make_summary_cellosaurus}
 \alias{make_summary_cellosaurus}
+<<<<<<< HEAD
 \title{Make cell_osaurus Summary}
 \usage{
 make_summary_cellosaurus(
   data_cell_osaurus = cell_osaurus,
+=======
+\title{Make Cellosaurus Summary}
+\usage{
+make_summary_cellosaurus(
+  data_cellosaurus = cellosaurus,
+>>>>>>> main
   input = list(),
   var = "ID"
 )
 }
 \description{
+<<<<<<< HEAD
 Make cell_osaurus Summary
+=======
+Make Cellosaurus Summary
+>>>>>>> main
 }
 \examples{
 make_summary_cellosaurus(input = list(content = "HEPG2"), var = "SX") #sex
 make_summary_cellosaurus(input = list(content = "HEPG2"), var = "AG") #age
+<<<<<<< HEAD
 make_summary_cellosaurus(input = list(content = "HEPG2"), var = "CC") \%>\% lit_linkr(data_universal_gene_summary = universal_gene_summary)
+=======
+make_summary_cellosaurus(input = list(content = "HEPG2"), var = "CC") \%>\% lit_linkr(data_gene_summary = gene_summary)
+>>>>>>> main
 make_summary_cellosaurus(input = list(content = "HEPG2"), var = "ATCC_url") #url
 }

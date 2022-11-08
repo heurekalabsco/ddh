@@ -4,10 +4,14 @@
 \alias{make_cell_line_table}
 \title{Cell Summary Table}
 \usage{
+<<<<<<< HEAD
 make_cell_line_table(
   data_cell_expression_meta = cell_expression_meta,
   input = list()
 )
+=======
+make_cell_line_table(data_expression_meta = expression_meta, input = list())
+>>>>>>> main
 }
 \description{
 Cell Summary Table

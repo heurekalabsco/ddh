@@ -5,8 +5,14 @@
 \title{Top Table}
 \usage{
 make_top_table(
+<<<<<<< HEAD
   data_gene_master_top_table = gene_master_top_table,
   data_universal_stats_summary = universal_stats_summary,
+=======
+  data_master_top_table = master_top_table,
+  data_master_top_table_cell = master_top_table_cell_line,
+  data_achilles_upper = achilles_upper,
+>>>>>>> main
   gls = FALSE,
   input = list()
 )

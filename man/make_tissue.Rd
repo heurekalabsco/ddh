@@ -4,7 +4,11 @@
 \alias{make_tissue}
 \title{Tissue Plot}
 \usage{
+<<<<<<< HEAD
 make_tissue(data_gene_tissue = gene_tissue, input = list(), card = FALSE)
+=======
+make_tissue(data_tissue = tissue, input = list(), card = FALSE)
+>>>>>>> main
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}

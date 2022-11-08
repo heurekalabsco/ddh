@@ -5,9 +5,15 @@
 \title{Differential Pathway Expression Plot}
 \usage{
 make_functional_cell(
+<<<<<<< HEAD
   data_gene_pathways = gene_pathways,
   data_universal_expression_long = universal_expression_long,
   data_cell_expression_meta = cell_expression_meta,
+=======
+  data_pathways = pathways,
+  data_expression_long = expression_long,
+  data_expression_meta = expression_meta,
+>>>>>>> main
   input = list(),
   num_pathways = 10,
   nwords = 5,

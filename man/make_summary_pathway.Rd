@@ -4,15 +4,23 @@
 \alias{make_summary_pathway}
 \title{Make Pathway Summary}
 \usage{
+<<<<<<< HEAD
 make_summary_pathway(
   data_gene_pathways = gene_pathways,
   input = list(),
   var = "pathway"
 )
+=======
+make_summary_pathway(data_pathways = pathways, input = list(), var = "pathway")
+>>>>>>> main
 }
 \description{
 Make Pathway Summary
 }
 \examples{
+<<<<<<< HEAD
 make_summary_pathway(input = list(query = "1902965"), var = "data")
+=======
+make_summary_pathway(input = list(content = "1902965"), var = "data")
+>>>>>>> main
 }

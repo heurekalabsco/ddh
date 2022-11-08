@@ -5,15 +5,26 @@
 \title{Setup graph parameters}
 \usage{
 setup_graph(
+<<<<<<< HEAD
   data_master_top_table = gene_master_top_table,
   data_master_bottom_table = gene_master_bottom_table,
   data_prism_cor_nest = compound_prism_cor_nest,
+=======
+  data_master_top_table = master_top_table,
+  data_master_bottom_table = master_bottom_table,
+  data_prism_cor_nest = prism_cor_nest,
+>>>>>>> main
   input_list = list(),
   setup_threshold,
   setup_corrType,
   cell_line_similarity = "dependency",
+<<<<<<< HEAD
   data_cell_line_dep_sim = cell_dependency_sim,
   data_cell_line_exp_sim = cell_expression_sim,
+=======
+  data_cell_line_dep_sim = cell_line_dep_sim,
+  data_cell_line_exp_sim = cell_line_exp_sim,
+>>>>>>> main
   bonferroni_cutoff = 0.05
 )
 }

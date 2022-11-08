@@ -5,9 +5,15 @@
 \title{Clustering Table}
 \usage{
 make_clustering_table(
+<<<<<<< HEAD
   data_gene_signature_clusters = gene_signature_clusters,
   data_gene_signatures = gene_signatures,
   data_gene_signature_cluster_names = gene_signature_cluster_names,
+=======
+  data_sequence_clusters = sequence_clusters,
+  data_signatures = signatures,
+  data_protein_cluster_names = data_hmdb_proteins_protein_cluster_names,
+>>>>>>> main
   input = list(),
   cluster = FALSE,
   show_signature = FALSE
