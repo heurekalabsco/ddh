@@ -5,20 +5,9 @@
 \title{Cell Expression Plot}
 \usage{
 make_cellexpression(
-<<<<<<< HEAD
   data_universal_expression_long = universal_expression_long,
   data_cell_expression_names = cell_expression_names,
   data_universal_stats_summary = universal_stats_summary,
-=======
-  data_expression_long = expression_long,
-  data_expression_names = expression_names,
-  data_gene_expression_upper = gene_expression_upper,
-  data_gene_expression_lower = gene_expression_lower,
-  data_protein_expression_upper = protein_expression_upper,
-  data_protein_expression_lower = protein_expression_lower,
-  data_mean_virtual_gene_expression = mean_virtual_gene_expression,
-  data_mean_virtual_protein_expression = mean_virtual_protein_expression,
->>>>>>> main
   input = list(),
   var = "gene",
   card = FALSE

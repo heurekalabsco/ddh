@@ -4,11 +4,7 @@
 \alias{make_pubmed_table}
 \title{Pubmed Table}
 \usage{
-<<<<<<< HEAD
 make_pubmed_table(data_universal_pubmed = universal_pubmed, input = list())
-=======
-make_pubmed_table(data_pubmed = pubmed, input = list())
->>>>>>> main
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}

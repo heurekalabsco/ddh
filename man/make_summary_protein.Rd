@@ -5,11 +5,7 @@
 \title{Make Protein Summary}
 \usage{
 make_summary_protein(
-<<<<<<< HEAD
   data_universal_proteins = universal_proteins,
-=======
-  data_proteins = proteins,
->>>>>>> main
   input = list(),
   var = "gene_name"
 )
@@ -20,9 +16,5 @@ Make Protein Summary
 \examples{
 make_summary_protein(input = list(content = "ROCK1"), var = "gene_name")
 make_summary_protein(input = list(content = "ROCK2"), var = "protein_name")
-<<<<<<< HEAD
 make_summary_protein(input = list(content = "ROCK1"), var = "sequence")
-=======
-make_summary_protein(data_proteins = proteins, input = list(content = "ROCK1"), var = "sequence")
->>>>>>> main
 }

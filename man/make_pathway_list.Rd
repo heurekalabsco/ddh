@@ -4,11 +4,7 @@
 \alias{make_pathway_list}
 \title{Pathway List Table}
 \usage{
-<<<<<<< HEAD
 make_pathway_list(data_gene_pathways = gene_pathways, input = list())
-=======
-make_pathway_list(data_pathways = pathways, input = list())
->>>>>>> main
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}

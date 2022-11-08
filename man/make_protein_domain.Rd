@@ -6,11 +6,7 @@
 \usage{
 make_protein_domain(
   input = list(),
-<<<<<<< HEAD
   data_gene_protein_domains = gene_protein_domains,
-=======
-  data_protein_domains = protein_domains,
->>>>>>> main
   dom_var = NULL,
   ptm_var = NULL
 )

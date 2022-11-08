@@ -4,15 +4,11 @@
 \alias{make_proteinsize}
 \title{Protein Size Plot}
 \usage{
-<<<<<<< HEAD
 make_proteinsize(
   data_universal_proteins = universal_proteins,
   input = list(),
   card = FALSE
 )
-=======
-make_proteinsize(data_proteins = proteins, input = list(), card = FALSE)
->>>>>>> main
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}

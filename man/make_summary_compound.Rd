@@ -5,11 +5,7 @@
 \title{Make Compound Summary}
 \usage{
 make_summary_compound(
-<<<<<<< HEAD
   data_universal_prism_meta = universal_prism_meta,
-=======
-  data_prism_meta = prism_meta,
->>>>>>> main
   input = list(),
   var = "name"
 )

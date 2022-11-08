@@ -5,13 +5,8 @@
 \title{Cell Similarity Plot}
 \usage{
 make_cell_similarity(
-<<<<<<< HEAD
   data_cell_dependency_sim = cell_dependency_sim,
   data_cell_expression_sim = cell_expression_sim,
-=======
-  data_cell_line_dep_sim = cell_line_dep_sim,
-  data_cell_line_exp_sim = cell_line_exp_sim,
->>>>>>> main
   similarity = "dependency",
   input = list(),
   card = FALSE,

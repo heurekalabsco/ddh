@@ -4,11 +4,7 @@
 \alias{make_cellanatogram_table}
 \title{Cellanatogram Table}
 \usage{
-<<<<<<< HEAD
 make_cellanatogram_table(data_gene_subcell = gene_subcell, input = list())
-=======
-make_cellanatogram_table(data_subcell = subcell, input = list())
->>>>>>> main
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}

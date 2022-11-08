@@ -5,13 +5,8 @@
 \title{Cell Drugs Table}
 \usage{
 make_cell_drugs_table(
-<<<<<<< HEAD
   data_universal_prism_long = universal_prism_long,
   data_cell_expression_meta = cell_expression_meta,
-=======
-  data_prism_long = prism_long,
-  data_expression_meta = expression_meta,
->>>>>>> main
   input = list()
 )
 }

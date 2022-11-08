@@ -4,14 +4,10 @@
 \alias{make_summary_compound_list}
 \title{Make Compound List Summary}
 \usage{
-<<<<<<< HEAD
 make_summary_compound_list(
   data_universal_prism_meta = universal_prism_meta,
   input = list()
 )
-=======
-make_summary_compound_list(data_prism_meta = prism_meta, input = list())
->>>>>>> main
 }
 \description{
 Make Compound List Summary

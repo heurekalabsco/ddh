@@ -4,15 +4,11 @@
 \alias{make_summary_moa}
 \title{Make MOA Summary}
 \usage{
-<<<<<<< HEAD
 make_summary_moa(
   data_universal_prism_meta = universal_prism_meta,
   input = list(),
   var = "name"
 )
-=======
-make_summary_moa(data_prism_meta = prism_meta, input = list(), var = "name")
->>>>>>> main
 }
 \description{
 Make MOA Summary

@@ -47,7 +47,7 @@ download_ddh_data <- function(app_data_dir,
     if(is.null(object_name)){ #all objects
       data_objects <- all_objects
     } else if(object_name %in% c("gene", "cell", "compound")) { #object "group"
-      object_regex <- stringr::str_c(object_name, "universal", sep = "|")
+      object_regex <- stringr::str_c(paste0(object_name, "_"), "universal_", sep = "|")
       data_objects <-
         all_objects %>% #take full list
         purrr::keep(purrr::map_lgl(.x = 1:length(all_objects),
@@ -152,7 +152,7 @@ load_ddh_feather <- function(app_data_dir,
   if(is.null(object_name)){ #all objects
     all_objects <- fs::dir_ls(path = app_data_dir)
   } else if(object_name %in% c("gene", "cell", "compound")) { #object "group"
-    object_regex <- stringr::str_c(object_name, "universal", sep = "|")
+    object_regex <- stringr::str_c(paste0(object_name, "_"), "universal_", sep = "|")
     all_objects <-
       fs::dir_ls(path = app_data_dir) %>%
       stringr::str_subset(pattern = object_regex)

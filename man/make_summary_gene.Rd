@@ -5,11 +5,7 @@
 \title{Make Gene Summary}
 \usage{
 make_summary_gene(
-<<<<<<< HEAD
   data_universal_gene_summary = universal_gene_summary,
-=======
-  data_gene_summary = gene_summary,
->>>>>>> main
   input = list(),
   var = "approved_symbol"
 )
@@ -20,9 +16,5 @@ Make Gene Summary
 \examples{
 make_summary_gene(input = list(content = "ROCK1"), var = "approved_symbol")
 make_summary_gene(input = list(content = "ROCK1"), var = "aka")
-<<<<<<< HEAD
 make_summary_gene(input = list(content = "ROCK1"), var = "cds_length")
-=======
-make_summary_gene(data_gene_summary = gene_location, input = list(content = "ROCK1"), var = "cds_length")
->>>>>>> main
 }

@@ -4,15 +4,11 @@
 \alias{make_cellanatogram}
 \title{Cellanatogram Plot}
 \usage{
-<<<<<<< HEAD
 make_cellanatogram(
   data_gene_subcell = gene_subcell,
   input = list(),
   card = FALSE
 )
-=======
-make_cellanatogram(data_subcell = subcell, input = list(), card = FALSE)
->>>>>>> main
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
