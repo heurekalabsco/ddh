@@ -1242,9 +1242,10 @@ make_pubmed <- function(data_universal_pubmed = universal_pubmed,
     if(card == TRUE){
       plot_complete <-
         plot_complete +
+        gplot2::labs(x = "") +
         ggplot2::theme(plot.margin = ggplot2::margin(5, 10, 5, 5),
-                       legend.position="none") +
-        ggplot2::labs(x = "") +
+                       legend.position="none",
+                       axis.text.x=element_blank()) +
         NULL
     }
 
