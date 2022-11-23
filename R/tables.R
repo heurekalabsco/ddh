@@ -709,6 +709,53 @@ make_bottom_table <- function(data_gene_master_bottom_table = gene_master_bottom
            })
 }
 
+#' Gene-Pathway and Pathway-Pathway Co-essentiality Table
+#'
+#' This is a table function that takes a gene/s or a pathway/s and returns its co-essential pathways and genes
+#'
+#' @param input Expecting a list containing content variable.
+#' @param cutoff Absolute Pearson's correlation value to filter
+#' @param sign Character vector. Either "positive" or "negative" to return positive co-essentialities or negative co-essentialities, respectively.
+#'
+#' @return If no error, then returns a table. If an error is thrown, then will return an empty table.
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' make_gene_pathways_components(input = list(type = 'gene', content = 'ROCK1'))
+#' \dontrun{
+#' make_gene_pathways_components(input = list(type = 'gene', content = 'ROCK1'))
+#' }
+make_gene_pathways_components <- function(data_gene_pathways_components = gene_pathways_components,
+                                          input = list(),
+                                          cutoff = 0.7,
+                                          sign = "positive") {
+  make_gene_pathways_components_raw <- function() {
+
+    table_data <- data_gene_pathways_components %>%
+      dplyr::filter(feature1 %in% input$content | feature2 %in% input$content) %>%
+      dplyr::filter(abs(pearson_corr) > cutoff)
+
+    if (sign == "positive") {
+      table_complete <- table_data %>%
+        dplyr::filter(pearson_corr > 0)
+    } else if (sign == "negative") {
+      table_complete <- table_data %>%
+        dplyr::filter(pearson_corr < 0)
+    }
+
+    return(table_complete)
+  }
+
+  #error handling
+  tryCatch(make_gene_pathways_components_raw(),
+           error = function(e){
+             return(data_gene_pathways_components %>%
+                      dplyr::slice(0)
+             )
+           })
+}
 
 ##censor-----
 #' Censor
