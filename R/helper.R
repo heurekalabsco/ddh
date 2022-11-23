@@ -41,7 +41,7 @@ download_ddh_data <- function(app_data_dir,
       s3$list_objects(Bucket = Sys.getenv(bucket_var)) %>%
       purrr::pluck("Contents")
 
-    message(glue::glue('{length(data_objects)} objects in the {bucket} bucket'))
+    message(glue::glue('{length(all_objects)} objects in the {bucket} bucket'))
 
     #filter lists using same logic as load
     if(is.null(object_name)){ #all objects
@@ -57,8 +57,8 @@ download_ddh_data <- function(app_data_dir,
       key_name <- glue::glue('_data/{object_name}')
       data_objects <-
         all_objects %>% #take full list
-        purrr::keep(purrr::map_lgl(.x = 1:length(data_objects),
-                                   ~ data_objects[[.x]][["Key"]] %in% key_name)) #pass map_lgl to keep to filter names to keep
+        purrr::keep(purrr::map_lgl(.x = 1:length(all_objects),
+                                   ~ all_objects[[.x]][["Key"]] %in% key_name)) #pass map_lgl to keep to filter names to keep
       message(glue::glue('filtered to keep {length(data_objects)}'))    }
 
 
@@ -112,30 +112,22 @@ download_ddh_data <- function(app_data_dir,
 #' @export
 load_ddh_data <- function(app_data_dir,
                           object_name = NULL,
-                          feather = TRUE,
                           db = FALSE) {
 
   # Load colors
   load_ddh_colors()
   message("loaded colors")
 
-  if(feather == TRUE) {
-    # Load .RDS files
-    load_ddh_feather(app_data_dir,
-                     object_name)
-    message("loaded Rds files")
-  }
+  # Load feather files
+  load_ddh_feather(app_data_dir,
+                   object_name)
+  message("loaded feather files")
 
-  if(!is.null(object_name)){ #stop here
-    return(message("done"))
-  }
-
-  if(db) {
+  if(db == TRUE) {
     #load DB cons
     load_ddh_db()
     message("loaded db connections")
   }
-
   message("finished loading")
 }
 
