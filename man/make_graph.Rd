@@ -12,7 +12,7 @@ make_graph(
   input = list(),
   threshold = 10,
   deg = 2,
-  cell_line_similarity = "dependency",
+  cell_line_var = "dependency",
   data_cell_line_dep_sim = cell_dependency_sim,
   data_cell_line_exp_sim = cell_expression_sim,
   bonferroni_cutoff = 0.05,
