@@ -745,6 +745,18 @@ make_gene_pathways_components <- function(data_gene_pathways_components = gene_p
         dplyr::filter(pearson_corr < 0)
     }
 
+    # Swap cols (based on query)
+    for(i in 1:nrow(table_complete)) {
+      if(table_complete$feature2[i] %in% input$content &
+         !(table_complete$feature1[i] %in% input$content)) {
+        ft1 <- table_complete$feature1[i]
+        ft2 <- table_complete$feature2[i]
+
+        table_complete$feature2[i] <- ft1
+        table_complete$feature1[i] <- ft2
+      }
+    }
+
     return(table_complete)
   }
 
