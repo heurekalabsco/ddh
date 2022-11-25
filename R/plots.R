@@ -2838,6 +2838,70 @@ make_correlation <- function(data_gene_achilles_cor_nest = gene_achilles_cor_nes
              make_bomb_plot()})
 }
 
+## NETWORK PLOT FOR GENE-PATHWAYS --------------------------------------------------------
+#' Gene-Pathway co-essentiality plot
+#'
+#' @param input Expecting a list containing content variable.
+#' @return If no error, then returns a network plot. If an error is thrown, then will return a bomb plot.
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' make_gene_pathways_components_network(input = list(content = 'ROCK1'))
+#' \dontrun{
+#' make_gene_pathways_components_network(input = list(content = 'ROCK1'))
+#' }
+make_gene_pathways_components_network <- function(input = list(),
+                                                  cutoff = 0.6,
+                                                  highlight = FALSE,
+                                                  plot_labels = FALSE) {
+
+  make_gene_pathways_components_network_raw <- function() {
+    plot_data <- make_gene_pathways_components(input = input,
+                                               cutoff = cutoff) %>%
+      dplyr::select(feature1, feature2, pearson_corr)
+
+    ## Name nodes
+    graph_table <- plot_data %>%
+      tidygraph::as_tbl_graph() %>%
+      dplyr::mutate(type = dplyr::case_when(name %in% input$content ~ "Query",
+                                            nchar(name) < 10 ~ "Gene", # Provisional
+                                            nchar(name) > 10 ~ "Pathway") # Provisional
+      )
+
+    # highlight_names <- c(input$content) # , add table clicks
+
+    ## Plot network
+    plot_complete <- ggraph::ggraph(graph_table, layout = "fr") +
+      ggraph::geom_edge_link(ggplot2::aes(edge_alpha = abs(pearson_corr),
+                                          color = pearson_corr),
+                             edge_width = 0.5, show.legend = FALSE) +
+      ggraph::geom_node_point(ggplot2::aes(fill = type), color = "black",
+                              pch = 21, size = 3, alpha = 0.85) +
+      # {if(!isTRUE(highlight))ggraph::geom_node_label(ggplot2::aes(label = name,
+      #                                                             filter = name %in% highlight_names),
+      #                                                repel = TRUE, size = 4.5,
+      #                                                fill = alpha(c("white"), 0.6),
+      #                                                label.size = NA, fontface = "bold")} +
+      ggraph::theme_graph(foreground = "white", fg_text_colour = "white") +
+      ggplot2::theme(legend.position = "top",
+                     legend.title = ggplot2::element_blank(),
+                     text = ggplot2::element_text(family = "Roboto Slab", size = 16)) +
+      scale_fill_ddh_d() +
+      ggraph::scale_edge_color_continuous(low = "black", high = "black")
+
+    return(plot_complete)
+  }
+
+  #error handling
+  tryCatch(make_gene_pathways_components_network_raw(),
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
+
+}
+
 ## EXPvDEP PLOT --------------------------------------------------------
 #' Gene Dependency versus Expression
 #'
