@@ -7,7 +7,7 @@
 make_gene_pathways_components(
   data_gene_pathways_components = gene_pathways_components,
   input = list(),
-  cutoff = 0.7
+  cutoff = 0.6
 )
 }
 \arguments{

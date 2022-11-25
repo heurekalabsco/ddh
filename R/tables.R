@@ -728,12 +728,14 @@ make_bottom_table <- function(data_gene_master_bottom_table = gene_master_bottom
 #' }
 make_gene_pathways_components <- function(data_gene_pathways_components = gene_pathways_components,
                                           input = list(),
-                                          cutoff = 0.7) {
+                                          cutoff = 0.6) {
   make_gene_pathways_components_raw <- function() {
 
-    table_data <- data_gene_pathways_components %>%
+    table_complete <- data_gene_pathways_components %>%
       dplyr::filter(feature1 %in% input$content | feature2 %in% input$content) %>%
-      dplyr::filter(abs(pearson_corr) > cutoff)
+      dplyr::filter(abs(pearson_corr) > cutoff) %>%
+      dplyr::mutate(swapped = FALSE) %>%
+      dplyr::as_tibble()
 
     # Swap cols (based on query)
     for(i in 1:nrow(table_complete)) {
@@ -741,13 +743,10 @@ make_gene_pathways_components <- function(data_gene_pathways_components = gene_p
          !(table_complete$feature1[i] %in% input$content)) {
         ft1 <- table_complete$feature1[i]
         ft2 <- table_complete$feature2[i]
-        gn1 <- table_complete$genes1[i]
-        gn2 <- table_complete$genes2[i]
 
         table_complete$feature2[i] <- ft1
         table_complete$feature1[i] <- ft2
-        table_complete$genes2[i] <- gn1
-        table_complete$genes1[i] <- gn2
+        table_complete$swapped[i] <- TRUE
       }
     }
 
