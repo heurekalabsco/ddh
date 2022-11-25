@@ -7,16 +7,13 @@
 make_gene_pathways_components(
   data_gene_pathways_components = gene_pathways_components,
   input = list(),
-  cutoff = 0.7,
-  sign = "positive"
+  cutoff = 0.7
 )
 }
 \arguments{
 \item{input}{Expecting a list containing content variable.}
 
 \item{cutoff}{Absolute Pearson's correlation value to filter}
-
-\item{sign}{Character vector. Either "positive" or "negative" to return positive co-essentialities or negative co-essentialities, respectively.}
 }
 \value{
 If no error, then returns a table. If an error is thrown, then will return an empty table.

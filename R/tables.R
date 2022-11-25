@@ -715,7 +715,6 @@ make_bottom_table <- function(data_gene_master_bottom_table = gene_master_bottom
 #'
 #' @param input Expecting a list containing content variable.
 #' @param cutoff Absolute Pearson's correlation value to filter
-#' @param sign Character vector. Either "positive" or "negative" to return positive co-essentialities or negative co-essentialities, respectively.
 #'
 #' @return If no error, then returns a table. If an error is thrown, then will return an empty table.
 #'
@@ -729,21 +728,12 @@ make_bottom_table <- function(data_gene_master_bottom_table = gene_master_bottom
 #' }
 make_gene_pathways_components <- function(data_gene_pathways_components = gene_pathways_components,
                                           input = list(),
-                                          cutoff = 0.7,
-                                          sign = "positive") {
+                                          cutoff = 0.7) {
   make_gene_pathways_components_raw <- function() {
 
     table_data <- data_gene_pathways_components %>%
       dplyr::filter(feature1 %in% input$content | feature2 %in% input$content) %>%
       dplyr::filter(abs(pearson_corr) > cutoff)
-
-    if (sign == "positive") {
-      table_complete <- table_data %>%
-        dplyr::filter(pearson_corr > 0)
-    } else if (sign == "negative") {
-      table_complete <- table_data %>%
-        dplyr::filter(pearson_corr < 0)
-    }
 
     # Swap cols (based on query)
     for(i in 1:nrow(table_complete)) {
@@ -751,9 +741,13 @@ make_gene_pathways_components <- function(data_gene_pathways_components = gene_p
          !(table_complete$feature1[i] %in% input$content)) {
         ft1 <- table_complete$feature1[i]
         ft2 <- table_complete$feature2[i]
+        gn1 <- table_complete$genes1[i]
+        gn2 <- table_complete$genes2[i]
 
         table_complete$feature2[i] <- ft1
         table_complete$feature1[i] <- ft2
+        table_complete$genes2[i] <- gn1
+        table_complete$genes1[i] <- gn2
       }
     }
 
