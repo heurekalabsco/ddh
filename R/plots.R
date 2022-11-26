@@ -2852,25 +2852,21 @@ make_correlation <- function(data_gene_achilles_cor_nest = gene_achilles_cor_nes
 #' \dontrun{
 #' make_gene_pathways_components_network(input = list(content = 'ROCK1'))
 #' }
-make_gene_pathways_components_network <- function(input = list(),
-                                                  cutoff = 0.6,
-                                                  highlight = FALSE,
-                                                  plot_labels = FALSE) {
+make_gene_pathways_components_network <- function(data_universal_achilles_long = universal_achilles_long,
+                                                  input = list(),
+                                                  highlight = FALSE) {
 
   make_gene_pathways_components_network_raw <- function() {
-    plot_data <- make_gene_pathways_components(input = input,
-                                               cutoff = cutoff) %>%
+    plot_data <- make_gene_pathways_components(input = input) %>%
       dplyr::select(feature1, feature2, pearson_corr)
 
     ## Name nodes
     graph_table <- plot_data %>%
       tidygraph::as_tbl_graph() %>%
       dplyr::mutate(type = dplyr::case_when(name %in% input$content ~ "Query",
-                                            nchar(name) < 10 ~ "Gene", # Provisional
-                                            nchar(name) > 10 ~ "Pathway") # Provisional
+                                            name %in% data_universal_achilles_long$gene ~ "Gene",
+                                            !(name %in% data_universal_achilles_long$gene) ~ "Pathway")
       )
-
-    # highlight_names <- c(input$content) # , add table clicks
 
     ## Plot network
     plot_complete <- ggraph::ggraph(graph_table, layout = "fr") +
@@ -2879,11 +2875,11 @@ make_gene_pathways_components_network <- function(input = list(),
                              edge_width = 0.5, show.legend = FALSE) +
       ggraph::geom_node_point(ggplot2::aes(fill = type), color = "black",
                               pch = 21, size = 3, alpha = 0.85) +
-      # {if(!isTRUE(highlight))ggraph::geom_node_label(ggplot2::aes(label = name,
-      #                                                             filter = name %in% highlight_names),
-      #                                                repel = TRUE, size = 4.5,
-      #                                                fill = alpha(c("white"), 0.6),
-      #                                                label.size = NA, fontface = "bold")} +
+      {if(!is.null(highlight))ggraph::geom_node_label(ggplot2::aes(label = name, filter = name %in% highlight),
+                                                      repel = TRUE, size = 4.5,
+                                                      fill = alpha(c("white"), 0.6),
+                                                      label.size = NA, fontface = "bold",
+                                                      family = "Roboto Slab")} +
       ggraph::theme_graph(foreground = "white", fg_text_colour = "white") +
       ggplot2::theme(legend.position = "top",
                      legend.title = ggplot2::element_blank(),
