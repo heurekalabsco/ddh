@@ -732,8 +732,8 @@ make_gene_pathways_components <- function(data_gene_pathways_components = gene_p
   make_gene_pathways_components_raw <- function() {
 
     if(is.null(cutoff)) {
-      cutoff <- mean(abs(data_gene_pathways_components$pearson_corr)) +
-        sd(abs(data_gene_pathways_components$pearson_corr))
+      cutoff <- mean(abs(data_gene_pathways_components$pearson_corr)) # +
+        # sd(abs(data_gene_pathways_components$pearson_corr))
     }
 
     table_complete <- data_gene_pathways_components %>%

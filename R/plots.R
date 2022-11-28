@@ -2875,11 +2875,11 @@ make_gene_pathways_components_network <- function(data_universal_achilles_long =
       ggraph::geom_edge_link(ggplot2::aes(edge_alpha = abs(pearson_corr)),
                              edge_width = 0.5, show.legend = FALSE) +
       ggraph::geom_node_point(ggplot2::aes(fill = type), color = "black",
-                              pch = 21, size = 3, alpha = 0.85) +
+                              pch = 21, size = 4, alpha = 0.85) +
       {if(!is.null(highlight))ggraph::geom_node_point(ggplot2::aes(filter = name %in% highlight),
                                                       fill = "red",
                                                       pch = 21,
-                                                      size = 3,
+                                                      size = 4,
                                                       alpha = 0.85)} +
       {if(!is.null(highlight) & show_labels)ggraph::geom_node_label(ggplot2::aes(label = name, filter = name %in% highlight),
                                                                     repel = TRUE,
