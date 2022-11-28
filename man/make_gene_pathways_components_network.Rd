@@ -7,7 +7,9 @@
 make_gene_pathways_components_network(
   data_universal_achilles_long = universal_achilles_long,
   input = list(),
-  highlight = FALSE
+  highlight = NULL,
+  show_labels = FALSE,
+  fontsize = 3
 )
 }
 \arguments{
