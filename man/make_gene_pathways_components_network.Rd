@@ -2,11 +2,12 @@
 % Please edit documentation in R/plots.R
 \name{make_gene_pathways_components_network}
 \alias{make_gene_pathways_components_network}
-\title{Gene-Pathway co-essentiality plot}
+\title{Gene-Pathway Co-essentiality Network}
 \usage{
 make_gene_pathways_components_network(
   data_universal_achilles_long = universal_achilles_long,
   input = list(),
+  cutoff = NULL,
   highlight = NULL,
   show_labels = FALSE,
   fontsize = 3
@@ -19,7 +20,7 @@ make_gene_pathways_components_network(
 If no error, then returns a network plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Gene-Pathway co-essentiality plot
+Each node in the network is a gene or a pathway. The connection between nodes means an association (co-essentiality) and the intensity of the edges between nodes shows the strength of the association (being the darkest most co-essential). Click on the rows in the table to highlight nodes in the network.
 }
 \examples{
 make_gene_pathways_components_network(input = list(content = 'ROCK1'))

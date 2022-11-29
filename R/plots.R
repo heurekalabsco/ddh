@@ -1242,10 +1242,10 @@ make_pubmed <- function(data_universal_pubmed = universal_pubmed,
     if(card == TRUE){
       plot_complete <-
         plot_complete +
-        gplot2::labs(x = "") +
+        ggplot2::labs(x = "") +
         ggplot2::theme(plot.margin = ggplot2::margin(5, 10, 5, 5),
                        legend.position="none",
-                       axis.text.x=element_blank()) +
+                       axis.text.x = ggplot2::element_blank()) +
         NULL
     }
 
@@ -2839,7 +2839,9 @@ make_correlation <- function(data_gene_achilles_cor_nest = gene_achilles_cor_nes
 }
 
 ## NETWORK PLOT FOR GENE-PATHWAYS --------------------------------------------------------
-#' Gene-Pathway co-essentiality plot
+#' Gene-Pathway Co-essentiality Network
+#'
+#' Each node in the network is a gene or a pathway. The connection between nodes means an association (co-essentiality) and the intensity of the edges between nodes shows the strength of the association (being the darkest most co-essential). Click on the rows in the table to highlight nodes in the network.
 #'
 #' @param input Expecting a list containing content variable.
 #' @return If no error, then returns a network plot. If an error is thrown, then will return a bomb plot.
@@ -2854,12 +2856,13 @@ make_correlation <- function(data_gene_achilles_cor_nest = gene_achilles_cor_nes
 #' }
 make_gene_pathways_components_network <- function(data_universal_achilles_long = universal_achilles_long,
                                                   input = list(),
+                                                  cutoff = NULL,
                                                   highlight = NULL,
                                                   show_labels = FALSE,
                                                   fontsize = 3) {
 
   make_gene_pathways_components_network_raw <- function() {
-    plot_data <- make_gene_pathways_components(input = input) %>%
+    plot_data <- make_gene_pathways_components(input = input, cutoff = cutoff) %>%
       dplyr::select(feature1, feature2, pearson_corr)
 
     ## Name nodes

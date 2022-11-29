@@ -731,13 +731,14 @@ make_gene_pathways_components <- function(data_gene_pathways_components = gene_p
                                           cutoff = NULL) {
   make_gene_pathways_components_raw <- function() {
 
+    table_complete <- data_gene_pathways_components %>%
+      dplyr::filter(feature1 %in% input$content | feature2 %in% input$content)
+
     if(is.null(cutoff)) {
-      cutoff <- mean(abs(data_gene_pathways_components$pearson_corr)) # +
-        # sd(abs(data_gene_pathways_components$pearson_corr))
+      cutoff <- mean(abs(table_complete$pearson_corr)) # + sd(abs(table_complete$pearson_corr))
     }
 
-    table_complete <- data_gene_pathways_components %>%
-      dplyr::filter(feature1 %in% input$content | feature2 %in% input$content) %>%
+    table_complete <- table_complete %>%
       dplyr::filter(abs(pearson_corr) > cutoff) %>%
       dplyr::mutate(swapped = FALSE) %>%
       dplyr::as_tibble()
