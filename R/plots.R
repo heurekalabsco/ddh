@@ -62,31 +62,31 @@ make_barcode <- function(input = list(),
 #' make_ideogram(input = list(type = "gene", query = "ROCK1", content = "ROCK1"))
 #' make_ideogram(input = list(type = "gene", query = "ROCK1", content = "ROCK1"), card = TRUE)
 #' \dontrun{
-#' make_ideogram(input = list(type = "gene", content = "ROCK1"))
+#' make_ideogram(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 #' }
-make_ideogram <- function(data_gene_location = gene_location,
-                          input = list(),
+make_ideogram <- function(input = list(),
                           card = FALSE) {
   make_ideogram_raw <- function() {
-    #set initial vars
-    chromosomes <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "X", "Y")
+    # get data_gene_location out of object
+    data_gene_location <-
+      get_data_object(object_name = input$content,
+                      data_set_name = "gene_location") %>%
+      tidyr::pivot_wider(names_from = "key", values_from = "value")
+
+    # get data_gene_chromosome out of object
+    chromosome_levels <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "X", "Y")
+
+    data_gene_chromosome <-
+      get_data_object(object_name = input$content,
+                      data_set_name = "gene_chromosome") %>%
+      tidyr::separate(key, c("key", "row_number"), sep = "_(?=\\d+)", extra = "merge") %>%
+      tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
+      dplyr::mutate(across(starts_with(c("p", "q", "basepairs")), as.numeric)) %>%
+      dplyr::distinct(chromosome_name, .keep_all = TRUE) %>%
+      dplyr::mutate(chromosome_name = fct_relevel(chromosome_name, chromosome_levels))
+
     #adjust by n so it bumps genes/bands off chromosome ends
     n <- 2000000 #chr1 is 250M
-
-    #build chromosome dataset
-    data_gene_chromosome <-
-      tibble::tibble(
-        chromosome_name = forcats::fct_relevel(chromosomes, chromosomes),
-        basepairs = c(248387328, 242696752, 201105948, 193574945, 182045439, 172126628, 160567428, 146259331, 150617247, 134758134, 135127769, 133324548, 113566686, 101161492, 99753195, 96330374, 84276897, 80542538, 61707364, 66210255, 45090682, 51324926, 154259566, 62460029),
-        centromereposition_mbp = c(125.0, 93.3, 91.0, 50.4, 48.4, 61.0, 59.9, 45.6, 49.0, 40.2, 53.7, 35.8, 17.9, 17.6, 19.0, 36.6, 24.0, 17.2, 26.5, 27.5, 13.2, 14.7, 60.6, 10.4)
-      ) %>%
-      dplyr::mutate(centromere = (centromereposition_mbp * 1000000), #correct for n adjustment here
-                    p = centromere + (n/2),
-                    q = (basepairs+n) - p) %>% #correct for n adjustment here
-      dplyr::mutate(q_start = 0,
-                    q_end = q,
-                    p_start = q + 1,
-                    p_end = q + p)
 
     #get some pq arms for the background images
     pq <-
@@ -99,39 +99,34 @@ make_ideogram <- function(data_gene_location = gene_location,
     #get max lengths for left_join below to normalize transcript sites to maximum, so bands are plotted in the right direction
     max_lengths <-
       data_gene_chromosome %>%
-      dplyr::select(chromosome_name, basepairs) %>%
-      dplyr::mutate(basepairs = basepairs + n) #correct for n adjustment here
+      dplyr::select(chromosome_name, basepairs_adj) #correct for n adjustment here
 
     #make some bands
     band_boundaries <-
-      data_gene_location %>%
-      dplyr::group_by(chromosome_name, band) %>%
-      dplyr::summarize(abs_min = min(transcript_start),
-                       abs_max = max(transcript_end),
-                       length = abs_max - abs_min) %>%
-      dplyr::ungroup() %>%
-      dplyr::filter(chromosome_name %in% chromosomes) %>%
-      dplyr::left_join(max_lengths, by = "chromosome_name") %>%
-      dplyr::mutate(min = basepairs - abs_min - (n/2), #chromosome positions count from the top, so need to reverse order for plotting
-                    max = basepairs - abs_max - (n/2) #correct for n adjustment here
-      ) %>%
-      dplyr::mutate(alternate = dplyr::row_number(chromosome_name) %% 2)
+      get_data_object(object_name = input$content,
+                      data_set_name = "band_boundaries") %>%
+      tidyr::separate(key, into = c("key", "band"), sep = "_(?=p|q)", extra = "merge", fill = "right") %>%
+      tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
+      tidyr::fill(chromosome_name) %>%
+      dplyr::filter(!is.na(band)) %>%
+      dplyr::mutate(across(contains(c("min", "max", "length", "basepairs")), as.numeric))
 
     #adding if (is.null(gene_symbol)), gene_symbol=NULL allows me to generate a plot, even without gene_symbol data, #no data filters, #drop geom_point here
     #get location data for each gene query
     gene_loci <-
       data_gene_location %>%
-      dplyr::filter(approved_symbol %in% input$content) %>%
-      dplyr::select(approved_symbol, chromosome_name, transcript_start, transcript_end) %>%
+      # dplyr::filter(id %in% input$content) %>%
+      dplyr::mutate(across(starts_with("transcript"), as.numeric)) %>%
+      dplyr::select(approved_symbol = id, chromosome_name, transcript_start, transcript_end) %>%
       dplyr::left_join(max_lengths, by = "chromosome_name") %>% #need to flip the query gene start site around b/c chromosome positions count from the top, but ggplots from the bottom
-      dplyr::mutate(start = basepairs - transcript_start - (n/2)) #correct for n adjustment here
+      dplyr::mutate(start = basepairs_adj - transcript_start - (n/2)) #correct for n adjustment here
 
     #error catching
     if(nrow(gene_loci) == 0){stop("gene not found")}
 
     #pull the choromosomes here, and then add a filter in the ggplot to plot them only
     chromosome_loci <-
-      gene_loci %>%
+      data_gene_location %>%
       dplyr::distinct(chromosome_name) %>%
       dplyr::pull(.)
 
@@ -139,8 +134,8 @@ make_ideogram <- function(data_gene_location = gene_location,
     clip_height <-
       max_lengths %>%
       dplyr::filter(chromosome_name %in% chromosome_loci) %>%
-      dplyr::slice_max(basepairs) %>%
-      dplyr::pull(basepairs)
+      dplyr::slice_max(basepairs_adj) %>%
+      dplyr::pull(basepairs_adj)
 
     ideogram_plot <-
       ggplot2::ggplot() +
@@ -164,7 +159,7 @@ make_ideogram <- function(data_gene_location = gene_location,
       #pq bands
       ggplot2::geom_segment(data = band_boundaries %>% dplyr::filter(alternate == 1, chromosome_name %in% chromosome_loci),
                             ggplot2::aes(x = chromosome_name, xend = chromosome_name, y = min, yend = max),
-                            size = 6.5, color = "black", alpha = 0.5) +
+                            linewidth = 6.5, color = "black", alpha = 0.5) +
       #gene points + labels
       ggplot2::geom_point(data = gene_loci, ggplot2::aes(x = chromosome_name, y = start),  size = 6, color = ddh_pal_d(palette = "gene")(1), alpha = 1) +
       ggrepel::geom_text_repel(data = gene_loci, ggplot2::aes(x = chromosome_name, y = start, label = approved_symbol), nudge_x = .2, min.segment.length = 1, family = "Chivo") +
@@ -208,13 +203,20 @@ make_ideogram <- function(data_gene_location = gene_location,
 #' @examples
 #' make_proteinsize(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_proteinsize(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+#' make_proteinsize(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
 #' make_proteinsize(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_proteinsize <- function(data_universal_proteins = universal_proteins,
-                             input = list(),
+make_proteinsize <- function(input = list(),
                              card = FALSE) {
   make_proteinsize_raw <- function() {
+    # get data_universal_proteins out of object
+    data_universal_proteins <-
+      get_data_object(object_name = input$content,
+                      data_set_name = "universal_proteins") %>%
+      tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
+      dplyr::rename(gene_name = 1) %>%
+      dplyr::mutate(across(contains(c("length", "mass")), as.numeric))
 
     ### widths: distinct chunks or gradual strip?
     w <- seq(.1, 1, by = .1) ## 10 steps
@@ -273,7 +275,7 @@ make_proteinsize <- function(data_universal_proteins = universal_proteins,
         ## line locator
         ggplot2::geom_linerange(
           data = selected, ggplot2::aes(ymin = .9, ymax = 1.03),
-          color = "white", size = .8
+          color = "white", linewidth = .8
         ) +
         ## add triangular locator symbol
         ggplot2::geom_point(
@@ -361,17 +363,19 @@ make_proteinsize <- function(data_universal_proteins = universal_proteins,
 #' @examples
 #' make_sequence(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_sequence(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+#' make_sequence(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
 #' make_sequence(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_sequence <- function(data_universal_proteins = universal_proteins,
-                          input = list(),
+make_sequence <- function(input = list(),
                           card = FALSE) {
   make_sequence_raw <- function() {
+    # get data_universal_proteins out of object
     sequence_string <-
-      data_universal_proteins %>%
-      dplyr::filter(gene_name %in% input$content) %>%
-      dplyr::pull("sequence") %>%
+      get_data_object(object_name = input$content,
+                      data_set_name = "universal_proteins") %>%
+      dplyr::filter(key == "sequence") %>%
+      dplyr::pull("value") %>%
       stringr::str_sub(start = 1L, end = 100L) %>%
       stringr::str_pad(100, "right")
 
@@ -394,7 +398,7 @@ make_sequence <- function(data_universal_proteins = universal_proteins,
                   .y = sequence_num,
                   .f = get_subsequence)
 
-    sequence_font <- "Roboto Slab"
+    sequence_font <- "Roboto Mono"
     sequence_size <- 10
 
     plot_complete <-
@@ -446,29 +450,40 @@ make_sequence <- function(data_universal_proteins = universal_proteins,
 #' make_protein_domain(input = list(content = "ROCK2"), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
 #' make_protein_domain(input = list(content = c("ROCK1", "ROCK2")), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
 #' \dontrun{
-#' make_protein_domain(input = list(content = "ROCK2"), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
+#' make_protein_domain(input = list(content = "ROCK1"), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
 #' }
 make_protein_domain <- function(input = list(),
-                                data_gene_protein_domains = gene_protein_domains,
                                 dom_var = NULL,
                                 ptm_var = NULL) {
+  data_gene_protein_domains <-
+    get_data_object(object_name = input$content,
+                    data_set_name = "gene_protein_domains")
+  if(nrow(data_gene_protein_domains) == 0){
+    return(message("no data for plot"))
+  } else {
+    data_gene_protein_domains <-
+      data_gene_protein_domains %>%
+    dplyr::mutate(unique_col_id = dplyr::case_when(
+      key == "unique_id" ~ value,
+      TRUE ~ NA_character_)) %>%
+    tidyr::fill(unique_col_id) %>%
+    tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
+    dplyr::select(c(id, type, description, category, begin, end, url, seq_len, length)) %>%
+    dplyr::mutate(across(contains(c("begin", "end", "seq_len", "length")), as.numeric))}
 
   make_protein_domain_raw <- function() {
-
     gene_symbol <-
       data_gene_protein_domains %>%
-      dplyr::filter(gene_name %in% input$content) %>%
-      dplyr::pull(gene_name) %>%
+      dplyr::pull(id) %>%
       unique()
 
     lengths_data <-
       data_gene_protein_domains %>%
-      dplyr::filter(gene_name %in% input$content) %>%
-      dplyr::filter(!duplicated(gene_name))
+      dplyr::filter(id %in% input$content) %>%
+      dplyr::filter(!duplicated(id))
 
     plot_data <-
       data_gene_protein_domains %>%
-      dplyr::filter(gene_name %in% input$content) %>%
       dplyr::mutate(order = 1)
 
     prots_dr <-
@@ -490,7 +505,7 @@ make_protein_domain <- function(input = list(),
                                          y = order,
                                          yend = order),
                             colour = "black",
-                            size = 1.5,
+                            linewidth = 1.5,
                             lineend = "round")
     #DOMAINS
     if(nrow(prots_dr) != 0) {
@@ -525,7 +540,7 @@ make_protein_domain <- function(input = list(),
                                            xend = begin,
                                            y = order,
                                            yend = order + 3),
-                              size = 0.5,
+                              linewidth = 0.5,
                               linetype = 2,
                               color = "black") +
         ggplot2::scale_y_continuous(limits=c(0,4.1)) + #should be a touch larger than yend
@@ -547,7 +562,7 @@ make_protein_domain <- function(input = list(),
       base_plot +
       ggplot2::labs(x = NULL,
                     y = NULL) +
-      ggplot2::facet_wrap(~ gene_name, ncol = 1,
+      ggplot2::facet_wrap(~ id, ncol = 1,
                           labeller = wrapped_labels(.seq_len = lengths_data$seq_len)
       ) +
       theme_ddh(base_size = 16) +
@@ -702,11 +717,11 @@ make_radial <- function(data_gene_signatures = gene_signatures,
     # RADIAL/BAR PLOT
     plot_complete <-
       ggplot2::ggplot(signature_cluster_means_query,
-                                     ggplot2::aes(x = forcats::fct_inorder(name),
-                                                  y = value,
-                                                  group = clust,
-                                                  color = clust
-                                     )) +
+                      ggplot2::aes(x = forcats::fct_inorder(name),
+                                   y = value,
+                                   group = clust,
+                                   color = clust
+                      )) +
       {if(!barplot)ggplot2::geom_point(alpha = 0.8, show.legend = FALSE)} +
       {if(!barplot)ggplot2::geom_polygon(fill = NA)} +
       {if(barplot & relative)ggplot2::geom_col(data = signature_cluster_means_query %>%
@@ -3574,10 +3589,10 @@ make_molecule_structure <- function(input = list(),
     #                               filename = file_name)
     #   return(message(glue::glue('{input$content} saved to {file_name}')))
     # } else {
-      molecule %>%
-        raymolecule::render_model(width=model_width,
-                                  height=model_height,
-                                  background="white")
+    molecule %>%
+      raymolecule::render_model(width=model_width,
+                                height=model_height,
+                                background="white")
     # }
   }
   #error handling
