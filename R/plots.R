@@ -455,7 +455,7 @@ make_protein_domain <- function(input = list(),
       tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
       dplyr::select(c(id, type, description, category, begin, end, url, seq_len, length)) %>%
       dplyr::mutate(across(contains(c("begin", "end", "seq_len", "length")), as.numeric))
-    }
+  }
 
   make_protein_domain_raw <- function() {
     gene_symbol <-
@@ -616,85 +616,63 @@ make_radial <- function(input = list(),
     get_data_object(object_name = input$content,
                     data_set_name = "gene_signature_clusters") %>%
     tidyr::pivot_wider(names_from = key, values_from = value) %>%
-    dplyr::mutate(across(contains(c("X")), as.numeric))
+    dplyr::mutate(across(contains(c("X", "clust", "member")), as.numeric))
 
+  # get gene_signatures_mean
+  get_content("gene_signatures_mean", dataset = TRUE)
+
+  plot_mean <-
+    gene_signatures_mean %>%
+    dplyr::select(id, A:Y) %>%
+    tidyr::pivot_longer(cols = -id, names_to = "aa", values_to = "freq") %>%
+    dplyr::mutate(plot_var = freq)
 
   make_radial_raw <- function() {
-    if(cluster) {
+    if(cluster == TRUE) {
       query_clust <-
         data_gene_signature_clusters %>%
         dplyr::pull(clust) %>%
         unique()
 
-      signature_cluster_means_prep <-
-        data_gene_signatures %>%
-        dplyr::select(uniprot_id, A:Y) %>%
-        dplyr::inner_join(data_gene_signature_clusters, by = "uniprot_id") %>%
-        dplyr::select(-id, -X1, -X2, -member_prob)
+      # get gene_cluster_signatures out of object
+      get_content("gene_cluster_signatures", dataset = TRUE)
 
-      signature_cluster_means_query <-
-        signature_cluster_means_prep %>%
-        dplyr::mutate(clust = as.numeric(as.character(clust)),
-                      clust = as.factor(ifelse(clust %in% as.numeric(as.character(query_clust)), clust, "Mean"))) %>%
-        dplyr::group_by(clust) %>%
-        dplyr::summarise_if(is.numeric, list(mean = mean)) %>%
-        tidyr::pivot_longer(cols = -clust) %>%
-        dplyr::mutate(name = stringr::str_remove(name, "_mean"),
-                      clust = as.factor(ifelse(clust == "Mean", "Mean",
-                                               paste0("Cluster ", as.numeric(as.character(clust)))))
-        )
+      plot_aa <-
+        gene_cluster_signatures %>%
+        dplyr::select(id, A:Y) %>%
+        dplyr::filter(id %in% query_clust) %>%
+        tidyr::pivot_longer(cols = -id, names_to = "aa", values_to = "freq") %>%
+        dplyr::mutate(plot_var = freq)
 
-      if(relative){
-        signature_cluster_means_query <-
-          signature_cluster_means_query %>%
-          tidyr::pivot_wider(id_cols = clust, values_fn = mean) %>%
-          dplyr::arrange(factor(clust, levels = "Mean")) %>%
-          dplyr::mutate(across(A:Y, ~ . / .[1])) %>%
-          tidyr::pivot_longer(cols = -clust)
-      }
-
-      if(length(unique(signature_cluster_means_query$clust)) == 1) {
-        stop("Unable to cluster this protein by its amino acid sequence.")
-      }
+      # if(length(unique(signature_cluster_means_query$clust)) == 1) {
+      #   stop("Unable to cluster this protein by its amino acid sequence.")
+      # }
 
     } else {
-      signature_cluster_means_prep <-
+      #if not a cluster query
+      plot_aa <-
         data_gene_signatures %>%
-        dplyr::select(id, A:Y)
-
-      signature_cluster_means_query <-
-        signature_cluster_means_prep %>%
-        dplyr::filter(!id %in% input$content) %>%
-        dplyr::rename(Mean = id) %>%
-        dplyr::summarise_if(is.numeric, list(mean = mean)) %>%
-        tibble::rownames_to_column("clust") %>%
-        tidyr::pivot_longer(cols = -clust) %>%
-        dplyr::mutate(name = stringr::str_remove(name, "_mean"),
-                      clust = "Mean")
-
-      signature_gene_query <-
-        signature_cluster_means_prep %>%
-        dplyr::filter(id %in% input$content) %>%
-        tidyr::pivot_longer(cols = -id) %>%
-        dplyr::rename(clust = id)
-
-      signature_cluster_means_query <-
-        dplyr::bind_rows(signature_cluster_means_query,
-                         signature_gene_query)
-
-      if(relative){
-        signature_cluster_means_query <-
-          signature_cluster_means_query %>%
-          tidyr::pivot_wider(id_cols = clust, values_fn = mean) %>%
-          dplyr::arrange(factor(clust, levels = "Mean")) %>%
-          dplyr::mutate(across(A:Y, ~ . / .[1])) %>%
-          tidyr::pivot_longer(cols = -clust)
-      }
+        dplyr::select(id, A:Y) %>%
+        tidyr::pivot_longer(cols = -id, names_to = "aa", values_to = "freq") %>%
+        dplyr::mutate(plot_var = freq)
     }
+    if(relative == TRUE){
+      plot_mean <-
+        plot_mean %>%
+        dplyr::mutate(plot_var = freq/freq)
+
+      plot_aa <-
+        plot_aa %>%
+        dplyr::mutate(plot_var = freq/plot_mean$freq)
+    }
+    plot_data <-
+      plot_aa %>%
+      dplyr::bind_rows(plot_mean)
+
 
     # set colors -1 to assign specific color to "Mean"
-    colors_raw <- ddh_pal_d(palette = "protein")(length(unique(signature_cluster_means_query$clust))-1)
-    names(colors_raw) <- unique(signature_cluster_means_query$clust)[unique(signature_cluster_means_query$clust) != "Mean"]
+    colors_raw <- ddh_pal_d(palette = "protein")(length(unique(plot_data$id))-1)
+    names(colors_raw) <- unique(plot_data$id)[unique(plot_data$id) != "Mean"]
     mean_color <- "gray48"
     names(mean_color) <- "Mean"
     colors_radial <- c(colors_raw, mean_color)
@@ -712,14 +690,14 @@ make_radial <- function(input = list(),
     }
     # RADIAL/BAR PLOT
     plot_complete <-
-      ggplot2::ggplot(signature_cluster_means_query,
-                      ggplot2::aes(x = forcats::fct_inorder(name),
-                                   y = value,
-                                   group = clust,
-                                   color = clust
-                      )) +
+    ggplot2::ggplot(plot_data,
+                    ggplot2::aes(x = forcats::fct_inorder(aa),
+                                 y = plot_var,
+                                 group = id,
+                                 color = id
+                    )) +
       {if(!barplot)ggplot2::geom_point(alpha = 0.8, show.legend = FALSE)} +
-      {if(!barplot)ggplot2::geom_polygon(fill = NA)} +
+      {if(!barplot)ggplot2::geom_polygon(fill = NA)} + #makes the radial connect
       {if(barplot & relative)ggplot2::geom_col(data = signature_cluster_means_query %>%
                                                  dplyr::filter(clust != "Mean"),
                                                ggplot2::aes(x = reorder(name, -value),
