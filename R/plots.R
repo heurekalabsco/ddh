@@ -74,23 +74,17 @@ make_ideogram <- function(input = list(),
       tidyr::pivot_wider(names_from = "key", values_from = "value")
 
     # get data_gene_chromosome out of object
-    chromosome_levels <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "X", "Y")
+    get_content("gene_chromosome", dataset = TRUE)
 
-    data_gene_chromosome <-
-      get_data_object(object_name = input$content,
-                      data_set_name = "gene_chromosome") %>%
-      tidyr::separate(key, c("key", "row_number"), sep = "_(?=\\d+)", extra = "merge") %>%
-      tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
-      dplyr::mutate(across(starts_with(c("p", "q", "basepairs")), as.numeric)) %>%
-      dplyr::distinct(chromosome_name, .keep_all = TRUE) %>%
-      dplyr::mutate(chromosome_name = fct_relevel(chromosome_name, chromosome_levels))
+    # get data to make some bands
+    get_content("gene_band_boundaries", dataset = TRUE)
 
     #adjust by n so it bumps genes/bands off chromosome ends
     n <- 2000000 #chr1 is 250M
 
     #get some pq arms for the background images
     pq <-
-      data_gene_chromosome %>%
+      gene_chromosome %>%
       tidyr::pivot_longer(cols = c("p", "q"), names_to = "arm", values_to = "length") %>%
       dplyr::mutate(y_start = ifelse(arm == "q", q_start, p_start+n),
                     y_end = ifelse(arm == "q", q_end-n, p_end)) %>%
@@ -98,24 +92,13 @@ make_ideogram <- function(input = list(),
 
     #get max lengths for left_join below to normalize transcript sites to maximum, so bands are plotted in the right direction
     max_lengths <-
-      data_gene_chromosome %>%
+      gene_chromosome %>%
       dplyr::select(chromosome_name, basepairs_adj) #correct for n adjustment here
-
-    #make some bands
-    band_boundaries <-
-      get_data_object(object_name = input$content,
-                      data_set_name = "band_boundaries") %>%
-      tidyr::separate(key, into = c("key", "band"), sep = "_(?=p|q)", extra = "merge", fill = "right") %>%
-      tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
-      tidyr::fill(chromosome_name) %>%
-      dplyr::filter(!is.na(band)) %>%
-      dplyr::mutate(across(contains(c("min", "max", "length", "basepairs")), as.numeric))
 
     #adding if (is.null(gene_symbol)), gene_symbol=NULL allows me to generate a plot, even without gene_symbol data, #no data filters, #drop geom_point here
     #get location data for each gene query
     gene_loci <-
       data_gene_location %>%
-      # dplyr::filter(id %in% input$content) %>%
       dplyr::mutate(across(starts_with("transcript"), as.numeric)) %>%
       dplyr::select(approved_symbol = id, chromosome_name, transcript_start, transcript_end) %>%
       dplyr::left_join(max_lengths, by = "chromosome_name") %>% #need to flip the query gene start site around b/c chromosome positions count from the top, but ggplots from the bottom
@@ -157,7 +140,7 @@ make_ideogram <- function(input = list(),
                           ggplot2::aes(x = chromosome_name, y = y_end + n), #calculated 1/2 of distance between
                           color = "gray90", size = 5.5) +
       #pq bands
-      ggplot2::geom_segment(data = band_boundaries %>% dplyr::filter(alternate == 1, chromosome_name %in% chromosome_loci),
+      ggplot2::geom_segment(data = gene_band_boundaries %>% dplyr::filter(alternate == 1, chromosome_name %in% chromosome_loci),
                             ggplot2::aes(x = chromosome_name, xend = chromosome_name, y = min, yend = max),
                             linewidth = 6.5, color = "black", alpha = 0.5) +
       #gene points + labels
@@ -204,6 +187,7 @@ make_ideogram <- function(input = list(),
 #' make_proteinsize(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_proteinsize(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' make_proteinsize(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
+#' make_proteinsize(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')), card = TRUE)
 #' \dontrun{
 #' make_proteinsize(input = list(type = 'gene', content = 'ROCK1'))
 #' }
@@ -217,12 +201,6 @@ make_proteinsize <- function(input = list(),
       tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
       dplyr::rename(gene_name = 1) %>%
       dplyr::mutate(across(contains(c("length", "mass")), as.numeric))
-
-    ### widths: distinct chunks or gradual strip?
-    w <- seq(.1, 1, by = .1) ## 10 steps
-    # w <- seq(.01, 1, by = .01) ## 100 steps ~ almost gradient
-    # w <- c(0.5, 0.95, 1) ## threshold values: 50%, 95%, 100% (or smt similar)
-    colors <- ddh_pal_c(palette = "protein")(length(w))
 
     ## sort alphabetically
     #gene_symbol <- sort(gene_symbol)
@@ -243,14 +221,16 @@ make_proteinsize <- function(input = list(),
       dplyr::filter(gene_name == last_gene) %>%
       dplyr::pull(mass)
 
-    make_mass_strip <- function(data = data_universal_proteins,
-                                var,
+    make_mass_strip <- function(var,
                                 card_var = card,
                                 max_mass = last_mass) {
-
       selected <-
-        data %>%
+        data_universal_proteins %>%
         dplyr::filter(gene_name %in% var)
+
+      #load mass strip data
+      get_content("gene_mass_decile", dataset = TRUE)
+      colors <- ddh_pal_c(palette = "protein")(length(gene_mass_decile$mass_group))
 
       if(card_var == TRUE){ #this solves for a single case
         triangle_size <- 10
@@ -265,57 +245,60 @@ make_proteinsize <- function(input = list(),
       }
 
       base_plot <-
-        data %>%
-        ggplot2::ggplot(ggplot2::aes(x = mass)) +
+        ggplot2::ggplot() +
         ## draw distribution as colored strip
-        ggdist::stat_interval(
-          ggplot2::aes(y = 1),
-          .width = w, size = 10
-        ) +
+        ggplot2::geom_segment(data = gene_mass_decile,
+                              ggplot2::aes(x = start,
+                                           xend = end,
+                                           y = 1,
+                                           yend = 1,
+                                           color = mass_group),
+                              linewidth = 8) +
+        # ggdist::stat_interval(ggplot2::aes(y = 1), .width = w, size = 10) +
         ## line locator
         ggplot2::geom_linerange(
-          data = selected, ggplot2::aes(ymin = .9, ymax = 1.03),
-          color = "white", linewidth = .8
+          data = selected,
+          ggplot2::aes(x = mass,
+                       ymin = 1,
+                       ymax = 1),
+          color = "white", linewidth = 8
         ) +
         ## add triangular locator symbol
         ggplot2::geom_point(
-          data = selected, ggplot2::aes(y = triangle_y),
+          data = selected, ggplot2::aes(x = mass, y = triangle_y),
           shape = 6, size = triangle_size, stroke = 1
         ) +
         ## add gene name label
         {if(!card_var)ggplot2::geom_text( #| !moreThanFour
-          data = selected, ggplot2::aes(y = gene_y, label = gene_name),
+          data = selected, ggplot2::aes(x = mass, y = gene_y, label = gene_name),
           family = "Chivo", size = 5.2, vjust = 0
         )} +
         ## add mass label
         {if(!card_var)ggplot2::geom_text( # | !moreThanThree
-          data = selected, ggplot2::aes(y = mass_y, label = paste(mass, "kDa")),
+          data = selected, ggplot2::aes(x = mass, y = mass_y, label = paste(mass, "kDa")),
           family = "Chivo", size = 4.3, vjust = 0
         )} +
-        ggplot2::scale_x_continuous(limits = c(0, max_mass*2),
-                                    labels = function(x) paste(x, "kDa")) +
-        ggplot2::coord_cartesian(ylim = c(.95, 1.2)) +
+        ggplot2::scale_x_continuous(labels = function(x) paste(x, "kDa")) +
+        ggplot2::coord_cartesian(ylim = c(.95, 1.2), xlim = c(0, max_mass*2)) +
         ggplot2::scale_y_continuous(expand = c(0, 0)) +
         ggplot2::scale_color_manual(values = colors, guide = "none") +
         theme_ddh() +
         ggplot2::theme_void() +
         NULL
 
-
-      if (var == last_gene) {
-        base_plot <-
-          base_plot +
-          ggplot2::labs(x = "Protein Size") +
-          ggplot2::theme(axis.text.x = ggplot2::element_text(family = "Roboto Slab", size = 14),
-                         axis.title.x = ggplot2::element_text(family = "Nunito Sans", size = 18,
-                                                              margin = ggplot2::margin(t = 12, b = 12)))
+      if(card_var == FALSE){
+        if (var == last_gene) {
+          base_plot <-
+            base_plot +
+            ggplot2::labs(x = "Protein Size") +
+            ggplot2::theme(axis.text.x = ggplot2::element_text(family = "Roboto Slab", size = 14),
+                           axis.title.x = ggplot2::element_text(family = "Nunito Sans", size = 18,
+                                                                margin = ggplot2::margin(t = 12, b = 12)))
+        }
       }
 
       return(base_plot)
     }
-
-    glist <- lapply(gene_symbol, make_mass_strip, data = data_universal_proteins)
-    plot_complete <- patchwork::wrap_plots(glist, nrow = length(glist))
 
     if(card == TRUE){
       plot_complete <- make_mass_strip(var = gene_symbol)
@@ -335,8 +318,10 @@ make_proteinsize <- function(input = list(),
         ggplot2::theme(axis.text.x = ggplot2::element_blank(),
                        axis.title.x = ggplot2::element_blank()
         )
+    } else {
+      glist <- lapply(gene_symbol, make_mass_strip)
+      plot_complete <- patchwork::wrap_plots(glist, nrow = length(glist))
     }
-
     return(plot_complete)
   }
   #error handling
@@ -463,13 +448,13 @@ make_protein_domain <- function(input = list(),
   } else {
     data_gene_protein_domains <-
       data_gene_protein_domains %>%
-    dplyr::mutate(unique_col_id = dplyr::case_when(
-      key == "unique_id" ~ value,
-      TRUE ~ NA_character_)) %>%
-    tidyr::fill(unique_col_id) %>%
-    tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
-    dplyr::select(c(id, type, description, category, begin, end, url, seq_len, length)) %>%
-    dplyr::mutate(across(contains(c("begin", "end", "seq_len", "length")), as.numeric))}
+      dplyr::mutate(unique_col_id = dplyr::case_when(
+        key == "unique_id" ~ value,
+        TRUE ~ NA_character_)) %>%
+      tidyr::fill(unique_col_id) %>%
+      tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
+      dplyr::select(c(id, type, description, category, begin, end, url, seq_len, length)) %>%
+      dplyr::mutate(across(contains(c("begin", "end", "seq_len", "length")), as.numeric))}
 
   make_protein_domain_raw <- function() {
     gene_symbol <-
@@ -615,18 +600,28 @@ make_protein_domain <- function(input = list(),
 #' \dontrun{
 #' make_radial(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_radial <- function(data_gene_signatures = gene_signatures,
-                        data_gene_signature_clusters = gene_signature_clusters,
-                        input = list(),
+make_radial <- function(input = list(),
                         relative = TRUE,
                         cluster = FALSE,
                         barplot = FALSE,
                         card = FALSE) {
+  data_gene_signatures <-
+    get_data_object(object_name = input$content,
+                    data_set_name = "gene_signatures") %>%
+    tidyr::pivot_wider(names_from = key, values_from = value) %>%
+    dplyr::mutate(across(A:Y, as.numeric))
+
+  data_gene_signature_clusters <-
+    get_data_object(object_name = input$content,
+                    data_set_name = "gene_signature_clusters") %>%
+    tidyr::pivot_wider(names_from = key, values_from = value) %>%
+    dplyr::mutate(across(contains(c("X")), as.numeric))
+
+
   make_radial_raw <- function() {
     if(cluster) {
       query_clust <-
         data_gene_signature_clusters %>%
-        dplyr::filter(gene_name %in% input$content) %>%
         dplyr::pull(clust) %>%
         unique()
 
@@ -634,7 +629,7 @@ make_radial <- function(data_gene_signatures = gene_signatures,
         data_gene_signatures %>%
         dplyr::select(uniprot_id, A:Y) %>%
         dplyr::inner_join(data_gene_signature_clusters, by = "uniprot_id") %>%
-        dplyr::select(-gene_name, -X1, -X2, -member_prob)
+        dplyr::select(-id, -X1, -X2, -member_prob)
 
       signature_cluster_means_query <-
         signature_cluster_means_prep %>%
@@ -664,12 +659,12 @@ make_radial <- function(data_gene_signatures = gene_signatures,
     } else {
       signature_cluster_means_prep <-
         data_gene_signatures %>%
-        dplyr::select(gene_name, A:Y)
+        dplyr::select(id, A:Y)
 
       signature_cluster_means_query <-
         signature_cluster_means_prep %>%
-        dplyr::filter(!gene_name %in% input$content) %>%
-        dplyr::rename(Mean = gene_name) %>%
+        dplyr::filter(!id %in% input$content) %>%
+        dplyr::rename(Mean = id) %>%
         dplyr::summarise_if(is.numeric, list(mean = mean)) %>%
         tibble::rownames_to_column("clust") %>%
         tidyr::pivot_longer(cols = -clust) %>%
@@ -678,9 +673,9 @@ make_radial <- function(data_gene_signatures = gene_signatures,
 
       signature_gene_query <-
         signature_cluster_means_prep %>%
-        dplyr::filter(gene_name %in% input$content) %>%
-        tidyr::pivot_longer(cols = -gene_name) %>%
-        dplyr::rename(clust = gene_name)
+        dplyr::filter(id %in% input$content) %>%
+        tidyr::pivot_longer(cols = -id) %>%
+        dplyr::rename(clust = id)
 
       signature_cluster_means_query <-
         dplyr::bind_rows(signature_cluster_means_query,
