@@ -448,13 +448,14 @@ make_protein_domain <- function(input = list(),
   } else {
     data_gene_protein_domains <-
       data_gene_protein_domains %>%
-      dplyr::mutate(unique_col_id = dplyr::case_when(
-        key == "unique_id" ~ value,
-        TRUE ~ NA_character_)) %>%
-      tidyr::fill(unique_col_id) %>%
+      dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
+        key == "uniprot_id" ~ dplyr::row_number(),
+        TRUE ~ NA_integer_)) %>%
+      tidyr::fill(col_id_helper) %>%
       tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
       dplyr::select(c(id, type, description, category, begin, end, url, seq_len, length)) %>%
-      dplyr::mutate(across(contains(c("begin", "end", "seq_len", "length")), as.numeric))}
+      dplyr::mutate(across(contains(c("begin", "end", "seq_len", "length")), as.numeric))
+    }
 
   make_protein_domain_raw <- function() {
     gene_symbol <-
@@ -464,8 +465,8 @@ make_protein_domain <- function(input = list(),
 
     lengths_data <-
       data_gene_protein_domains %>%
-      dplyr::filter(id %in% input$content) %>%
-      dplyr::filter(!duplicated(id))
+      dplyr::distinct(id, .keep_all = TRUE) %>%
+      dplyr::select(id, seq_len)
 
     plot_data <-
       data_gene_protein_domains %>%
