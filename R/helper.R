@@ -1,106 +1,103 @@
-#' Function to download all DDH .Rds files
+#' Function to load data from AWS into environment
 #'
-#' @param app_data_dir Data directory path.
-#' @param object_name Optional object name to get a single file; default gets all files in bucket
-#' @param test Boolean that will download test data instead of full data
-#' @param overwrite Boolean that deletes the app_data_dir thereby removing files, before remaking dir and downloading all files
-#' @param privateMode Boolean indicating if private data is required.
+#' @param object_names Character vector, can be greater than 1, of file names to get
+#' @param dataset Boolean that will indicate if it is a dataset and therefore fetch from _data/
 #'
 #' @importFrom magrittr %>%
 #'
 #' @export
-download_ddh_data <- function(app_data_dir,
-                              object_name = NULL,
-                              test = FALSE,
-                              private = TRUE,
-                              overwrite = FALSE
-){
-  #delete dir to overwrite
-  if(overwrite == TRUE) {
-    if(is.null(object_name)){all_objects <- ""} else {all_objects <- object_name}
-    path <- stringr::str_glue("{app_data_dir}/{all_objects}")
-    path %>% purrr::walk(unlink, recursive = TRUE) #handles 1, many, or NULL file_name
-  }
-  #make dir
-  if(!dir.exists(app_data_dir)){
-    dir.create(app_data_dir)
-  }
-
-  #get_data function
-  get_aws_data <- function(bucket, #public, private, test
-                           object_name){
-    bucket_var <-
-      switch(bucket,
-             public = "AWS_DATA_BUCKET_ID",
-             private = "AWS_DATA_BUCKET_ID_PRIVATE",
-             # raw = "AWS_DATA_BUCKET_ID_RAW",
-             test = "AWS_DATA_BUCKET_ID_TEST")
-
-    s3 <- paws::s3()
-    all_objects <-
-      s3$list_objects(Bucket = Sys.getenv(bucket_var)) %>%
-      purrr::pluck("Contents")
-
-    message(glue::glue('{length(all_objects)} objects in the {bucket} bucket'))
-
-    #filter lists using same logic as load
-    if(is.null(object_name)){ #all objects
-      data_objects <- all_objects
-    } else if(object_name %in% c("gene", "cell", "compound")) { #object "group"
-      object_regex <- stringr::str_c(paste0(object_name, "_"), "universal_", sep = "|")
-      data_objects <-
-        all_objects %>% #take full list
-        purrr::keep(purrr::map_lgl(.x = 1:length(all_objects),
-                                   ~ stringr::str_detect(all_objects[[.x]][["Key"]], pattern = object_regex))) #pass map_lgl to keep to filter names to keep
-      message(glue::glue('filtered to keep {length(data_objects)}'))
-    } else { #single object
-      key_name <- glue::glue('_data/{object_name}')
-      data_objects <-
-        all_objects %>% #take full list
-        purrr::keep(purrr::map_lgl(.x = 1:length(all_objects),
-                                   ~ all_objects[[.x]][["Key"]] %in% key_name)) #pass map_lgl to keep to filter names to keep
-      message(glue::glue('filtered to keep {length(data_objects)}'))    }
-
-
-    #check for no objects
-    if(length(data_objects) == 0){
-      return(message(glue::glue("No objects found. Check your object name.")))
-    }
-
-    for (i in 1:length(data_objects)) {
-      key_name <- data_objects[[i]][["Key"]]
-      file_name <- stringr::str_remove(data_objects[[i]][["Key"]], "_data/") #remove subfolder structure
-
-      #check if files exists
-      if(file.exists(glue::glue("{app_data_dir}/{file_name}"))){
-        message(glue::glue("file already exists: {file_name}"))
-      } else {
-        #if not, then download
-        s3$download_file(Bucket = Sys.getenv(bucket_var),
-                         Key = as.character(key_name),
-                         Filename = as.character(glue::glue("{app_data_dir}/{file_name}")))
-        message(glue::glue("file downloaded: {file_name}"))
-      }
+#' @examples
+#' get_content("ROCK1")
+#' get_content(c("ROCK1", "ROCK2"))
+#' get_content(object_names = "gene_band_boundaries", dataset = TRUE)
+#' \dontrun{
+#' get_content("ROCK1")
+#' }
+get_content <- function(object_names,
+                        dataset = FALSE){
+  get_aws_object <- function(object_name){
+    if(exists(object_name)){
+      message(glue::glue("{object_name} exists"))
+    } else {
+      s3 <- paws::s3()
+      single_object <-
+        s3$get_object(
+          Bucket = Sys.getenv("AWS_DATA_BUCKET_ID"),
+          Key = as.character(glue::glue('{dplyr::if_else(dataset == TRUE, "_data/", "")}{object_name}'))
+        )
+      temp_dir <- tempdir()
+      file_path <- glue::glue('{temp_dir}/{object_name}')
+      writeBin(single_object$Body, con = file_path)
+      obj <- arrow::read_feather(file = file_path) #need arrow because of weird feather versioning
+      assign(object_name, obj, envir = .GlobalEnv) #you're going to have to fix this
+      message(glue::glue("{object_name} loaded"))
     }
   }
+  #this enables multiple objects to be loaded (like  a multi-gene query)
+  object_names %>%
+    purrr::walk(get_aws_object)
+}
 
-  #test data
-  if(test == TRUE){
-    get_aws_data(bucket = "test",
-                 object_name = object_name)
-    return(message("test data download complete"))
+#' Function to make a validation dataset
+#'
+#' @param object_names Character vector, can be greater than 1, of file names to get
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' make_validate("ROCK1")
+#' make_validate(c("ROCK1", "ROCK2"))
+#' \dontrun{
+#' make_validate("ROCK1")
+#' }
+make_validate <- function(object_names){
+  make_dataset <- function(object_name){
+    object <- eval(parse(text = object_name))
+    single_dataset <-
+      object %>%
+      dplyr::distinct(name) %>%
+      dplyr::filter(!is.na(name))
+    return(single_dataset)
   }
-  #get private data
-  if(private == TRUE){
-    get_aws_data(bucket = "private",
-                 object_name = object_name)
-    #no return
+  validate_datasets <-
+    object_names %>%
+    purrr::map_dfr(make_dataset) %>%
+    dplyr::distinct(name) %>%
+    dplyr::pull(name)
+  return(validate_datasets)
+}
+
+#' Function to get filtered data object from environment
+#'
+#' @param object_names Character vector, can be greater than 1, of file names to get
+#' @param data_set_name String containing dataset name to filter out from object
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' get_data_object(object_name = c("ROCK1"), data_set_name = "gene_female_tissue")
+#' get_data_object(object_name = c("ROCK1", "ROCK2"), data_set_name = "gene_female_tissue")
+#' \dontrun{
+#' get_data_object(object_name = c("ROCK1"), data_set_name = "gene_female_tissue")
+#' }
+get_data_object <- function(object_names,
+                            data_set_name){
+  get_single_object <- function(object_name,
+                                data_set){ #can take >=1 data_set
+    object <- eval(parse(text = object_name))
+    single_object <-
+      object %>%
+      dplyr::filter(name %in% data_set)
+    # {if(!is.null(data_set)) dplyr::filter(name %in% data_set) else .} #consider adding way to get all data back out?
+    return(single_object)
   }
 
-  #get data
-  get_aws_data(bucket = "public",
-               object_name = object_name)
-  return(message("data download complete"))
+  data_object <-
+    object_names %>%
+    purrr::map_dfr(get_single_object, data_set = data_set_name)
+  return(data_object)
 }
 
 #' Function to Load All DDH Data Including .Rds Files and Colors
