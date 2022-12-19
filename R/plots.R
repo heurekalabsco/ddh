@@ -665,9 +665,12 @@ make_radial <- function(input = list(),
         plot_aa %>%
         dplyr::mutate(plot_var = freq/plot_mean$freq)
     }
+
+    #BIND ROWS TO MAKE PLOT DATA
     plot_data <-
       plot_aa %>%
-      dplyr::bind_rows(plot_mean)
+      dplyr::bind_rows(plot_mean) %>%
+      dplyr::mutate(aa = as_factor(aa))
 
 
     # set colors -1 to assign specific color to "Mean"
@@ -690,23 +693,20 @@ make_radial <- function(input = list(),
     }
     # RADIAL/BAR PLOT
     plot_complete <-
-    ggplot2::ggplot(plot_data,
-                    ggplot2::aes(x = forcats::fct_inorder(aa),
-                                 y = plot_var,
-                                 group = id,
-                                 color = id
-                    )) +
+      ggplot2::ggplot(plot_data,
+                      ggplot2::aes(x = forcats::fct_inorder(aa),
+                                   y = plot_var,
+                                   group = id,
+                                   color = id
+                      )) +
       {if(!barplot)ggplot2::geom_point(alpha = 0.8, show.legend = FALSE)} +
       {if(!barplot)ggplot2::geom_polygon(fill = NA)} + #makes the radial connect
-      {if(barplot & relative)ggplot2::geom_col(data = signature_cluster_means_query %>%
-                                                 dplyr::filter(clust != "Mean"),
-                                               ggplot2::aes(x = reorder(name, -value),
-                                                            y = value,
-                                                            group = clust,
-                                                            color = clust,
-                                                            fill = clust),
-                                               position = "dodge2")} +
-      {if(barplot & !relative)ggplot2::geom_col(aes(fill = clust), position = "dodge2")} +
+      {if(barplot)ggplot2::geom_col(ggplot2::aes(x = reorder(id, plot_var),
+                                                 y = plot_var,
+                                                 group = aa,
+                                                 color = id,
+                                                 fill = id),
+                                    position = "dodge")} +
       {if(barplot & relative)ggplot2::geom_hline(yintercept = 1, color = "gray48")} +
       ggplot2::labs(y = y_label,
                     x = ggplot2::element_blank()) +
@@ -792,7 +792,6 @@ make_radial_bar <- function(input = list(),
                                  cluster = cluster,
                                  barplot = TRUE,
                                  card = card)
-
     return(plot_complete)
   }
 
@@ -816,55 +815,51 @@ make_radial_bar <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' make_umap_plot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-#' make_umap_plot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+#' make_umap_plot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), show_subset = TRUE)
+#' make_umap_plot(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')), labels = TRUE)
 #' \dontrun{
 #' make_umap_plot(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_umap_plot <- function(data_gene_signature_clusters = gene_signature_clusters,
-                           input = list(),
+make_umap_plot <- function(input = list(),
                            show_subset = FALSE,
                            labels = FALSE) {
   make_umap_plot_raw <- function() {
+    get_content("gene_cluster_position", dataset = TRUE)
 
-    data_proteins_clean <-
-      data_gene_signature_clusters %>%
-      # dplyr::filter(clust != 0) %>%
-      dplyr::mutate(clust = paste0("Cluster ", clust))
+    data_gene_signature_clusters <-
+      get_data_object(object_name = input$content,
+                      data_set_name = "gene_signature_clusters") %>%
+      tidyr::pivot_wider(names_from = key, values_from = value) %>%
+      dplyr::mutate(across(contains(c("X", "clust", "member")), as.numeric))
 
     query_clust <-
-      data_proteins_clean %>%
-      dplyr::filter(gene_name %in% input$content) %>%
+      data_gene_signature_clusters %>%
       dplyr::pull(clust) %>%
       unique()
-
-    cluster_genes <-
-      data_proteins_clean %>%
-      dplyr::filter(clust %in% query_clust)
 
     colors <- ddh_pal_c(palette = "protein")(length(query_clust))
 
     # UMAP PLOT
-    plot_complete <- ggplot2::ggplot() +
-      {if(!show_subset)ggplot2::geom_point(data = data_proteins_clean %>%
-                                             dplyr::filter(!uniprot_id %in% cluster_genes$uniprot_id),
-                                           ggplot2::aes(X1, X2), size = 0.8, color = "grey80")} +
-      ggplot2::geom_point(data = data_proteins_clean %>%
-                            dplyr::filter(uniprot_id %in% cluster_genes$uniprot_id),
-                          ggplot2::aes(X1, X2, color = clust), size = 0.8) +
-      {if(labels)ggrepel::geom_label_repel(data = cluster_genes %>%
-                                             dplyr::filter(gene_name %in% input$content),
-                                           ggplot2::aes(X1, X2, label = gene_name))} +
+    plot_complete <-
+      ggplot2::ggplot() +
+      ggplot2::geom_point(data = gene_cluster_position,
+                          ggplot2::aes(X1, X2), size = 0.8, color = "grey80") +
+      {if(show_subset)ggplot2::geom_point(data = gene_cluster_position %>%
+                                            dplyr::filter(clust %in% query_clust),
+                                          ggplot2::aes(X1, X2, color = clust), size = 0.8)} +
+      {if(labels)ggplot2::geom_point(data = data_gene_signature_clusters,
+                                           ggplot2::aes(X1, X2), color = "navy")} +
+      {if(labels)ggrepel::geom_label_repel(data = data_gene_signature_clusters,
+                                           ggplot2::aes(X1, X2, label = id))} +
       ggplot2::labs(x = "UMAP 1",
                     y = "UMAP 2") +
       ggplot2::scale_color_manual(
         values = rep(colors, length.out =
-                       nrow(data_proteins_clean %>%
-                              dplyr::filter(uniprot_id %in% cluster_genes$uniprot_id)))
+                       nrow(gene_cluster_position %>% dplyr::filter(clust %in% query_clust)))
       ) +
       ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 3))) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         legend.position = "top",
