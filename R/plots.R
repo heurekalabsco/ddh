@@ -672,7 +672,6 @@ make_radial <- function(input = list(),
       dplyr::bind_rows(plot_mean) %>%
       dplyr::mutate(aa = as_factor(aa))
 
-
     # set colors -1 to assign specific color to "Mean"
     colors_raw <- ddh_pal_d(palette = "protein")(length(unique(plot_data$id))-1)
     names(colors_raw) <- unique(plot_data$id)[unique(plot_data$id) != "Mean"]
@@ -848,7 +847,7 @@ make_umap_plot <- function(input = list(),
                                             dplyr::filter(clust %in% query_clust),
                                           ggplot2::aes(X1, X2, color = clust), size = 0.8)} +
       {if(labels)ggplot2::geom_point(data = data_gene_signature_clusters,
-                                           ggplot2::aes(X1, X2), color = "navy")} +
+                                     ggplot2::aes(X1, X2), color = "navy")} +
       {if(labels)ggrepel::geom_label_repel(data = data_gene_signature_clusters,
                                            ggplot2::aes(X1, X2, label = id))} +
       ggplot2::labs(x = "UMAP 1",
@@ -895,27 +894,32 @@ make_umap_plot <- function(input = list(),
 #' @export
 #' @examples
 #' make_cluster_enrich(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-#' make_cluster_enrich(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+#' make_cluster_enrich(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
 #' make_cluster_enrich(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_cluster_enrich <- function(data_gene_signature_clusters = gene_signature_clusters,
-                                data_gene_signature_cluster_enrichment = gene_signature_cluster_enrichment,
-                                input = list(),
-                                ontology = "BP",
-                                num_terms = 20) {
-
+make_cluster_enrich <- function(input = list(),
+                                ontology = "BP"){
   make_cluster_enrich_plot_raw <- function() {
+    #get clust numbers
+    query_clust <-
+      get_data_object(object_name = input$content,
+                      data_set_name = "gene_signature_clusters") %>%
+      dplyr::filter(key == "member_prob") %>%
+      dplyr::pull(value) %>%
+      as.numeric(.)
 
-    plot_data <- make_clustering_enrichment_table(data_gene_signature_clusters,
-                                                  data_gene_signature_cluster_enrichment,
-                                                  input = input,
-                                                  ontology = ontology)
+    # get gene_signature_cluster_enrichment
+    get_content("gene_signature_cluster_enrichment", dataset = TRUE)
+    data_gene_signature_cluster_enrichment <-
+      gene_signature_cluster_enrichment %>%
+      dplyr::filter(cluster %in% query_clust)
 
     plot_complete <-
-      plot_data %>%
+      data_gene_signature_cluster_enrichment %>%
       dplyr::arrange(pvalue) %>%
-      dplyr::slice(1:num_terms) %>%
+      dplyr::filter(ont == ontology) %>%
+      dplyr::slice(1:10) %>%
       ggplot2::ggplot(ggplot2::aes(x = Count,
                                    y = reorder(substr(paste0(Description, " (", ID, ")"), 1, 40), Count),
                                    fill = pvalue)) +
