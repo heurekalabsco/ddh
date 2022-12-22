@@ -1018,9 +1018,7 @@ make_structure <- function(input = list(),
 #' \dontrun{
 #' make_structure3d(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_structure3d <- function(data_gene_uniprot_pdb_table = gene_uniprot_pdb_table,
-                             data_universal_proteins = universal_proteins,
-                             gene_symbol = NULL,
+make_structure3d <- function(gene_symbol = NULL,
                              pdb_id = NULL,
                              input = list(),
                              color = FALSE,
@@ -1032,6 +1030,9 @@ make_structure3d <- function(data_gene_uniprot_pdb_table = gene_uniprot_pdb_tabl
                              invert = NULL,
                              elem = NULL
 ) {
+  data_gene_pdb_table <-
+    get_data_object(object_name = input$content,
+                  data_set_name = "gene_pdb_table")
   make_structure3d_raw <- function() {
     #because this fun doesn't take multi-gene queries
     if(is.null(gene_symbol)) {
@@ -1041,19 +1042,17 @@ make_structure3d <- function(data_gene_uniprot_pdb_table = gene_uniprot_pdb_tabl
         gene_symbol <- input$content[1]
       }
     }
-    #check  to see if pdb file exists
+    #check  to see if pdb file exists from alpha fold model
     pdb_path <- load_pdb(input = input)
 
     if(!is.null(pdb_path) & is.null(pdb_id)) {
       plot_data <- bio3d::read.pdb(pdb_path)
     } else {
       plot_data <-
-        data_universal_proteins %>%
-        dplyr::filter(gene_name %in% gene_symbol) %>%
-        dplyr::left_join(data_gene_uniprot_pdb_table, by = c("uniprot_id" = "uniprot")) %>%
-        tidyr::unnest(data) %>%
-        {if (is.null(pdb_id)) dplyr::slice(., 1) else dplyr::filter(., pdb == pdb_id)} %>%
-        dplyr::pull(pdb) %>%
+        data_gene_pdb_table %>%
+        dplyr::filter(key == "pdb") %>%
+        {if (is.null(pdb_id)) dplyr::slice(., 1) else dplyr::filter(., value == pdb_id)} %>%
+        dplyr::pull(value) %>%
         r3dmol::m_fetch_pdb()
     }
 
@@ -1063,17 +1062,20 @@ make_structure3d <- function(data_gene_uniprot_pdb_table = gene_uniprot_pdb_tabl
       r3dmol::m_center()
 
     if(color) {
-      plot_complete <- plot_complete %>%
+      plot_complete <-
+        plot_complete %>%
         r3dmol::m_set_style(style = r3dmol::m_style_cartoon(color = "spectrum", ribbon = ribbon)) %>%
         r3dmol::m_center()
     } else {
-      plot_complete <- plot_complete %>%
+      plot_complete <-
+        plot_complete %>%
         r3dmol::m_set_style(style = r3dmol::m_style_cartoon(ribbon = ribbon)) %>%
         r3dmol::m_center()
     }
 
     if(selection) {
-      plot_complete <- plot_complete %>%
+      plot_complete <-
+        plot_complete %>%
         r3dmol::m_add_style(
           style = c(
             r3dmol::m_style_stick(),
