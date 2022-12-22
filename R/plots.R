@@ -1278,19 +1278,21 @@ make_structure3d <- function(gene_symbol = NULL,
 #' @examples
 #' make_cellanatogram(input = list(type = "gene", content = c("ROCK2")))
 #' make_cellanatogram(input = list(type = "gene", content = c("ROCK2")), card = TRUE)
-#' make_cellanatogram(input = list(type = "gene", query = "ROCK1", content = c("ROCK1", "ROCK2")))
+#' make_cellanatogram(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 #' \dontrun{
 #' make_cellanatogram(input = list(type = 'gene', content = 'ROCK2'))
 #' }
-make_cellanatogram <- function(data_gene_subcell = gene_subcell,
-                               input = list(),
+make_cellanatogram <- function(input = list(),
                                card = FALSE) {
+  data_gene_subcell <-
+    get_data_object(object_name = input$content,
+                  data_set_name = "gene_subcell") %>%
+    tidyr::pivot_wider(names_from = key, values_from = value) %>%
+    dplyr::select(organ, type, colour, value) %>%
+    mutate(value = as.numeric(value))
   make_cellanatogram_raw <- function() {
     plot_data <-
       data_gene_subcell %>%
-      dplyr::filter(gene_name %in% input$content) %>%
-      dplyr::select(organ, type, colour, value) %>%
-      tidyr::drop_na() %>%
       dplyr::group_by(organ) %>%
       dplyr::summarise(type = type[1], value = mean(value)) %>%
       dplyr::ungroup() %>%
@@ -1342,14 +1344,16 @@ make_cellanatogram <- function(data_gene_subcell = gene_subcell,
 #' @export
 #' @examples
 #' make_cellanatogramfacet(input = list(type = "gene", content = c("BRCA1", "ROCK2")))
-make_cellanatogramfacet <- function(data_gene_subcell = gene_subcell,
-                                    input = list()) {
+make_cellanatogramfacet <- function(input = list()) {
+  data_gene_subcell <-
+    get_data_object(object_name = input$content,
+                    data_set_name = "gene_subcell") %>%
+    tidyr::pivot_wider(names_from = key, values_from = value) %>%
+    dplyr::select(organ, type, colour, value) %>%
+    mutate(value = as.numeric(value))
   make_cellanatogramfacet_raw <- function() {
     plot_data <-
       data_gene_subcell %>%
-      dplyr::filter(gene_name %in% input$content) %>%
-      dplyr::select(gene_name, organ, type, colour, value) %>%
-      tidyr::drop_na() %>%
       dplyr::group_by(organ) %>%
       dplyr::summarise(type = gene_name, value = mean(value)) %>%
       dplyr::ungroup() %>%
