@@ -1032,7 +1032,7 @@ make_structure3d <- function(gene_symbol = NULL,
 ) {
   data_gene_pdb_table <-
     get_data_object(object_name = input$content,
-                  data_set_name = "gene_pdb_table")
+                    data_set_name = "gene_pdb_table")
   make_structure3d_raw <- function() {
     #because this fun doesn't take multi-gene queries
     if(is.null(gene_symbol)) {
@@ -1124,18 +1124,18 @@ make_structure3d <- function(gene_symbol = NULL,
 #' \dontrun{
 #' make_pubmed(input = list(type = 'gene', content = 'ROCK1'))
 #' }
- make_pubmed <- function(input = list(),
+make_pubmed <- function(input = list(),
                         card = FALSE) {
-   #get data
-   data_universal_pubmed <-
-     get_data_object(object_name = input$content,
-                     data_set_name = "universal_pubmed") %>%
-     dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
-       key == "pmid" ~ dplyr::row_number(),
-       TRUE ~ NA_integer_)) %>%
-     tidyr::fill(col_id_helper) %>%
-     tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
-     dplyr::mutate(year = as.numeric(year))
+  #get data
+  data_universal_pubmed <-
+    get_data_object(object_name = input$content,
+                    data_set_name = "universal_pubmed") %>%
+    dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
+      key == "pmid" ~ dplyr::row_number(),
+      TRUE ~ NA_integer_)) %>%
+    tidyr::fill(col_id_helper) %>%
+    tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
+    dplyr::mutate(year = as.numeric(year))
 
   make_pubmed_raw <- function() {
     plot_data <-
@@ -1214,7 +1214,7 @@ make_structure3d <- function(gene_symbol = NULL,
         ggplot2::theme(
           plot.margin = ggplot2::margin(7, 180, 7, 7), #adds margin to right side of graph for label #adds margin to right side of graph for label
           legend.position="none"
-          )
+        )
     } else {
       plot_complete <-
         plot_step +
@@ -1286,7 +1286,11 @@ make_cellanatogram <- function(input = list(),
                                card = FALSE) {
   data_gene_subcell <-
     get_data_object(object_name = input$content,
-                  data_set_name = "gene_subcell") %>%
+                    data_set_name = "gene_subcell") %>%
+    dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
+      key == "gene" ~ dplyr::row_number(),
+      TRUE ~ NA_integer_)) %>%
+    tidyr::fill(col_id_helper) %>%
     tidyr::pivot_wider(names_from = key, values_from = value) %>%
     dplyr::select(organ, type, colour, value) %>%
     mutate(value = as.numeric(value))
@@ -1348,6 +1352,10 @@ make_cellanatogramfacet <- function(input = list()) {
   data_gene_subcell <-
     get_data_object(object_name = input$content,
                     data_set_name = "gene_subcell") %>%
+    dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
+      key == "gene" ~ dplyr::row_number(),
+      TRUE ~ NA_integer_)) %>%
+    tidyr::fill(col_id_helper) %>%
     tidyr::pivot_wider(names_from = key, values_from = value) %>%
     dplyr::select(organ, type, colour, value) %>%
     mutate(value = as.numeric(value))
@@ -1404,6 +1412,7 @@ make_cellanatogramfacet <- function(input = list()) {
 #' @export
 #' @examples
 #' make_female_anatogram(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_female_anatogram(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' make_female_anatogram(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' \dontrun{
 #' make_female_anatogram(input = list(type = 'gene', content = 'ROCK1'))
@@ -1413,18 +1422,29 @@ make_female_anatogram <- function(data_gene_female_tissue = gene_female_tissue,
                                   anatogram = "female",
                                   input = list(),
                                   card = FALSE) {
+
   make_female_anatogram_raw <- function() {
     if(anatogram == "female"){
-      data_tissue <- data_gene_female_tissue
+      data_tissue <-
+        get_data_object(object_name = input$content,
+                        data_set_name = "gene_female_tissue")
     } else if (anatogram == "male") {
-      data_tissue <- data_gene_male_tissue
+      data_tissue <-
+        get_data_object(object_name = input$content,
+                        data_set_name = "gene_male_tissue")
     } else {
       print("Declare your anatogram type")
     }
 
     body_data <-
       data_tissue %>%
-      dplyr::filter_all(dplyr::any_vars(gene_name %in% input$content)) %>%
+      dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
+        key == "gene" ~ dplyr::row_number(),
+        TRUE ~ NA_integer_)) %>%
+      tidyr::fill(col_id_helper) %>%
+      tidyr::pivot_wider(names_from = key, values_from = value) %>%
+      dplyr::select(id, organ, type, colour, value) %>%
+      mutate(value = as.numeric(value)) %>%
       dplyr::filter(!is.na(type)) %>%
       dplyr::arrange(dplyr::desc(-value))
 
@@ -1440,7 +1460,7 @@ make_female_anatogram <- function(data_gene_female_tissue = gene_female_tissue,
 
     body_plot <-
       body_data %>%
-      gganatogram(outline = TRUE, fillOutline='grey95', organism = "human", sex = anatogram, fill = 'value') +
+      gganatogram::gganatogram(outline = TRUE, fillOutline='grey95', organism = "human", sex = anatogram, fill = 'value') +
       ggplot2::coord_fixed() +
       scale_fill_ddh_c(palette = "gene", breaks = break_points, name = NULL) +
       ggplot2::guides(fill = ggplot2::guide_colorsteps(show.limits = TRUE)) +
@@ -1451,6 +1471,7 @@ make_female_anatogram <- function(data_gene_female_tissue = gene_female_tissue,
       body_plot <-
         body_plot +
         ggplot2::labs(x = "") + #, title = "Tissue Distribution", caption = "more ...") +
+        ggplot2::theme(legend.position="none") +
         NULL
     }
 
