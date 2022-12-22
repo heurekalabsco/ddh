@@ -1118,21 +1118,29 @@ make_structure3d <- function(gene_symbol = NULL,
 #' @export
 #' @examples
 #' make_pubmed(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_pubmed(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' make_pubmed(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' make_pubmed(input = list(type = 'compound', content = 'aspirin'))
 #' \dontrun{
 #' make_pubmed(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_pubmed <- function(data_universal_pubmed = universal_pubmed,
-                        input = list(),
+ make_pubmed <- function(input = list(),
                         card = FALSE) {
+   #get data
+   data_universal_pubmed <-
+     get_data_object(object_name = input$content,
+                     data_set_name = "universal_pubmed") %>%
+     dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
+       key == "pmid" ~ dplyr::row_number(),
+       TRUE ~ NA_integer_)) %>%
+     tidyr::fill(col_id_helper) %>%
+     tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
+     dplyr::mutate(year = as.numeric(year))
+
   make_pubmed_raw <- function() {
     plot_data <-
       data_universal_pubmed %>%
-      dplyr::filter(name %in% input$content) %>%
-      tidyr::unnest(data) %>%
-      dplyr::ungroup() %>%
-      dplyr::group_by(name, year) %>%
+      dplyr::group_by(id, year) %>%
       dplyr::summarize(n = dplyr::n()) %>%
       dplyr::mutate(cumsum = cumsum(n)) %>%
       dplyr::arrange(year)
@@ -1147,9 +1155,9 @@ make_pubmed <- function(data_universal_pubmed = universal_pubmed,
       ggplot2::geom_step(
         ggplot2::aes(x = year,
                      y = cumsum,
-                     group = name,
-                     color = forcats::fct_reorder2(name, year, cumsum)),
-        size = 1.2
+                     group = id,
+                     color = forcats::fct_reorder2(id, year, cumsum)),
+        linewidth = 1.2
       ) +
       ggplot2::coord_cartesian(clip = "off") + #allows points & labels to fall off plotting area
       ggplot2::scale_x_continuous(breaks = scales::breaks_pretty(4),
@@ -1167,7 +1175,7 @@ make_pubmed <- function(data_universal_pubmed = universal_pubmed,
       NULL
 
     ## only add labels + white space if several genes queried
-    if (length(unique(plot_data$name)) > 1) {
+    if (length(unique(plot_data$id)) > 1) {
       plot_complete <-
         plot_step +
         {if(card == FALSE)
@@ -1176,7 +1184,7 @@ make_pubmed <- function(data_universal_pubmed = universal_pubmed,
             ggplot2::aes(x = year,
                          y = cumsum,
                          #label = name),
-                         label = paste0(name, " (", cumsum, ")")),
+                         label = paste0(id, " (", cumsum, ")")),
             size = 5.5,
             hjust = 0,
             direction = "y",
@@ -1199,13 +1207,14 @@ make_pubmed <- function(data_universal_pubmed = universal_pubmed,
           data = plot_max,
           ggplot2::aes(x = year,
                        y = cumsum,
-                       group = name,
-                       color = forcats::fct_reorder2(name, year, cumsum)),
+                       group = id,
+                       color = forcats::fct_reorder2(id, year, cumsum)),
           size = 4, shape = 21, fill = "white", stroke = 2
         ) +
         ggplot2::theme(
-          plot.margin = ggplot2::margin(7, 180, 7, 7) #adds margin to right side of graph for label #adds margin to right side of graph for label
-        )
+          plot.margin = ggplot2::margin(7, 180, 7, 7), #adds margin to right side of graph for label #adds margin to right side of graph for label
+          legend.position="none"
+          )
     } else {
       plot_complete <-
         plot_step +
@@ -1213,8 +1222,8 @@ make_pubmed <- function(data_universal_pubmed = universal_pubmed,
           data = plot_max,
           ggplot2::aes(x = year,
                        y = cumsum,
-                       group = name,
-                       color = forcats::fct_reorder2(name, year, cumsum)),
+                       group = id,
+                       color = forcats::fct_reorder2(id, year, cumsum)),
           size = 4, shape = 21, fill = "white", stroke = 2
         )
     }
@@ -1229,7 +1238,7 @@ make_pubmed <- function(data_universal_pubmed = universal_pubmed,
       plot_complete <-
         plot_complete +
         ggplot2::labs(y = "Cumulative Publications",
-                      color = "Query")
+                      color = "")
     }
 
     if(card == TRUE){
