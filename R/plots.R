@@ -1654,6 +1654,8 @@ make_cellexpression <- function(input = list(),
     dplyr::select(-col_id_helper) %>%
     dplyr::mutate(across(contains(c("expression")), as.numeric))
 
+  get_content("cell_expression_names", dataset = TRUE)
+
   make_cellexpression_raw <- function() {
     if (var == "gene") {
       plot_initial <-
@@ -1678,7 +1680,6 @@ make_cellexpression <- function(input = list(),
     }
 
     if (input$type == "gene") {
-      get_content("cell_expression_names", dataset = TRUE)
       plot_data <-
         plot_initial %>%
         dplyr::filter(!is.na(expression_var)) %>%
@@ -1758,7 +1759,7 @@ make_cellexpression <- function(input = list(),
              make_bomb_plot()})
 }
 
-# G-EXPvP-EXP ----------------------------------
+# GENE V. PROTEIN EXPRESSION ----------------------------------
 #' Gene Expression versus Protein Expression
 #'
 #' Each point shows the gene expression value compared to the protein expression value for gene within a given cell line. The Pearson correlation coefficient and the p-values are provided in the top-left corner of the plot.
@@ -1772,42 +1773,52 @@ make_cellexpression <- function(input = list(),
 #' \dontrun{
 #' make_cellgeneprotein(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_cellgeneprotein <- function(data_universal_expression_long = universal_expression_long,
-                                 data_cell_expression_names = cell_expression_names,
-                                 input = list(),
+make_cellgeneprotein <- function(input = list(),
                                  card = FALSE) {
+  data_universal_expression_long <-
+    get_data_object(object_name = input$content,
+                    data_set_name = "universal_expression_long") %>%
+    dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
+      key == "depmap_id" ~ dplyr::row_number(),
+      TRUE ~ NA_integer_)) %>%
+    tidyr::fill(col_id_helper) %>%
+    tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
+    dplyr::select(-col_id_helper) %>%
+    dplyr::mutate(across(contains(c("expression")), as.numeric))
+
+  get_content("cell_expression_names", dataset = TRUE)
+
   make_cellgeneprotein_raw <- function() {
     if (input$type == "gene") {
       plot_initial <-
         data_universal_expression_long %>%
-        dplyr::filter(gene %in% input$content,
-                      !is.na(gene_expression),
+        dplyr::filter(!is.na(gene_expression),
                       !is.na(protein_expression)) %>%
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(-X1) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
         dplyr::select(cell_line, lineage, lineage_subtype, dplyr::everything()) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
         ggplot2::ggplot(ggplot2::aes(x = gene_expression,
                                      y = protein_expression,
                                      text = paste0("Cell Line: ", cell_line),
-                                     color = gene,
-                                     group = gene)
+                                     color = id,
+                                     group = id)
         )
     } else if (input$type == "cell") {
+      #CHECK select(cell_line); should be id?; text should be gene or id?
       plot_initial <-
         data_universal_expression_long %>%
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(-X1) %>%
+        dplyr::left_join(data_cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
         dplyr::select(cell_line, lineage, lineage_subtype, dplyr::everything()) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
-        dplyr::filter(cell_line %in% input$content,
-                      !is.na(gene_expression),
+        dplyr::filter(!is.na(gene_expression),
                       !is.na(protein_expression)) %>%
         ggplot2::ggplot(ggplot2::aes(x = gene_expression,
                                      y = protein_expression,
                                      text = paste0("Gene: ", gene),
-                                     color = cell_line,
-                                     group = cell_line)
+                                     color = id,
+                                     group = id)
         )
     }
 
