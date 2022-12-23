@@ -1640,7 +1640,7 @@ make_tissue <- function(input = list(),
 make_cellexpression <- function(input = list(),
                                 var = "gene",
                                 card = FALSE) {
-  # get data_gene_chromosome out of object
+  # get universal_stats_summary from s3
   get_content("universal_stats_summary", dataset = TRUE)
 
   data_universal_expression_long <-
@@ -1885,51 +1885,61 @@ make_cellgeneprotein <- function(input = list(),
 #' @export
 #' @examples
 #' make_celldeps(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_celldeps(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' make_celldeps(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' \dontrun{
 #' make_celldeps(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_celldeps <- function(data_universal_achilles_long = universal_achilles_long,
-                          data_universal_prism_long = universal_prism_long,
-                          data_universal_stats_summary = universal_stats_summary,
+make_celldeps <- function(data_universal_prism_long = universal_prism_long,
                           data_cell_expression_names = cell_expression_names,
                           input = list(),
                           card = FALSE,
                           lineplot = FALSE,
                           scale = NULL) {#scale is expecting 0 to 1
+  # get universal_stats_summary from s3
+  get_content("universal_stats_summary", dataset = TRUE)
+  # get cell_expression_names from s3
+  get_content("cell_expression_names", dataset = TRUE)
+
+  data_universal_achilles_long <-
+    get_data_object(object_name = input$content,
+                    data_set_name = "universal_achilles_long") %>%
+    dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
+      key == "depmap_id" ~ dplyr::row_number(),
+      TRUE ~ NA_integer_)) %>%
+    tidyr::fill(col_id_helper) %>%
+    tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
+    dplyr::select(-col_id_helper) %>%
+    dplyr::mutate(across(contains(c("score")), as.numeric))
+
   make_celldeps_raw <- function() {
     if(input$type == "gene") {
-      aes_var <- rlang::sym("name")
       var_title <- "Gene"
       ylab <- "Dependecy Score"
       mean <- get_stats(data_set = "achilles", var = "mean")
 
       plot_data <-
         data_universal_achilles_long %>% #plot setup
-        dplyr::filter(gene %in% input$content) %>%
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(-X1) %>%
-        dplyr::group_by(gene) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
+        dplyr::group_by(id) %>%
         dplyr::arrange(dep_score) %>%
         dplyr::mutate(
           rank = 1:dplyr::n(),
           med = median(dep_score, na.rm= TRUE)
         ) %>%
-        dplyr::ungroup() %>%
-        dplyr::rename(name = gene)
+        dplyr::ungroup()
 
     } else if(input$type == "compound") {
-      aes_var <- rlang::sym("name")
       var_title <- "Compound"
       ylab <- "Log2FC"
       mean <- get_stats(data_set = "prism", var = "mean")
 
       plot_data <-
         data_universal_prism_long %>% #plot setup
-        dplyr::filter(name %in% input$content) %>%
-        dplyr::left_join(data_cell_expression_names, by = c("x1" = "X1")) %>%
-        dplyr::select(-1) %>%
-        dplyr::group_by(name) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
+        dplyr::group_by(id) %>%
         dplyr::arrange(log2fc) %>%
         dplyr:: mutate(
           rank = 1:n(),
@@ -1939,24 +1949,21 @@ make_celldeps <- function(data_universal_achilles_long = universal_achilles_long
         dplyr::rename(dep_score = log2fc) #rename for graph
 
     } else { #cell lines
-      aes_var <- rlang::sym("cell_line")
       var_title <- "Gene"
       ylab <- "Dependecy Score"
       mean <- get_stats(data_set = "achilles_cell", var = "mean")
 
       plot_data <-
         data_universal_achilles_long %>% #plot setup
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::filter(cell_line %in% input$content) %>%
-        dplyr::select(-X1) %>%
-        dplyr::group_by(cell_line) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
+        dplyr::group_by(id) %>%
         dplyr::arrange(dep_score) %>%
         dplyr:: mutate(
           rank = 1:dplyr::n(),
           med = median(dep_score, na.rm= TRUE)
         ) %>%
-        dplyr::ungroup() %>%
-        dplyr::rename(name = gene)
+        dplyr::ungroup()
     }
 
     if(!is.null(scale) & !card){
@@ -1969,32 +1976,24 @@ make_celldeps <- function(data_universal_achilles_long = universal_achilles_long
       if(is.null(scale)) {
         scale <- 0.3
       }
-      if(input$type == "gene") {
         plot_data <-
           plot_data %>%
-          dplyr::group_by(name) %>%
+          dplyr::group_by(id) %>%
           dplyr::sample_n(scale*dplyr::n()) %>%
           dplyr::ungroup()
-      } else {
-        plot_data <-
-          plot_data %>%
-          dplyr::group_by(cell_line) %>%
-          dplyr::sample_n(scale*dplyr::n()) %>%
-          dplyr::ungroup()
-      }
     }
 
     plot_complete <-
       plot_data %>%
       ggplot2::ggplot(ggplot2::aes(x = rank,
                                    y = dep_score,
-                                   text = glue::glue('{var_title}: {name}\nCell Line: {cell_line}'),
-                                   color = forcats::fct_reorder(!!aes_var, med),
-                                   fill = forcats::fct_reorder(!!aes_var, med)
+                                   text = glue::glue('{var_title}: {id}\nCell Line: {cell_line}'),
+                                   color = forcats::fct_reorder(id, med),
+                                   fill = forcats::fct_reorder(id, med)
       )) +
       ## dot/line plot
       {if(!card & !lineplot)ggplot2::geom_point(size = 1.1, stroke = .25, alpha = 0.6)} +
-      {if(input$type == "gene" & (card | lineplot))ggplot2::geom_line(ggplot2::aes(group = name))} +
+      {if(input$type == "gene" & (card | lineplot))ggplot2::geom_line(ggplot2::aes(group = id))} +
       {if(input$type == "cell" & (card | lineplot))ggplot2::geom_line(ggplot2::aes(group = cell_line))} +
       ## indicator lines dep. score
       ggplot2::geom_hline(yintercept = mean, linetype = "dashed", color = "grey80") +
