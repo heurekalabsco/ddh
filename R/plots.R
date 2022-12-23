@@ -1890,9 +1890,7 @@ make_cellgeneprotein <- function(input = list(),
 #' \dontrun{
 #' make_celldeps(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_celldeps <- function(data_universal_prism_long = universal_prism_long,
-                          data_cell_expression_names = cell_expression_names,
-                          input = list(),
+make_celldeps <- function(input = list(),
                           card = FALSE,
                           lineplot = FALSE,
                           scale = NULL) {#scale is expecting 0 to 1
@@ -1901,6 +1899,7 @@ make_celldeps <- function(data_universal_prism_long = universal_prism_long,
   # get cell_expression_names from s3
   get_content("cell_expression_names", dataset = TRUE)
 
+  #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
   data_universal_achilles_long <-
     get_data_object(object_name = input$content,
                     data_set_name = "universal_achilles_long") %>%
@@ -2069,37 +2068,46 @@ make_celldeps <- function(data_universal_prism_long = universal_prism_long,
 #' \dontrun{
 #' make_cellbar(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_cellbar <- function(data_universal_achilles_long = universal_achilles_long,
-                         data_universal_prism_long = universal_prism_long,
-                         data_cell_expression_names = cell_expression_names,
-                         data_universal_stats_summary = universal_stats_summary,
-                         input = list(),
+make_cellbar <- function(input = list(),
                          card = FALSE,
                          scale = NULL) {
+  # get universal_stats_summary from s3
+  get_content("universal_stats_summary", dataset = TRUE)
+  # get cell_expression_names from s3
+  get_content("cell_expression_names", dataset = TRUE)
+
+  #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
+  data_universal_achilles_long <-
+    get_data_object(object_name = input$content,
+                    data_set_name = "universal_achilles_long") %>%
+    dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
+      key == "depmap_id" ~ dplyr::row_number(),
+      TRUE ~ NA_integer_)) %>%
+    tidyr::fill(col_id_helper) %>%
+    tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
+    dplyr::select(-col_id_helper) %>%
+    dplyr::mutate(across(contains(c("score")), as.numeric))
+
   make_cellbar_raw <- function() {
     if(input$type == "gene") {
-      aes_var <- rlang::sym("name")
       var_title <- "Gene"
       ylab <- "Dependecy Score"
       mean <- get_stats(data_set = "achilles", var = "mean")
 
       plot_data <-
         data_universal_achilles_long %>% #plot setup
-        dplyr::filter(gene %in% input$content) %>%
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(-X1) %>%
-        dplyr::group_by(gene) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
+        dplyr::group_by(id) %>%
         dplyr::arrange(dep_score) %>%
         dplyr::mutate(
           rank = 1:dplyr::n(),
           med = median(dep_score, na.rm= TRUE)
         ) %>%
         dplyr::ungroup() %>%
-        dplyr::rename(name = gene) %>%
         dplyr::mutate(rank = as.integer(forcats::fct_reorder(cell_line, dep_score)))
 
     } else if(input$type == "compound") {
-      aes_var <- rlang::sym("name")
       var_title <- "Compound"
       ylab <- "Log2FC"
       mean <- get_stats(data_set = "prism", var = "mean")
@@ -2120,54 +2128,42 @@ make_cellbar <- function(data_universal_achilles_long = universal_achilles_long,
         dplyr::mutate(rank = as.integer(forcats::fct_reorder(name, dep_score)))
 
     } else { #cell lines
-      aes_var <- rlang::sym("cell_line")
       var_title <- "Gene"
       ylab <- "Dependecy Score"
       mean <- get_stats(data_set = "achilles_cell", var = "mean")
 
       plot_data <-
         data_universal_achilles_long %>% #plot setup
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::filter(cell_line %in% input$content) %>%
-        dplyr::select(-X1) %>%
-        dplyr::group_by(cell_line) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
+        dplyr::group_by(id) %>%
         dplyr::arrange(dep_score) %>%
-        dplyr::mutate(
+        dplyr:: mutate(
           rank = 1:dplyr::n(),
           med = median(dep_score, na.rm= TRUE)
         ) %>%
         dplyr::ungroup() %>%
-        dplyr::rename(name = gene) %>%
         dplyr::mutate(rank = as.integer(forcats::fct_reorder(name, dep_score)))
-
     }
 
     if(card) {
       if(is.null(scale)) {
         scale <- 0.3
       }
-      if(input$type == "gene") {
         plot_data <-
           plot_data %>%
-          dplyr::group_by(name) %>%
+          dplyr::group_by(id) %>%
           dplyr::sample_n(scale*dplyr::n()) %>%
           dplyr::ungroup()
-      } else {
-        plot_data <-
-          plot_data %>%
-          dplyr::group_by(cell_line) %>%
-          dplyr::sample_n(scale*dplyr::n()) %>%
-          dplyr::ungroup()
-      }
     }
 
     plot_complete <-
       plot_data %>%
       ggplot2::ggplot(ggplot2::aes(x = rank,
                                    y = dep_score,
-                                   text = glue::glue('{var_title}: {name}\nCell Line: {cell_line}'),
-                                   color = forcats::fct_reorder(!!aes_var, med),
-                                   fill = forcats::fct_reorder(!!aes_var, med)
+                                   text = glue::glue('{var_title}: {id}\nCell Line: {cell_line}'),
+                                   color = forcats::fct_reorder(id, med),
+                                   fill = forcats::fct_reorder(id, med)
       )) +
       ## bar plot
       ggplot2::geom_bar(stat = "identity", width = 0.5) +
@@ -2239,42 +2235,50 @@ make_cellbar <- function(data_universal_achilles_long = universal_achilles_long,
 #' @examples
 #'
 #' make_cellbins(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_cellbins(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' make_cellbins(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' \dontrun{
 #' make_cellbins(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_cellbins <- function(data_universal_achilles_long = universal_achilles_long,
-                          data_universal_prism_long = universal_prism_long,
-                          data_cell_expression_names = cell_expression_names,
-                          input = list(),
+make_cellbins <- function(input = list(),
                           card = FALSE) {
+  # get cell_expression_names from s3
+  get_content("cell_expression_names", dataset = TRUE)
+
+  #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
+  data_universal_achilles_long <-
+    get_data_object(object_name = input$content,
+                    data_set_name = "universal_achilles_long") %>%
+    dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
+      key == "depmap_id" ~ dplyr::row_number(),
+      TRUE ~ NA_integer_)) %>%
+    tidyr::fill(col_id_helper) %>%
+    tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
+    dplyr::select(-col_id_helper) %>%
+    dplyr::mutate(across(contains(c("score")), as.numeric))
+
   make_cellbins_raw <- function() {
     if(input$type == "gene") {
       xlab <- "Dependency Score (distribution)"
-      aes_var <- rlang::sym("name")
 
       plot_data <-
         data_universal_achilles_long %>% #plot setup
-        dplyr::filter(gene %in% input$content) %>%
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(-X1) %>%
-        dplyr::group_by(gene) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
+        dplyr::group_by(id) %>%
         dplyr::arrange(dep_score) %>%
         dplyr::mutate(med = median(dep_score, na.rm= TRUE)) %>%
         dplyr::ungroup() %>%
-        dplyr::filter(!is.na(dep_score)) %>%
-        dplyr::rename(name = gene)
+        dplyr::filter(!is.na(dep_score))
 
     } else if(input$type == "compound") {
       xlab <- "Log2FC (distribution)"
-      aes_var <- rlang::sym("name")
 
       plot_data <-
         data_universal_prism_long %>% #plot setup
-        dplyr::filter(name %in% input$content) %>%
-        dplyr::left_join(data_cell_expression_names, by = c("x1" = "X1")) %>%
-        dplyr::select(-1) %>%
-        dplyr::group_by(name) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
+        dplyr::group_by(id) %>%
         dplyr::arrange(log2fc) %>%
         dplyr::mutate(
           rank = 1:dplyr::n(),
@@ -2285,19 +2289,16 @@ make_cellbins <- function(data_universal_achilles_long = universal_achilles_long
 
     } else if(input$type == "cell") {
       xlab <- "Dependency Scores (distribution)"
-      aes_var <- rlang::sym("cell_line")
 
       plot_data <-
         data_universal_achilles_long %>% #plot setup
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::filter(cell_line %in% input$content) %>%
-        dplyr::select(-X1) %>%
-        dplyr::group_by(cell_line) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
+        dplyr::group_by(id) %>%
         dplyr::arrange(dep_score) %>%
         dplyr::mutate(med = median(dep_score, na.rm= TRUE)) %>%
         dplyr::ungroup() %>%
-        dplyr::filter(!is.na(dep_score)) %>%
-        dplyr::rename(name = gene)
+        dplyr::filter(!is.na(dep_score))
 
     } else {
       return("stop! delcare your type")
@@ -2319,7 +2320,7 @@ make_cellbins <- function(data_universal_achilles_long = universal_achilles_long
       ## indicator line y axis
       ggplot2::geom_linerange(
         ggplot2::aes(xmin = -Inf, xmax = med,
-                     y = forcats::fct_reorder(!!aes_var, -med),
+                     y = forcats::fct_reorder(id, -med),
                      color = med < -1),
         linetype = "dotted",
         size = .2,
@@ -2327,7 +2328,7 @@ make_cellbins <- function(data_universal_achilles_long = universal_achilles_long
       ) +
       ## density curves via {ggdist}
       ggdist::stat_halfeye(ggplot2::aes(x = dep_score,
-                                        y = forcats::fct_reorder(!!aes_var, -med),
+                                        y = forcats::fct_reorder(id, -med),
                                         fill = stat(abs(x) > 1),
                                         point_fill = ggplot2::after_scale(fill)),
                            .width = c(.025, .975),
