@@ -1417,10 +1417,8 @@ make_cellanatogramfacet <- function(input = list()) {
 #' \dontrun{
 #' make_female_anatogram(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_female_anatogram <- function(data_gene_female_tissue = gene_female_tissue,
-                                  data_gene_male_tissue = gene_male_tissue,
+make_female_anatogram <- function(input = list(),
                                   anatogram = "female",
-                                  input = list(),
                                   card = FALSE) {
 
   make_female_anatogram_raw <- function() {
@@ -1444,7 +1442,7 @@ make_female_anatogram <- function(data_gene_female_tissue = gene_female_tissue,
       tidyr::fill(col_id_helper) %>%
       tidyr::pivot_wider(names_from = key, values_from = value) %>%
       dplyr::select(id, organ, type, colour, value) %>%
-      mutate(value = as.numeric(value)) %>%
+      dplyr::mutate(value = as.numeric(value)) %>%
       dplyr::filter(!is.na(type)) %>%
       dplyr::arrange(dplyr::desc(-value))
 
@@ -1503,8 +1501,8 @@ make_female_anatogram <- function(data_gene_female_tissue = gene_female_tissue,
 #' \dontrun{
 #' make_male_anatogram(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_male_anatogram <- function(anatogram = "male",
-                                input = list(),
+make_male_anatogram <- function(input = list(),
+                                anatogram = "male",
                                 card = FALSE){
 
   male_anatogram <- make_female_anatogram(anatogram = anatogram,
@@ -1533,13 +1531,22 @@ make_male_anatogram <- function(anatogram = "male",
 #' \dontrun{
 #' make_tissue(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_tissue <- function(data_gene_tissue = gene_tissue,
-                        input = list(),
+make_tissue <- function(input = list(),
                         card = FALSE) {
+  data_gene_tissue <-
+    get_data_object(object_name = input$content,
+                    data_set_name = "gene_tissue") %>%
+    dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
+      key == "gene" ~ dplyr::row_number(),
+      TRUE ~ NA_integer_)) %>%
+    tidyr::fill(col_id_helper) %>%
+    tidyr::pivot_wider(names_from = key, values_from = value) %>%
+    dplyr::select(id, organ, value) %>%
+    dplyr::mutate(value = as.numeric(value))
+
   make_tissue_raw <- function() {
     plot_data <-
       data_gene_tissue %>%
-      dplyr::filter_all(dplyr::any_vars(gene_name %in% input$content)) %>%
       dplyr::group_by(organ) %>%
       dplyr::mutate(sum_value = sum(value),
                     organ = stringr::str_replace_all(organ, "_", " "),
@@ -1625,21 +1632,33 @@ make_tissue <- function(data_gene_tissue = gene_tissue,
 #' @export
 #' @examples
 #' make_cellexpression(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_cellexpression(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' make_cellexpression(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' \dontrun{
 #' make_cellexpression(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_cellexpression <- function(data_universal_expression_long = universal_expression_long,
-                                data_cell_expression_names = cell_expression_names,
-                                data_universal_stats_summary = universal_stats_summary,
-                                input = list(),
+make_cellexpression <- function(input = list(),
                                 var = "gene",
                                 card = FALSE) {
+  # get data_gene_chromosome out of object
+  get_content("universal_stats_summary", dataset = TRUE)
+
+  data_universal_expression_long <-
+    get_data_object(object_name = input$content,
+                  data_set_name = "universal_expression_long") %>%
+    dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
+      key == "depmap_id" ~ dplyr::row_number(),
+      TRUE ~ NA_integer_)) %>%
+    tidyr::fill(col_id_helper) %>%
+    tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
+    dplyr::select(-col_id_helper) %>%
+    dplyr::mutate(across(contains(c("expression")), as.numeric))
+
   make_cellexpression_raw <- function() {
     if (var == "gene") {
       plot_initial <-
         data_universal_expression_long %>%
-        dplyr::select(dplyr::any_of(c("X1", "gene", "gene_expression"))) %>%
+        dplyr::select(dplyr::any_of(c("id", "depmap_id", "gene_expression"))) %>%
         dplyr::rename("expression_var" = "gene_expression")
       mean <- get_stats(data_set = "expression_gene", var = "mean")
       upper_limit <- get_stats(data_set = "expression_gene", var = "upper")
@@ -1648,7 +1667,7 @@ make_cellexpression <- function(data_universal_expression_long = universal_expre
     } else if (var == "protein") {
       plot_initial <-
         data_universal_expression_long %>%
-        dplyr::select(dplyr::any_of(c("X1", "gene", "protein_expression"))) %>%
+        dplyr::select(dplyr::any_of(c("id", "depmap_id", "protein_expression"))) %>%
         dplyr::rename("expression_var" = "protein_expression")
       mean <- get_stats(data_set = "expression_protein", var = "mean")
       upper_limit <- get_stats(data_set = "expression_protein", var = "upper")
@@ -1659,29 +1678,29 @@ make_cellexpression <- function(data_universal_expression_long = universal_expre
     }
 
     if (input$type == "gene") {
+      get_content("cell_expression_names", dataset = TRUE)
       plot_data <-
         plot_initial %>%
-        dplyr::filter(gene %in% input$content,
-                      !is.na(expression_var)) %>%
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(-X1) %>%
+        dplyr::filter(!is.na(expression_var)) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
         dplyr::select(cell_line, lineage, lineage_subtype, dplyr::everything()) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
-        dplyr::mutate(gene_fct = forcats::fct_inorder(gene)) %>%
+        dplyr::mutate(gene_fct = forcats::fct_inorder(id)) %>%
         ggplot2::ggplot(ggplot2::aes(y = gene_fct,
                                      x = expression_var,
                                      text = paste0("Cell Line: ", cell_line),
-                                     color = gene
+                                     color = id
         ))
     } else if (input$type == "cell") {
       color_type <- "cell"
+      #REVISIT select(cell_line), mutate(cell_fct), and color=cell_line
       plot_data <-
         plot_initial %>%
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(-X1) %>%
+        dplyr::left_join(data_cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
         dplyr::select(cell_line, lineage, lineage_subtype, dplyr::everything()) %>%
-        dplyr::filter(cell_line %in% input$content,
-                      !is.na(expression_var)) %>%
+        dplyr::filter(!is.na(expression_var)) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
         dplyr::mutate(cell_fct = forcats::fct_inorder(cell_line)) %>%
         ggplot2::ggplot(ggplot2::aes(y = cell_fct,
