@@ -1616,8 +1616,8 @@ make_cellexpression <- function(input = list(),
 
   data_universal_expression_long <-
     get_data_object(object_name = input$content,
-                  dataset_name = "universal_expression_long",
-                  pivotwider = TRUE) %>%
+                    dataset_name = "universal_expression_long",
+                    pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("expression")), as.numeric))
 
   get_content("cell_expression_names", dataset = TRUE)
@@ -1931,11 +1931,11 @@ make_celldeps <- function(input = list(),
       if(is.null(scale)) {
         scale <- 0.3
       }
-        plot_data <-
-          plot_data %>%
-          dplyr::group_by(id) %>%
-          dplyr::sample_n(scale*dplyr::n()) %>%
-          dplyr::ungroup()
+      plot_data <-
+        plot_data %>%
+        dplyr::group_by(id) %>%
+        dplyr::sample_n(scale*dplyr::n()) %>%
+        dplyr::ungroup()
     }
 
     plot_complete <-
@@ -2101,11 +2101,11 @@ make_cellbar <- function(input = list(),
       if(is.null(scale)) {
         scale <- 0.3
       }
-        plot_data <-
-          plot_data %>%
-          dplyr::group_by(id) %>%
-          dplyr::sample_n(scale*dplyr::n()) %>%
-          dplyr::ungroup()
+      plot_data <-
+        plot_data %>%
+        dplyr::group_by(id) %>%
+        dplyr::sample_n(scale*dplyr::n()) %>%
+        dplyr::ungroup()
     }
 
     plot_complete <-
@@ -2722,54 +2722,52 @@ make_sublineage <- function(input = list(),
 #' @export
 #' @examples
 #' make_correlation(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_correlation(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' make_correlation(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' \dontrun{
 #' make_correlation(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_correlation <- function(data_gene_achilles_cor_nest = gene_achilles_cor_nest,
-                             #data_achilles_cell_line_cor_nest = achilles_cell_line_cor_nest,
-                             data_prism_cor_nest = prism_cor_nest,
-                             data_universal_stats_summary = universal_stats_summary,
-                             input = list(),
+make_correlation <- function(input = list(),
                              card = FALSE,
                              scale = NULL) { #no card option, but need this to prevent error
+  # get universal_stats_summary from s3
+  get_content("universal_stats_summary", dataset = TRUE)
+
+  #wrap data_gene_achilles_cor_nest in an if/else for type, and fetch data_prism_cor_nest instead?
+  data_gene_achilles_cor_nest <-
+    get_data_object(object_name = input$content,
+                    dataset_name = "gene_achilles_cor_nest",
+                    pivotwider = TRUE) %>%
+    dplyr::mutate(across(contains(c("r2")), as.numeric))
   make_correlation_raw <- function() {
     if(input$type == "gene") {
       mean <- get_stats(data_set = "achilles", var = "mean")
       upper_limit <- get_stats(data_set = "achilles", var = "upper")
       lower_limit <- get_stats(data_set = "achilles", var = "lower")
-      var <- rlang::sym("fav_gene") #from https://rlang.r-lib.org/reference/quasiquotation.html
       label_var <- "Gene Rank"
       text_var <- "Gene"
       content_var <- glue::glue_collapse(input$content, sep = ", ")
 
       plot_data <-
         data_gene_achilles_cor_nest %>%
-        dplyr::filter(fav_gene %in% input$content) %>%
-        tidyr::unnest(data) %>%
-        dplyr::group_by(fav_gene) %>%
+        dplyr::group_by(id) %>%
         dplyr::arrange(dplyr::desc(r2)) %>%
         dplyr::mutate(
           rank = 1:dplyr::n(),
           med = median(r2, na.rm= TRUE)
         ) %>%
-        dplyr::ungroup() %>%
-        dplyr::rename(name = gene) #for plot name
-
+        dplyr::ungroup()
     } else if(input$type == "compound") {
       mean <- get_stats(data_set = "prism", var = "mean")
       upper_limit <- get_stats(data_set = "prism", var = "upper")
       lower_limit <- get_stats(data_set = "prism", var = "lower")
-      var <- rlang::sym("fav_drug") #from https://rlang.r-lib.org/reference/quasiquotation.html
       label_var <- "Drug Rank"
       text_var <- "Compound"
       content_var <- glue::glue_collapse(input$content, sep = ", ")
 
       plot_data <-
         data_prism_cor_nest %>%
-        dplyr::filter(fav_drug %in% input$content) %>%
-        tidyr::unnest(data) %>%
-        dplyr::group_by(fav_drug) %>%
+        dplyr::group_by(fav_drug) %>% #CHECK THIS VAR
         dplyr::arrange(dplyr::desc(r2)) %>%
         dplyr::mutate(
           rank = 1:dplyr::n(),
@@ -2788,8 +2786,9 @@ make_correlation <- function(data_gene_achilles_cor_nest = gene_achilles_cor_nes
       if(is.null(scale)) {
         scale <- 0.3
       }
-      plot_data <- plot_data %>%
-        dplyr::group_by(name) %>%
+      plot_data <-
+        plot_data %>%
+        dplyr::group_by(id) %>%
         dplyr::sample_n(scale*dplyr::n()) %>% # scale is also used here
         dplyr::ungroup()
     }
@@ -2805,9 +2804,9 @@ make_correlation <- function(data_gene_achilles_cor_nest = gene_achilles_cor_nes
       ## dot plot
       ggplot2::geom_point(ggplot2::aes(x = rank,
                                        y = r2,
-                                       text = glue::glue('{text_var}: {name}'),
-                                       color = forcats::fct_reorder(!!var, med), #from https://rlang.r-lib.org/reference/quasiquotation.html
-                                       fill = forcats::fct_reorder(!!var, med) #from https://rlang.r-lib.org/reference/quasiquotation.html
+                                       text = glue::glue('{text_var}: {gene}'), #CHECK THIS VAR FOR CELL LINE
+                                       color = forcats::fct_reorder(id, med),
+                                       fill = forcats::fct_reorder(id, med)
       ),
       size = 1.1, stroke = .1, alpha = 0.4) +
       ## scales + legends
