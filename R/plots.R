@@ -2852,77 +2852,6 @@ make_correlation <- function(input = list(),
              make_bomb_plot()})
 }
 
-## NETWORK PLOT FOR GENE-PATHWAYS --------------------------------------------------------
-#' Gene-Pathway Co-essentiality Network
-#'
-#' Each node in the network is a gene or a pathway. The connection between nodes means an association (co-essentiality) and the intensity of the edges between nodes shows the strength of the association (being the darkest most co-essential). Click on the rows in the table to highlight nodes in the network.
-#'
-#' @param input Expecting a list containing content variable.
-#' @return If no error, then returns a network plot. If an error is thrown, then will return a bomb plot.
-#'
-#' @importFrom magrittr %>%
-#'
-#' @export
-#' @examples
-#' make_gene_pathways_components_network(input = list(content = 'ROCK1'))
-#' \dontrun{
-#' make_gene_pathways_components_network(input = list(content = 'ROCK1'))
-#' }
-make_gene_pathways_components_network <- function(data_universal_achilles_long = universal_achilles_long,
-                                                  input = list(),
-                                                  cutoff = NULL,
-                                                  highlight = NULL,
-                                                  show_labels = FALSE,
-                                                  fontsize = 3) {
-
-  make_gene_pathways_components_network_raw <- function() {
-    plot_data <- make_gene_pathways_components(input = input, cutoff = cutoff) %>%
-      dplyr::select(feature1, feature2, pearson_corr)
-
-    ## Name nodes
-    graph_table <- plot_data %>%
-      tidygraph::as_tbl_graph() %>%
-      dplyr::mutate(type = dplyr::case_when(name %in% input$content ~ "Query",
-                                            name %in% data_universal_achilles_long$gene ~ "Gene",
-                                            !(name %in% data_universal_achilles_long$gene) ~ "Pathway")
-      )
-
-    ## Plot network
-    plot_complete <- ggraph::ggraph(graph_table, layout = "fr") +
-      ggraph::geom_edge_link(ggplot2::aes(edge_alpha = abs(pearson_corr)),
-                             edge_width = 0.5, show.legend = FALSE) +
-      ggraph::geom_node_point(ggplot2::aes(fill = type), color = "black",
-                              pch = 21, size = 4, alpha = 0.85) +
-      {if(!is.null(highlight))ggraph::geom_node_point(ggplot2::aes(filter = name %in% highlight),
-                                                      fill = "red",
-                                                      pch = 21,
-                                                      size = 4,
-                                                      alpha = 0.85)} +
-      {if(!is.null(highlight) & show_labels)ggraph::geom_node_label(ggplot2::aes(label = name, filter = name %in% highlight),
-                                                                    repel = TRUE,
-                                                                    size = fontsize,
-                                                                    fill = ggplot2::alpha(c("white"), 0.6),
-                                                                    label.size = NA,
-                                                                    fontface = "bold",
-                                                                    family = "Roboto Slab")} +
-      ggraph::theme_graph(foreground = "white", fg_text_colour = "white") +
-      ggplot2::theme(legend.position = "top",
-                     legend.title = ggplot2::element_blank(),
-                     text = ggplot2::element_text(family = "Roboto Slab", size = 16)) +
-      scale_fill_ddh_d() +
-      ggraph::scale_edge_color_continuous(low = "black", high = "black")
-
-    return(plot_complete)
-  }
-
-  #error handling
-  tryCatch(make_gene_pathways_components_network_raw(),
-           error = function(e){
-             message(e)
-             make_bomb_plot()})
-
-}
-
 ## EXPvDEP PLOT --------------------------------------------------------
 #' Gene Dependency versus Expression
 #'
@@ -2937,57 +2866,72 @@ make_gene_pathways_components_network <- function(data_universal_achilles_long =
 #' @export
 #' @examples
 #' make_expdep(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_expdep(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' make_expdep(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' \dontrun{
 #' make_expdep(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_expdep <- function(data_universal_expression_long = universal_expression_long,
-                        data_universal_achilles_long = universal_achilles_long,
-                        data_cell_expression_names = cell_expression_names,
-                        plot_se = TRUE,
+make_expdep <- function(plot_se = TRUE,
                         input = list(),
                         card = FALSE) {
+  # get cell_expression_names from s3
+  get_content("cell_expression_names", dataset = TRUE)
+
+  #wrap data_gene_achilles_cor_nest in an if/else for type, and fetch data_prism_cor_nest instead?
+  data_universal_expression_long <-
+    get_data_object(object_name = input$content,
+                    dataset_name = "universal_expression_long",
+                    pivotwider = TRUE) %>%
+    dplyr::mutate(across(contains(c("expression")), as.numeric))
+
+  data_universal_achilles_long <-
+    get_data_object(object_name = input$content,
+                    dataset_name = "universal_achilles_long",
+                    pivotwider = TRUE) %>%
+    dplyr::mutate(across(contains(c("score")), as.numeric))
+
   make_expdep_raw <- function() {
-
     if (input$type == "gene") {
-      exp_data <-
-        data_universal_expression_long %>% #plot setup
-        dplyr::select(X1, gene, gene_expression) %>%
-        dplyr::filter(gene %in% input$content)
-
-      dep_data <-
-        data_universal_achilles_long %>% #plot setup
-        dplyr::filter(gene %in% input$content)
+      # LEAVING HERE TO SHOW WHAT I CAN REMOVE WHEN I REVISIT CELL BELOW
+      # exp_data <-
+      #   data_universal_expression_long %>% #plot setup
+      #   dplyr::select(X1, gene, gene_expression) %>%
+      #   dplyr::filter(gene %in% input$content)
+      #
+      # dep_data <-
+      #   data_universal_achilles_long %>% #plot setup
+      #   dplyr::filter(gene %in% input$content)
 
       combined_data <-
-        exp_data %>%
-        dplyr::inner_join(dep_data, by = c("X1", "gene")) %>%
+        data_universal_expression_long %>%
+        dplyr::inner_join(data_universal_achilles_long, by = c("depmap_id", "id")) %>%
         dplyr::filter(!is.na(dep_score),
                       !is.na(gene_expression)) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
         dplyr::mutate(med = median(dep_score, na.rm = TRUE)) %>%
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(gene, gene_expression, dep_score, med, cell_line, lineage)
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(id, gene_expression, dep_score, med, cell_line, lineage)
     } else if (input$type == "cell") {
-      exp_data <-
-        data_universal_expression_long %>% #plot setup
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(gene, cell_line, gene_expression) %>%
-        dplyr::filter(cell_line %in% input$content)
-
-      dep_data <-
-        data_universal_achilles_long %>% #plot setup
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::filter(cell_line %in% input$content)
-
-      combined_data <-
-        exp_data %>%
-        dplyr::inner_join(dep_data, by = c("cell_line", "gene")) %>%
-        dplyr::filter(!is.na(dep_score),
-                      !is.na(gene_expression)) %>%
-        dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
-        dplyr::mutate(med = median(dep_score, na.rm = TRUE)) %>%
-        dplyr::select(gene, gene_expression, dep_score, med, cell_line, lineage)
+      # REVISIT WITH CELL DATA
+      # exp_data <-
+      #   data_universal_expression_long %>% #plot setup
+      #   dplyr::left_join(data_cell_expression_names, by = "X1") %>%
+      #   dplyr::select(gene, cell_line, gene_expression) %>%
+      #   dplyr::filter(cell_line %in% input$content)
+      #
+      # dep_data <-
+      #   data_universal_achilles_long %>% #plot setup
+      #   dplyr::left_join(data_cell_expression_names, by = "X1") %>%
+      #   dplyr::filter(cell_line %in% input$content)
+      #
+      # combined_data <-
+      #   exp_data %>%
+      #   dplyr::inner_join(dep_data, by = c("cell_line", "gene")) %>%
+      #   dplyr::filter(!is.na(dep_score),
+      #                 !is.na(gene_expression)) %>%
+      #   dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
+      #   dplyr::mutate(med = median(dep_score, na.rm = TRUE)) %>%
+      #   dplyr::select(gene, gene_expression, dep_score, med, cell_line, lineage)
     }
 
     plot_complete <-
@@ -2995,15 +2939,15 @@ make_expdep <- function(data_universal_expression_long = universal_expression_lo
       ggplot2::ggplot(ggplot2::aes(dep_score, gene_expression)) +
       ## gray background
       ## dot plot
-      {if(input$type == "gene")ggplot2::geom_point(ggplot2::aes(color = forcats::fct_reorder(gene, med),
-                                                                fill = forcats::fct_reorder(gene, med)),
+      {if(input$type == "gene")ggplot2::geom_point(ggplot2::aes(color = forcats::fct_reorder(id, med),
+                                                                fill = forcats::fct_reorder(id, med)),
                                                    size = 2, stroke = .1, alpha = 0.4)} +
       {if(input$type == "cell")ggplot2::geom_point(ggplot2::aes(color = forcats::fct_reorder(cell_line, med),
                                                                 fill = forcats::fct_reorder(cell_line, med)),
                                                    size = 2, stroke = .1, alpha = 0.4)} +
       # smooth line
-      {if(input$type == "gene")ggplot2::geom_smooth(ggplot2::aes(color = forcats::fct_reorder(gene, med),
-                                                                 fill = forcats::fct_reorder(gene, med)),
+      {if(input$type == "gene")ggplot2::geom_smooth(ggplot2::aes(color = forcats::fct_reorder(id, med),
+                                                                 fill = forcats::fct_reorder(id, med)),
                                                     method = "lm",
                                                     se = plot_se)} +
       {if(input$type == "cell")ggplot2::geom_smooth(ggplot2::aes(color = forcats::fct_reorder(cell_line, med),
@@ -3011,7 +2955,7 @@ make_expdep <- function(data_universal_expression_long = universal_expression_lo
                                                     method = "lm",
                                                     se = plot_se)} +
       # R coefs
-      {if(card == FALSE & input$type == "gene")ggpubr::stat_cor(ggplot2::aes(color = forcats::fct_reorder(gene, med)),
+      {if(card == FALSE & input$type == "gene")ggpubr::stat_cor(ggplot2::aes(color = forcats::fct_reorder(id, med)),
                                                                 digits = 3)} +
       {if(card == FALSE & input$type == "cell")ggpubr::stat_cor(ggplot2::aes(color = forcats::fct_reorder(cell_line, med)),
                                                                 digits = 3)} +
