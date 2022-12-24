@@ -1,3 +1,6 @@
+ROCK1 <- feather::read_feather(path = here::here("data", "ROCK1"))
+ROCK2 <- feather::read_feather(path = here::here("data", "ROCK2"))
+
 #' Function to load data from AWS into environment
 #'
 #' @param object_names Character vector, can be greater than 1, of file names to get
@@ -83,7 +86,8 @@ make_validate <- function(object_names){
 #' get_data_object(object_name = c("ROCK1"), data_set_name = "gene_female_tissue")
 #' }
 get_data_object <- function(object_names,
-                            data_set_name){
+                            dataset_name,
+                            pivotwider = FALSE){
   get_single_object <- function(object_name,
                                 data_set){ #can take >=1 data_set
     object <- eval(parse(text = object_name))
@@ -91,12 +95,23 @@ get_data_object <- function(object_names,
       object %>%
       dplyr::filter(name %in% data_set)
     # {if(!is.null(data_set)) dplyr::filter(name %in% data_set) else .} #consider adding way to get all data back out?
+    if(pivotwider == TRUE){
+      col_label <- single_object[[3]][[1]] #first entry in 'key'
+      single_object <-
+        single_object %>%
+        dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
+          key == col_label ~ dplyr::row_number(),
+          TRUE ~ NA_integer_)) %>%
+        tidyr::fill(col_id_helper) %>%
+        tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
+        dplyr::select(-col_id_helper)
+    }
     return(single_object)
   }
 
   data_object <-
     object_names %>%
-    purrr::map_dfr(get_single_object, data_set = data_set_name)
+    purrr::map_dfr(get_single_object, data_set = dataset_name)
   return(data_object)
 }
 

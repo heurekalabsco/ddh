@@ -70,8 +70,8 @@ make_ideogram <- function(input = list(),
     # get data_gene_location out of object
     data_gene_location <-
       get_data_object(object_name = input$content,
-                      data_set_name = "gene_location") %>%
-      tidyr::pivot_wider(names_from = "key", values_from = "value")
+                      dataset_name = "gene_location",
+                      pivotwider = TRUE)
 
     # get data_gene_chromosome out of object
     get_content("gene_chromosome", dataset = TRUE)
@@ -197,8 +197,8 @@ make_proteinsize <- function(input = list(),
     # get data_universal_proteins out of object
     data_universal_proteins <-
       get_data_object(object_name = input$content,
-                      data_set_name = "universal_proteins") %>%
-      tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
+                      dataset_name = "universal_proteins",
+                      pivotwider = TRUE) %>%
       dplyr::rename(gene_name = 1) %>%
       dplyr::mutate(across(contains(c("length", "mass")), as.numeric))
 
@@ -358,7 +358,7 @@ make_sequence <- function(input = list(),
     # get data_universal_proteins out of object
     sequence_string <-
       get_data_object(object_name = input$content,
-                      data_set_name = "universal_proteins") %>%
+                      dataset_name = "universal_proteins") %>%
       dplyr::filter(key == "sequence") %>%
       dplyr::pull("value") %>%
       stringr::str_sub(start = 1L, end = 100L) %>%
@@ -442,20 +442,10 @@ make_protein_domain <- function(input = list(),
                                 ptm_var = NULL) {
   data_gene_protein_domains <-
     get_data_object(object_name = input$content,
-                    data_set_name = "gene_protein_domains")
-  if(nrow(data_gene_protein_domains) == 0){
-    return(message("no data for plot"))
-  } else {
-    data_gene_protein_domains <-
-      data_gene_protein_domains %>%
-      dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
-        key == "uniprot_id" ~ dplyr::row_number(),
-        TRUE ~ NA_integer_)) %>%
-      tidyr::fill(col_id_helper) %>%
-      tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
-      dplyr::select(c(id, type, description, category, begin, end, url, seq_len, length)) %>%
-      dplyr::mutate(across(contains(c("begin", "end", "seq_len", "length")), as.numeric))
-  }
+                    dataset_name = "gene_protein_domains",
+                    pivotwider = TRUE) %>%
+    dplyr::select(c(id, type, description, category, begin, end, url, seq_len, length)) %>%
+    dplyr::mutate(across(contains(c("begin", "end", "seq_len", "length")), as.numeric))
 
   make_protein_domain_raw <- function() {
     gene_symbol <-
@@ -608,14 +598,14 @@ make_radial <- function(input = list(),
                         card = FALSE) {
   data_gene_signatures <-
     get_data_object(object_name = input$content,
-                    data_set_name = "gene_signatures") %>%
-    tidyr::pivot_wider(names_from = key, values_from = value) %>%
+                    dataset_name = "gene_signatures",
+                    pivotwider = TRUE) %>%
     dplyr::mutate(across(A:Y, as.numeric))
 
   data_gene_signature_clusters <-
     get_data_object(object_name = input$content,
-                    data_set_name = "gene_signature_clusters") %>%
-    tidyr::pivot_wider(names_from = key, values_from = value) %>%
+                    dataset_name = "gene_signature_clusters",
+                    pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("X", "clust", "member")), as.numeric))
 
   # get gene_signatures_mean
@@ -827,8 +817,8 @@ make_umap_plot <- function(input = list(),
 
     data_gene_signature_clusters <-
       get_data_object(object_name = input$content,
-                      data_set_name = "gene_signature_clusters") %>%
-      tidyr::pivot_wider(names_from = key, values_from = value) %>%
+                      dataset_name = "gene_signature_clusters",
+                      pivotwider = TRUE) %>%
       dplyr::mutate(across(contains(c("X", "clust", "member")), as.numeric))
 
     query_clust <-
@@ -904,7 +894,7 @@ make_cluster_enrich <- function(input = list(),
     #get clust numbers
     query_clust <-
       get_data_object(object_name = input$content,
-                      data_set_name = "gene_signature_clusters") %>%
+                      dataset_name = "gene_signature_clusters") %>%
       dplyr::filter(key == "member_prob") %>%
       dplyr::pull(value) %>%
       as.numeric(.)
@@ -1032,7 +1022,7 @@ make_structure3d <- function(gene_symbol = NULL,
 ) {
   data_gene_pdb_table <-
     get_data_object(object_name = input$content,
-                    data_set_name = "gene_pdb_table")
+                    dataset_name = "gene_pdb_table")
   make_structure3d_raw <- function() {
     #because this fun doesn't take multi-gene queries
     if(is.null(gene_symbol)) {
@@ -1129,12 +1119,8 @@ make_pubmed <- function(input = list(),
   #get data
   data_universal_pubmed <-
     get_data_object(object_name = input$content,
-                    data_set_name = "universal_pubmed") %>%
-    dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
-      key == "pmid" ~ dplyr::row_number(),
-      TRUE ~ NA_integer_)) %>%
-    tidyr::fill(col_id_helper) %>%
-    tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
+                    dataset_name = "universal_pubmed",
+                    pivotwider = TRUE) %>%
     dplyr::mutate(year = as.numeric(year))
 
   make_pubmed_raw <- function() {
@@ -1286,12 +1272,8 @@ make_cellanatogram <- function(input = list(),
                                card = FALSE) {
   data_gene_subcell <-
     get_data_object(object_name = input$content,
-                    data_set_name = "gene_subcell") %>%
-    dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
-      key == "gene" ~ dplyr::row_number(),
-      TRUE ~ NA_integer_)) %>%
-    tidyr::fill(col_id_helper) %>%
-    tidyr::pivot_wider(names_from = key, values_from = value) %>%
+                    dataset_name = "gene_subcell",
+                    pivotwider = TRUE) %>%
     dplyr::select(organ, type, colour, value) %>%
     mutate(value = as.numeric(value))
   make_cellanatogram_raw <- function() {
@@ -1351,12 +1333,8 @@ make_cellanatogram <- function(input = list(),
 make_cellanatogramfacet <- function(input = list()) {
   data_gene_subcell <-
     get_data_object(object_name = input$content,
-                    data_set_name = "gene_subcell") %>%
-    dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
-      key == "gene" ~ dplyr::row_number(),
-      TRUE ~ NA_integer_)) %>%
-    tidyr::fill(col_id_helper) %>%
-    tidyr::pivot_wider(names_from = key, values_from = value) %>%
+                    dataset_name = "gene_subcell",
+                    pivotwider = TRUE) %>%
     dplyr::select(organ, type, colour, value) %>%
     mutate(value = as.numeric(value))
   make_cellanatogramfacet_raw <- function() {
@@ -1425,22 +1403,19 @@ make_female_anatogram <- function(input = list(),
     if(anatogram == "female"){
       data_tissue <-
         get_data_object(object_name = input$content,
-                        data_set_name = "gene_female_tissue")
+                        dataset_name = "gene_female_tissue",
+                        pivotwider = TRUE)
     } else if (anatogram == "male") {
       data_tissue <-
         get_data_object(object_name = input$content,
-                        data_set_name = "gene_male_tissue")
+                        dataset_name = "gene_male_tissue",
+                        pivotwider = TRUE)
     } else {
       print("Declare your anatogram type")
     }
 
     body_data <-
       data_tissue %>%
-      dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
-        key == "gene" ~ dplyr::row_number(),
-        TRUE ~ NA_integer_)) %>%
-      tidyr::fill(col_id_helper) %>%
-      tidyr::pivot_wider(names_from = key, values_from = value) %>%
       dplyr::select(id, organ, type, colour, value) %>%
       dplyr::mutate(value = as.numeric(value)) %>%
       dplyr::filter(!is.na(type)) %>%
@@ -1535,12 +1510,8 @@ make_tissue <- function(input = list(),
                         card = FALSE) {
   data_gene_tissue <-
     get_data_object(object_name = input$content,
-                    data_set_name = "gene_tissue") %>%
-    dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
-      key == "gene" ~ dplyr::row_number(),
-      TRUE ~ NA_integer_)) %>%
-    tidyr::fill(col_id_helper) %>%
-    tidyr::pivot_wider(names_from = key, values_from = value) %>%
+                    dataset_name = "gene_tissue",
+                    pivotwider = TRUE) %>%
     dplyr::select(id, organ, value) %>%
     dplyr::mutate(value = as.numeric(value))
 
@@ -1645,13 +1616,8 @@ make_cellexpression <- function(input = list(),
 
   data_universal_expression_long <-
     get_data_object(object_name = input$content,
-                  data_set_name = "universal_expression_long") %>%
-    dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
-      key == "depmap_id" ~ dplyr::row_number(),
-      TRUE ~ NA_integer_)) %>%
-    tidyr::fill(col_id_helper) %>%
-    tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
-    dplyr::select(-col_id_helper) %>%
+                  dataset_name = "universal_expression_long",
+                  pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("expression")), as.numeric))
 
   get_content("cell_expression_names", dataset = TRUE)
@@ -1777,13 +1743,8 @@ make_cellgeneprotein <- function(input = list(),
                                  card = FALSE) {
   data_universal_expression_long <-
     get_data_object(object_name = input$content,
-                    data_set_name = "universal_expression_long") %>%
-    dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
-      key == "depmap_id" ~ dplyr::row_number(),
-      TRUE ~ NA_integer_)) %>%
-    tidyr::fill(col_id_helper) %>%
-    tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
-    dplyr::select(-col_id_helper) %>%
+                    dataset_name = "universal_expression_long",
+                    pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("expression")), as.numeric))
 
   get_content("cell_expression_names", dataset = TRUE)
@@ -1902,13 +1863,8 @@ make_celldeps <- function(input = list(),
   #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
   data_universal_achilles_long <-
     get_data_object(object_name = input$content,
-                    data_set_name = "universal_achilles_long") %>%
-    dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
-      key == "depmap_id" ~ dplyr::row_number(),
-      TRUE ~ NA_integer_)) %>%
-    tidyr::fill(col_id_helper) %>%
-    tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
-    dplyr::select(-col_id_helper) %>%
+                    dataset_name = "universal_achilles_long",
+                    pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("score")), as.numeric))
 
   make_celldeps_raw <- function() {
@@ -2079,13 +2035,8 @@ make_cellbar <- function(input = list(),
   #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
   data_universal_achilles_long <-
     get_data_object(object_name = input$content,
-                    data_set_name = "universal_achilles_long") %>%
-    dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
-      key == "depmap_id" ~ dplyr::row_number(),
-      TRUE ~ NA_integer_)) %>%
-    tidyr::fill(col_id_helper) %>%
-    tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
-    dplyr::select(-col_id_helper) %>%
+                    dataset_name = "universal_achilles_long",
+                    pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("score")), as.numeric))
 
   make_cellbar_raw <- function() {
@@ -2248,13 +2199,8 @@ make_cellbins <- function(input = list(),
   #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
   data_universal_achilles_long <-
     get_data_object(object_name = input$content,
-                    data_set_name = "universal_achilles_long") %>%
-    dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
-      key == "depmap_id" ~ dplyr::row_number(),
-      TRUE ~ NA_integer_)) %>%
-    tidyr::fill(col_id_helper) %>%
-    tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
-    dplyr::select(-col_id_helper) %>%
+                    dataset_name = "universal_achilles_long",
+                    pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("score")), as.numeric))
 
   make_cellbins_raw <- function() {
@@ -2405,12 +2351,19 @@ make_cellbins <- function(input = list(),
 #' \dontrun{
 #' make_lineage(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_lineage <- function(data_universal_achilles_long = universal_achilles_long,
-                         data_universal_prism_long = universal_prism_long,
-                         data_cell_expression_names = cell_expression_names,
-                         input = list(),
+make_lineage <- function(input = list(),
                          card = FALSE,
                          highlight = FALSE) {
+  # get cell_expression_names from s3
+  get_content("cell_expression_names", dataset = TRUE)
+
+  #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
+  data_universal_achilles_long <-
+    get_data_object(object_name = input$content,
+                    dataset_name = "universal_achilles_long",
+                    pivotwider = TRUE) %>%
+    dplyr::mutate(across(contains(c("score")), as.numeric))
+
   make_lineage_raw <- function() {
     if(input$type == "gene" ) {
       xlab <- "Dependency Score"
@@ -2418,9 +2371,8 @@ make_lineage <- function(data_universal_achilles_long = universal_achilles_long,
 
       data_full <-
         data_universal_achilles_long %>% #plot setup
-        dplyr::filter(gene %in% input$content) %>%
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(-X1) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
         dplyr::mutate_at("lineage", function(str) {
           str <- stringr::str_replace_all(str, "\\_", " ")
           str <- stringr::str_to_title(str)
@@ -2433,7 +2385,8 @@ make_lineage <- function(data_universal_achilles_long = universal_achilles_long,
         dplyr::ungroup() %>%
         dplyr::mutate(lineage = forcats::fct_reorder(lineage, -mean))
 
-      data_mean <- data_full %>%
+      data_mean <-
+        data_full %>%
         dplyr::group_by(lineage) %>%
         dplyr::summarize(dep_score = mean(dep_score))
 
@@ -2443,9 +2396,8 @@ make_lineage <- function(data_universal_achilles_long = universal_achilles_long,
 
       data_full <-
         data_universal_prism_long %>% #plot setup
-        dplyr::filter(name %in% input$content) %>%
-        dplyr::left_join(data_cell_expression_names, by = c("x1" = "X1")) %>%
-        dplyr::select(-1) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
         dplyr::mutate_at("lineage", function(str) {
           str <- stringr::str_replace_all(str, "\\_", " ")
           str <- stringr::str_to_title(str)
@@ -2470,7 +2422,8 @@ make_lineage <- function(data_universal_achilles_long = universal_achilles_long,
     if(nrow(data_full) == 0){return(NULL)}
 
     if(highlight) {
-      stats_data <- data_full %>%
+      stats_data <-
+        data_full %>%
         dplyr::group_by(lineage) %>%
         dplyr::filter(dplyr::n() > 1) %>%
         dplyr::ungroup() %>%
@@ -2587,12 +2540,19 @@ make_lineage <- function(data_universal_achilles_long = universal_achilles_long,
 #' \dontrun{
 #' make_sublineage(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_sublineage <- function(data_universal_achilles_long = universal_achilles_long,
-                            data_universal_prism_long = universal_prism_long,
-                            data_cell_expression_names = cell_expression_names,
-                            input = list(),
+make_sublineage <- function(input = list(),
                             card = FALSE,
                             highlight = FALSE) {
+  # get cell_expression_names from s3
+  get_content("cell_expression_names", dataset = TRUE)
+
+  #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
+  data_universal_achilles_long <-
+    get_data_object(object_name = input$content,
+                    dataset_name = "universal_achilles_long",
+                    pivotwider = TRUE) %>%
+    dplyr::mutate(across(contains(c("score")), as.numeric))
+
   make_sublineage_raw <- function() {
     if(input$type == "gene") {
       xlab <- "Dependency Score"
@@ -2600,9 +2560,8 @@ make_sublineage <- function(data_universal_achilles_long = universal_achilles_lo
 
       data_full <-
         data_universal_achilles_long %>% #plot setup
-        dplyr::filter(gene %in% input$content) %>%
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(-X1) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
         dplyr::mutate_at("lineage_subtype", function(str) {
           str <- stringr::str_replace_all(str, "\\_", " ")
           str <- dplyr::if_else(stringr::str_detect(str, "^[:lower:]"), stringr::str_to_title(str), str)
@@ -2625,9 +2584,8 @@ make_sublineage <- function(data_universal_achilles_long = universal_achilles_lo
 
       data_full <-
         data_universal_prism_long %>% #plot setup
-        dplyr::filter(name %in% input$content) %>%
-        dplyr::left_join(data_cell_expression_names, by = c("x1" = "X1")) %>%
-        dplyr::select(-1) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
         dplyr::mutate_at("lineage_subtype", function(str) {
           str <- stringr::str_replace_all(str, "\\_", " ")
           str <- dplyr::if_else(stringr::str_detect(str, "^[:lower:]"), stringr::str_to_title(str), str)
