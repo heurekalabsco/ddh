@@ -857,3 +857,74 @@ make_bipartite_graph <- function(data_master_top_table = gene_master_top_table,
              make_empty_graph()
            })
 }
+
+## NETWORK PLOT FOR GENE-PATHWAYS --------------------------------------------------------
+#' Gene-Pathway Co-essentiality Network
+#'
+#' Each node in the network is a gene or a pathway. The connection between nodes means an association (co-essentiality) and the intensity of the edges between nodes shows the strength of the association (being the darkest most co-essential). Click on the rows in the table to highlight nodes in the network.
+#'
+#' @param input Expecting a list containing content variable.
+#' @return If no error, then returns a network plot. If an error is thrown, then will return a bomb plot.
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' make_gene_pathways_components_network(input = list(content = 'ROCK1'))
+#' \dontrun{
+#' make_gene_pathways_components_network(input = list(content = 'ROCK1'))
+#' }
+make_gene_pathways_components_network <- function(data_universal_achilles_long = universal_achilles_long,
+                                                  input = list(),
+                                                  cutoff = NULL,
+                                                  highlight = NULL,
+                                                  show_labels = FALSE,
+                                                  fontsize = 3) {
+
+  make_gene_pathways_components_network_raw <- function() {
+    plot_data <- make_gene_pathways_components(input = input, cutoff = cutoff) %>%
+      dplyr::select(feature1, feature2, pearson_corr)
+
+    ## Name nodes
+    graph_table <- plot_data %>%
+      tidygraph::as_tbl_graph() %>%
+      dplyr::mutate(type = dplyr::case_when(name %in% input$content ~ "Query",
+                                            name %in% data_universal_achilles_long$gene ~ "Gene",
+                                            !(name %in% data_universal_achilles_long$gene) ~ "Pathway")
+      )
+
+    ## Plot network
+    plot_complete <- ggraph::ggraph(graph_table, layout = "fr") +
+      ggraph::geom_edge_link(ggplot2::aes(edge_alpha = abs(pearson_corr)),
+                             edge_width = 0.5, show.legend = FALSE) +
+      ggraph::geom_node_point(ggplot2::aes(fill = type), color = "black",
+                              pch = 21, size = 4, alpha = 0.85) +
+      {if(!is.null(highlight))ggraph::geom_node_point(ggplot2::aes(filter = name %in% highlight),
+                                                      fill = "red",
+                                                      pch = 21,
+                                                      size = 4,
+                                                      alpha = 0.85)} +
+      {if(!is.null(highlight) & show_labels)ggraph::geom_node_label(ggplot2::aes(label = name, filter = name %in% highlight),
+                                                                    repel = TRUE,
+                                                                    size = fontsize,
+                                                                    fill = ggplot2::alpha(c("white"), 0.6),
+                                                                    label.size = NA,
+                                                                    fontface = "bold",
+                                                                    family = "Roboto Slab")} +
+      ggraph::theme_graph(foreground = "white", fg_text_colour = "white") +
+      ggplot2::theme(legend.position = "top",
+                     legend.title = ggplot2::element_blank(),
+                     text = ggplot2::element_text(family = "Roboto Slab", size = 16)) +
+      scale_fill_ddh_d() +
+      ggraph::scale_edge_color_continuous(low = "black", high = "black")
+
+    return(plot_complete)
+  }
+
+  #error handling
+  tryCatch(make_gene_pathways_components_network_raw(),
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
+
+}

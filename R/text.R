@@ -7,16 +7,17 @@
 #' @examples
 #' make_summary_gene(input = list(content = "ROCK1"), var = "approved_symbol")
 #' make_summary_gene(input = list(content = "ROCK1"), var = "aka")
-#' make_summary_gene(input = list(content = "ROCK1"), var = "cds_length")
-make_summary_gene <- function(data_universal_gene_summary = universal_gene_summary,
-                              input = list(),
+#' make_summary_gene(input = list(content = "ROCK1"), var = "entrez_summary")
+make_summary_gene <- function(input = list(),
                               var = "approved_symbol") { #default so no error if empty, but this pulls the var out of the df
   if (is.null(input$content)) {
     return (NULL)
   }
   gene_summary_var <-
-    data_universal_gene_summary %>%
-    dplyr::filter(approved_symbol == input$content) %>%
+    get_data_object(object_name = input$content,
+                    dataset_name = "universal_gene_summary",
+                    pivotwider = TRUE) %>%
+    dplyr::mutate(across(contains(c("count", "rank")), as.numeric)) %>%
     dplyr::pull(var) #any column name
   return(gene_summary_var)
 }
@@ -34,6 +35,12 @@ make_summary_pathway <- function(data_gene_pathways = gene_pathways,
   if (is.null(input$query)) {
     return (NULL)
   }
+
+  # gene_pathways isn't in feather file. Is it global?
+  # get_data_object(object_name = input$content,
+  #                 dataset_name = "gene_pathways",
+  #                 pivotwider = TRUE)
+
   if (var == "data") {
     pathway_summary_var <-
       data_gene_pathways %>%
