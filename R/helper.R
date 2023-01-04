@@ -1,5 +1,5 @@
-ROCK1 <- feather::read_feather(path = here::here("data", "ROCK1"))
-ROCK2 <- feather::read_feather(path = here::here("data", "ROCK2"))
+# ROCK1 <- feather::read_feather(path = here::here("data", "ROCK1"))
+# ROCK2 <- feather::read_feather(path = here::here("data", "ROCK2"))
 
 #' Function to load data from AWS into environment
 #'
