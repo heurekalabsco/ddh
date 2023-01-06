@@ -41,36 +41,6 @@ get_content <- function(object_names,
     purrr::walk(get_aws_object)
 }
 
-#' Function to make a validation dataset
-#'
-#' @param object_names Character vector, can be greater than 1, of file names to get
-#'
-#' @importFrom magrittr %>%
-#'
-#' @export
-#' @examples
-#' make_validate("ROCK1")
-#' make_validate(c("ROCK1", "ROCK2"))
-#' \dontrun{
-#' make_validate("ROCK1")
-#' }
-make_validate <- function(object_names){
-  make_dataset <- function(object_name){
-    object <- eval(parse(text = object_name))
-    single_dataset <-
-      object %>%
-      dplyr::distinct(name) %>%
-      dplyr::filter(!is.na(name))
-    return(single_dataset)
-  }
-  validate_datasets <-
-    object_names %>%
-    purrr::map_dfr(make_dataset) %>%
-    dplyr::distinct(name) %>%
-    dplyr::pull(name)
-  return(validate_datasets)
-}
-
 #' Function to get filtered data object from environment
 #'
 #' @param object_names Character vector, can be greater than 1, of file names to get
@@ -90,6 +60,9 @@ get_data_object <- function(object_names,
                             pivotwider = FALSE){
   get_single_object <- function(object_name,
                                 data_set){ #can take >=1 data_set
+    if(!exists(object_name)){ #do I need to put the environment here?
+      get_content(object_name)
+    }
     object <- eval(parse(text = object_name))
     single_object <-
       object %>%
