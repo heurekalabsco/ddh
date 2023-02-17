@@ -1,5 +1,8 @@
 # ROCK1 <- feather::read_feather(path = here::here("data", "ROCK1"))
 # ROCK2 <- feather::read_feather(path = here::here("data", "ROCK2"))
+library(memoise)
+
+content_cache <- cachem::cache_mem()
 
 #' Function to load data from AWS into environment
 #'
@@ -19,9 +22,6 @@
 get_content <- function(object_names,
                         dataset = FALSE){
   get_aws_object <- function(object_name){
-    if(exists(object_name)){
-      message(glue::glue("{object_name} exists"))
-    } else {
       s3 <- paws::s3()
       single_object <-
         s3$get_object(
@@ -32,13 +32,14 @@ get_content <- function(object_names,
       file_path <- glue::glue('{temp_dir}/{object_name}')
       writeBin(single_object$Body, con = file_path)
       obj <- arrow::read_feather(file = file_path) #need arrow because of weird feather versioning
-      assign(object_name, obj, envir = .GlobalEnv) #you're going to have to fix this
-      message(glue::glue("{object_name} loaded"))
-    }
+      obj
   }
+  caching_get_aws_object <- memoise::memoise(get_aws_object, cache = content_cache)
+
   #this enables multiple objects to be loaded (like  a multi-gene query)
   object_names %>%
-    purrr::walk(get_aws_object)
+    caching_get_aws_object() %>%
+    dplyr::bind_rows()
 }
 
 #' Function to get filtered data object from environment
@@ -56,17 +57,18 @@ get_content <- function(object_names,
 #' get_data_object(object_name = c("ROCK1"), data_set_name = "gene_female_tissue")
 #' }
 get_data_object <- function(object_names,
-                            dataset_name,
+                            dataset_name = NULL,
                             pivotwider = FALSE){
   get_single_object <- function(object_name,
                                 data_set){ #can take >=1 data_set
-    if(!exists(object_name)){ #do I need to put the environment here?
-      get_content(object_name)
+    object <- get_content(object_name)
+    if (is.null(dataset_name)) {
+      single_object <- object
+    } else {
+      single_object <-
+        object %>%
+        dplyr::filter(name %in% data_set)
     }
-    object <- eval(parse(text = object_name))
-    single_object <-
-      object %>%
-      dplyr::filter(name %in% data_set)
     # {if(!is.null(data_set)) dplyr::filter(name %in% data_set) else .} #consider adding way to get all data back out?
     if(pivotwider == TRUE){
       col_label <- single_object[[3]][[1]] #first entry in 'key'
