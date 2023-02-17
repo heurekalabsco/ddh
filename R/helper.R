@@ -51,16 +51,20 @@ get_content <- function(object_names,
 #'
 #' @export
 #' @examples
-#' get_data_object(object_name = c("ROCK1"), data_set_name = "gene_female_tissue")
-#' get_data_object(object_name = c("ROCK1", "ROCK2"), data_set_name = "gene_female_tissue")
+#' get_data_object(object_names = c("ROCK1"), dataset_name = "gene_female_tissue")
+#' get_data_object(object_names = c("ROCK1", "ROCK2"), dataset_name = "gene_female_tissue")
+#' get_data_object(object_names = c("ROCK1", "ROCK2"), dataset_name = "gene_female_tissue", pivotwider = TRUE)
+#' get_data_object(object_names = c("ROCK1", "ROCK2"), dataset_name = "gene_subcell")
+#' get_data_object(object_names = c("ROCK2"), dataset_name = "gene_subcell", pivotwider = TRUE)
+#' get_data_object(object_names = c("ROCK1", "ROCK2"), dataset_name = "gene_subcell", pivotwider = TRUE)
 #' \dontrun{
-#' get_data_object(object_name = c("ROCK1"), data_set_name = "gene_female_tissue")
+#' get_data_object(object_name = c("ROCK1"), dataset_name = "gene_female_tissue")
 #' }
 get_data_object <- function(object_names,
                             dataset_name = NULL,
                             pivotwider = FALSE){
   get_single_object <- function(object_name,
-                                data_set){ #can take >=1 data_set
+                                data_set){ #cannot take >=1 data_set
     object <- get_content(object_name)
     if (is.null(dataset_name)) {
       single_object <- object
@@ -69,24 +73,26 @@ get_data_object <- function(object_names,
         object %>%
         dplyr::filter(name %in% data_set)
     }
-    # {if(!is.null(data_set)) dplyr::filter(name %in% data_set) else .} #consider adding way to get all data back out?
-    if(pivotwider == TRUE){
-      col_label <- single_object[[3]][[1]] #first entry in 'key'
-      single_object <-
-        single_object %>%
-        dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
-          key == col_label ~ dplyr::row_number(),
-          TRUE ~ NA_integer_)) %>%
-        tidyr::fill(col_id_helper) %>%
-        tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
-        dplyr::select(-col_id_helper)
-    }
     return(single_object)
   }
 
   data_object <-
     object_names %>%
-    purrr::map_dfr(get_single_object, data_set = dataset_name)
+    purrr::map(get_single_object, data_set = dataset_name) %>%
+    list_rbind() #requires purrr1.0
+
+  #pivot wider is last, so it can handle if any objects filter to length zero
+  if(pivotwider == TRUE){ #&& nrow(data_object) > 0
+    col_label <- data_object[[3]][[1]] #first entry in 'key'
+    data_object <-
+      data_object %>%
+      dplyr::mutate(col_id_helper = dplyr::case_when( #providing a col_id "helper" allows pivot_wider to know the groups
+        key == col_label ~ dplyr::row_number(),
+        TRUE ~ NA_integer_)) %>%
+      tidyr::fill(col_id_helper) %>%
+      tidyr::pivot_wider(names_from = "key", values_from = "value") %>%
+      dplyr::select(-col_id_helper)
+  }
   return(data_object)
 }
 

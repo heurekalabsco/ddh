@@ -69,7 +69,7 @@ make_ideogram <- function(input = list(),
   make_ideogram_raw <- function() {
     # get data_gene_location out of object
     data_gene_location <-
-      get_data_object(object_name = input$content,
+      get_data_object(object_names = input$content,
                       dataset_name = "gene_location",
                       pivotwider = TRUE)
 
@@ -196,7 +196,7 @@ make_proteinsize <- function(input = list(),
   make_proteinsize_raw <- function() {
     # get data_universal_proteins out of object
     data_universal_proteins <-
-      get_data_object(object_name = input$content,
+      get_data_object(object_names = input$content,
                       dataset_name = "universal_proteins",
                       pivotwider = TRUE) %>%
       dplyr::rename(gene_name = 1) %>%
@@ -357,7 +357,7 @@ make_sequence <- function(input = list(),
   make_sequence_raw <- function() {
     # get data_universal_proteins out of object
     sequence_string <-
-      get_data_object(object_name = input$content,
+      get_data_object(object_names = input$content,
                       dataset_name = "universal_proteins") %>%
       dplyr::filter(key == "sequence") %>%
       dplyr::pull("value") %>%
@@ -441,7 +441,7 @@ make_protein_domain <- function(input = list(),
                                 dom_var = NULL,
                                 ptm_var = NULL) {
   data_gene_protein_domains <-
-    get_data_object(object_name = input$content,
+    get_data_object(object_names = input$content,
                     dataset_name = "gene_protein_domains",
                     pivotwider = TRUE) %>%
     dplyr::select(c(id, type, description, category, begin, end, url, seq_len, length)) %>%
@@ -597,13 +597,13 @@ make_radial <- function(input = list(),
                         barplot = FALSE,
                         card = FALSE) {
   data_gene_signatures <-
-    get_data_object(object_name = input$content,
+    get_data_object(object_names = input$content,
                     dataset_name = "gene_signatures",
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(A:Y, as.numeric))
 
   data_gene_signature_clusters <-
-    get_data_object(object_name = input$content,
+    get_data_object(object_names = input$content,
                     dataset_name = "gene_signature_clusters",
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("X", "clust", "member")), as.numeric))
@@ -816,7 +816,7 @@ make_umap_plot <- function(input = list(),
     get_content("gene_cluster_position", dataset = TRUE)
 
     data_gene_signature_clusters <-
-      get_data_object(object_name = input$content,
+      get_data_object(object_names = input$content,
                       dataset_name = "gene_signature_clusters",
                       pivotwider = TRUE) %>%
       dplyr::mutate(across(contains(c("X", "clust", "member")), as.numeric))
@@ -893,7 +893,7 @@ make_cluster_enrich <- function(input = list(),
   make_cluster_enrich_plot_raw <- function() {
     #get clust numbers
     query_clust <-
-      get_data_object(object_name = input$content,
+      get_data_object(object_names = input$content,
                       dataset_name = "gene_signature_clusters") %>%
       dplyr::filter(key == "member_prob") %>%
       dplyr::pull(value) %>%
@@ -1021,7 +1021,7 @@ make_structure3d <- function(gene_symbol = NULL,
                              elem = NULL
 ) {
   data_gene_pdb_table <-
-    get_data_object(object_name = input$content,
+    get_data_object(object_names = input$content,
                     dataset_name = "gene_pdb_table")
   make_structure3d_raw <- function() {
     #because this fun doesn't take multi-gene queries
@@ -1118,10 +1118,7 @@ make_pubmed <- function(input = list(),
                         card = FALSE) {
   #get data
   data_universal_pubmed <-
-    get_data_object(object_name = input$content,
-                    dataset_name = "universal_pubmed",
-                    pivotwider = TRUE) %>%
-    dplyr::mutate(year = as.numeric(year))
+    make_pubmed_table(input = input) #from tables.R
 
   make_pubmed_raw <- function() {
     plot_data <-
@@ -1271,11 +1268,11 @@ make_pubmed <- function(input = list(),
 make_cellanatogram <- function(input = list(),
                                card = FALSE) {
   data_gene_subcell <-
-    get_data_object(object_name = input$content,
+    get_data_object(object_names = input$content,
                     dataset_name = "gene_subcell",
                     pivotwider = TRUE) %>%
-    dplyr::select(organ, type, colour, value) %>%
-    mutate(value = as.numeric(value))
+    dplyr::mutate(value = round(as.numeric(value), 1)) %>%
+    dplyr::select(organ, type, colour, value)
   make_cellanatogram_raw <- function() {
     plot_data <-
       data_gene_subcell %>%
@@ -1332,7 +1329,7 @@ make_cellanatogram <- function(input = list(),
 #' make_cellanatogramfacet(input = list(type = "gene", content = c("BRCA1", "ROCK2")))
 make_cellanatogramfacet <- function(input = list()) {
   data_gene_subcell <-
-    get_data_object(object_name = input$content,
+    get_data_object(object_names = input$content,
                     dataset_name = "gene_subcell",
                     pivotwider = TRUE) %>%
     dplyr::select(organ, type, colour, value) %>%
@@ -1402,12 +1399,12 @@ make_female_anatogram <- function(input = list(),
   make_female_anatogram_raw <- function() {
     if(anatogram == "female"){
       data_tissue <-
-        get_data_object(object_name = input$content,
+        get_data_object(object_names = input$content,
                         dataset_name = "gene_female_tissue",
                         pivotwider = TRUE)
     } else if (anatogram == "male") {
       data_tissue <-
-        get_data_object(object_name = input$content,
+        get_data_object(object_names = input$content,
                         dataset_name = "gene_male_tissue",
                         pivotwider = TRUE)
     } else {
@@ -1509,7 +1506,7 @@ make_male_anatogram <- function(input = list(),
 make_tissue <- function(input = list(),
                         card = FALSE) {
   data_gene_tissue <-
-    get_data_object(object_name = input$content,
+    get_data_object(object_names = input$content,
                     dataset_name = "gene_tissue",
                     pivotwider = TRUE) %>%
     dplyr::select(id, organ, value) %>%
@@ -1615,7 +1612,7 @@ make_cellexpression <- function(input = list(),
   get_content("universal_stats_summary", dataset = TRUE)
 
   data_universal_expression_long <-
-    get_data_object(object_name = input$content,
+    get_data_object(object_names = input$content,
                     dataset_name = "universal_expression_long",
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("expression")), as.numeric))
@@ -1742,7 +1739,7 @@ make_cellexpression <- function(input = list(),
 make_cellgeneprotein <- function(input = list(),
                                  card = FALSE) {
   data_universal_expression_long <-
-    get_data_object(object_name = input$content,
+    get_data_object(object_names = input$content,
                     dataset_name = "universal_expression_long",
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("expression")), as.numeric))
@@ -1862,7 +1859,7 @@ make_celldeps <- function(input = list(),
 
   #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
   data_universal_achilles_long <-
-    get_data_object(object_name = input$content,
+    get_data_object(object_names = input$content,
                     dataset_name = "universal_achilles_long",
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("score")), as.numeric))
@@ -2034,7 +2031,7 @@ make_cellbar <- function(input = list(),
 
   #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
   data_universal_achilles_long <-
-    get_data_object(object_name = input$content,
+    get_data_object(object_names = input$content,
                     dataset_name = "universal_achilles_long",
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("score")), as.numeric))
@@ -2198,7 +2195,7 @@ make_cellbins <- function(input = list(),
 
   #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
   data_universal_achilles_long <-
-    get_data_object(object_name = input$content,
+    get_data_object(object_names = input$content,
                     dataset_name = "universal_achilles_long",
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("score")), as.numeric))
@@ -2359,7 +2356,7 @@ make_lineage <- function(input = list(),
 
   #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
   data_universal_achilles_long <-
-    get_data_object(object_name = input$content,
+    get_data_object(object_names = input$content,
                     dataset_name = "universal_achilles_long",
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("score")), as.numeric))
@@ -2548,7 +2545,7 @@ make_sublineage <- function(input = list(),
 
   #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
   data_universal_achilles_long <-
-    get_data_object(object_name = input$content,
+    get_data_object(object_names = input$content,
                     dataset_name = "universal_achilles_long",
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("score")), as.numeric))
@@ -2735,7 +2732,7 @@ make_correlation <- function(input = list(),
 
   #wrap data_gene_achilles_cor_nest in an if/else for type, and fetch data_prism_cor_nest instead?
   data_gene_achilles_cor_nest <-
-    get_data_object(object_name = input$content,
+    get_data_object(object_names = input$content,
                     dataset_name = "gene_achilles_cor_nest",
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("r2")), as.numeric))
@@ -2879,13 +2876,13 @@ make_expdep <- function(plot_se = TRUE,
 
   #wrap data_gene_achilles_cor_nest in an if/else for type, and fetch data_prism_cor_nest instead?
   data_universal_expression_long <-
-    get_data_object(object_name = input$content,
+    get_data_object(object_names = input$content,
                     dataset_name = "universal_expression_long",
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("expression")), as.numeric))
 
   data_universal_achilles_long <-
-    get_data_object(object_name = input$content,
+    get_data_object(object_names = input$content,
                     dataset_name = "universal_achilles_long",
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("score")), as.numeric))

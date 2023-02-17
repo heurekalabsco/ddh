@@ -129,7 +129,7 @@ make_compound_table <- function(data_compound_prism_cor_nest = compound_prism_co
 #' This is a table function that takes a gene name and returns a pubmed Table
 #'
 #' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a pubmed Table. If an error is thrown, then will return an empty table.
+#' @return If no error, then returns a pubmed table..
 #'
 #' @importFrom magrittr %>%
 #'
@@ -139,23 +139,22 @@ make_compound_table <- function(data_compound_prism_cor_nest = compound_prism_co
 #' \dontrun{
 #' make_pubmed_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_pubmed_table <- function(data_universal_pubmed = universal_pubmed,
-                              input = list()) {
+make_pubmed_table <- function(input = list()) {
   make_pubmed_table_raw <- function() {
     pubmed_table <-
-      data_universal_pubmed %>%
-      dplyr::filter_all(dplyr::any_vars(name %in% input$content)) %>%
-      tidyr::unnest(data) %>%
-      dplyr::ungroup() %>%
-      dplyr::arrange(as.numeric(pmid))
+      get_data_object(object_name = input$content,
+                      dataset_name = "universal_pubmed",
+                      pivotwider = TRUE) %>%
+      dplyr::mutate(year = as.numeric(year),
+                    pmid = as.numeric(pmid)) %>%
+      dplyr::arrange(as.numeric(pmid)) %>%
+      dplyr::select(id, pmid, year, pmcid)
     return(pubmed_table)
   }
   #error handling
   tryCatch(make_pubmed_table_raw(),
            error = function(e){
-             return(data_universal_pubmed %>%
-                      tidyr::unnest(data) %>%
-                      dplyr::slice(0))
+             message(e)
            })
 }
 
@@ -173,30 +172,31 @@ make_pubmed_table <- function(data_universal_pubmed = universal_pubmed,
 #'
 #' @export
 #' @examples
-#' make_cellanatogram_table(input = list(type = 'gene', content = 'ROCK1'))
+#' make_cellanatogram_table(input = list(type = 'gene', content = 'ROCK2'))
+#' make_cellanatogram_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
+
 #' \dontrun{
-#' make_cellanatogram_table(input = list(type = 'gene', content = 'ROCK1'))
+#' make_cellanatogram_table(input = list(type = 'gene', content = 'ROCK2'))
 #' }
-make_cellanatogram_table <- function(data_gene_subcell = gene_subcell,
-                                     input = list()) {
+make_cellanatogram_table <- function(input = list()) {
   make_cellanatogram_table_raw <- function() {
-    data_gene_subcell %>%
-      dplyr::filter(gene_name %in% input$content) %>%
-      dplyr::rename(Gene = gene_name,
+
+    cellanatogram_table <-
+      get_data_object(object_names = input$content,
+                      dataset_name = "gene_subcell",
+                      pivotwider = TRUE) %>%
+      dplyr::mutate(value = round(as.numeric(value), 1)) %>%
+      dplyr::rename(Gene = id,
                     Reliability = reliability,
                     Location = main_location,
                     Expression = value) %>%
       dplyr::arrange(Expression)
+    return(cellanatogram_table)
   }
   #error handling
   tryCatch(make_cellanatogram_table_raw(),
            error = function(e){
-             return(data_gene_subcell %>%
-                      dplyr::rename(Gene = gene_name,
-                                    Reliability = reliability,
-                                    Location = main_location,
-                                    Expression = value) %>%
-                      dplyr::slice(0))
+             message(e)
            })
 }
 
@@ -215,64 +215,68 @@ make_cellanatogram_table <- function(data_gene_subcell = gene_subcell,
 #' @export
 #' @examples
 #' make_expression_table(input = list(type = 'gene', content = 'ROCK1'))
+#' make_expression_table(input = list(type = 'gene', content = 'ROCK1'), var = "protein")
+#' make_expression_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
 #' make_expression_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_expression_table <- function(data_universal_expression_long = universal_expression_long,
-                                  data_cell_expression_names = cell_expression_names,
-                                  data_universal_gene_summary = universal_gene_summary,
-                                  input = list(),
+make_expression_table <- function(input = list(),
                                   var = "gene") { #you are so slow
   make_expression_table_raw <- function() {
+    data_universal_expression_long <-
+      get_data_object(object_names = input$content,
+                      dataset_name = "universal_expression_long",
+                      pivotwider = TRUE) %>%
+      dplyr::mutate(across(contains(c("expression")), as.numeric)) %>%
+      dplyr::select(-name)
+
+    get_content("cell_expression_names", dataset = TRUE)
+
     if (var == "gene") {
       table_data <-
         data_universal_expression_long %>%
-        dplyr::select(dplyr::any_of(c("X1", "gene", "gene_expression"))) %>%
+        dplyr::select(-"protein_expression") %>%
         dplyr::rename("expression_var" = "gene_expression")
     } else if (var == "protein") {
       table_data <-
         data_universal_expression_long %>%
-        dplyr::select(dplyr::any_of(c("X1", "gene", "protein_expression"))) %>%
+        dplyr::select(-"gene_expression") %>%
         dplyr::rename("expression_var" = "protein_expression")
     } else {
       stop("delcare your variable")
     }
     if (input$type == "gene") {
-      table_data %>%
-        dplyr::filter_all(dplyr::any_vars(gene %in% input$content)) %>%
+      expression_table <-
+        table_data %>%
         dplyr::arrange(dplyr::desc(.[3])) %>%
-        tidyr::pivot_wider(names_from = gene, values_from = expression_var) %>%
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(-X1) %>%
+        tidyr::pivot_wider(names_from = id, values_from = expression_var) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
         dplyr::select(cell_line, lineage, lineage_subtype, dplyr::everything()) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
         dplyr::rename("Cell Line" = "cell_line", "Lineage" = "lineage", "Subtype" = "lineage_subtype")
-    } else if (input$type == "cell") {
-      table_data %>%
-        dplyr::arrange(dplyr::desc(.[3])) %>%
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(-X1, -lineage, -lineage_subtype) %>%
-        dplyr::filter_all(dplyr::any_vars(cell_line %in% input$content)) %>%
-        tidyr::pivot_wider(names_from = cell_line, values_from = expression_var) %>%
-        dplyr::select(gene, dplyr::everything()) %>%
-        dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
-        dplyr::rename("Gene" = "gene") %>%
-        dplyr::left_join(data_universal_gene_summary %>%
-                           dplyr::select(Gene = approved_symbol,
-                                         `Gene Name` = approved_name),
-                         by = "Gene") %>%
-        dplyr::relocate(`Gene Name`, .after = Gene)
-
-    }
+    } # else if (input$type == "cell") {
+    # table_data %>%
+    #   dplyr::arrange(dplyr::desc(.[3])) %>%
+    #   dplyr::left_join(data_cell_expression_names, by = "X1") %>%
+    #   dplyr::select(-X1, -lineage, -lineage_subtype) %>%
+    #   dplyr::filter_all(dplyr::any_vars(cell_line %in% input$content)) %>%
+    #   tidyr::pivot_wider(names_from = cell_line, values_from = expression_var) %>%
+    #   dplyr::select(gene, dplyr::everything()) %>%
+    #   dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
+    #   dplyr::rename("Gene" = "gene") %>%
+    #   dplyr::left_join(data_universal_gene_summary %>%
+    #                      dplyr::select(Gene = approved_symbol,
+    #                                    `Gene Name` = approved_name),
+    #                    by = "Gene") %>%
+    #   dplyr::relocate(`Gene Name`, .after = Gene)
+    # }
+    return(expression_table)
   }
   #error handling
   tryCatch(make_expression_table_raw(),
            error = function(e){
-             return(dplyr::tibble(`Cell Line` = NA,
-                                  Lineage = NA,
-                                  Subtype = NA,
-                                  Gene = NA) %>%
-                      dplyr::slice(0))
+             message(e)
            })
 }
 
@@ -291,29 +295,31 @@ make_expression_table <- function(data_universal_expression_long = universal_exp
 #' @export
 #' @examples
 #' make_humananatogram_table(input = list(type = 'gene', content = 'ROCK1'))
+#' make_humananatogram_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
 #' make_humananatogram_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_humananatogram_table <- function(data_gene_tissue = gene_tissue,
-                                      input = list()) {
+make_humananatogram_table <- function(input = list()) {
   make_humananatogram_table_raw <- function() {
-    data_gene_tissue %>%
-      dplyr::filter_all(dplyr::any_vars(gene_name %in% input$content)) %>%
+    humananatogram_table <-
+      get_data_object(object_names = input$content,
+                      dataset_name = "gene_tissue",
+                      pivotwider = TRUE) %>%
+      dplyr::mutate(across(contains(c("value")), as.numeric)) %>%
+      dplyr::select(id, organ, value) %>%
       dplyr::filter(!is.na(value)) %>%
       dplyr::mutate(organ = stringr::str_replace_all(organ, "_", " "),
                     organ = stringr::str_to_title(organ)) %>%
       dplyr::arrange(dplyr::desc(value)) %>%
-      dplyr::select(-gene) %>%
-      tidyr::pivot_wider(names_from = gene_name, values_from = value, names_sort = TRUE) %>%
+      tidyr::pivot_wider(names_from = id, values_from = value, names_sort = TRUE) %>%
       dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
       dplyr::rename("Organ" = "organ")
+    return(humananatogram_table)
   }
   #error handling
   tryCatch(make_humananatogram_table_raw(),
            error = function(e){
-             return(dplyr::tibble(Organ = NA, Gene = NA) %>%
-                      dplyr::slice(0)
-             )
+             message(e)
            })
 }
 
@@ -335,47 +341,51 @@ make_humananatogram_table <- function(data_gene_tissue = gene_tissue,
 #' \dontrun{
 #' make_clustering_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_clustering_table <- function(data_gene_signature_clusters = gene_signature_clusters,
-                                  data_gene_signatures = gene_signatures,
-                                  data_gene_signature_cluster_names = gene_signature_cluster_names,
-                                  input = list(),
+make_clustering_table <- function(input = list(),
+                                  #data_gene_signature_clusters = gene_signature_clusters,
+                                  #data_gene_signatures = gene_signatures,
+                                  #data_gene_signature_cluster_names = gene_signature_cluster_names,
                                   cluster = FALSE,
                                   show_signature = FALSE) {
   make_clustering_table_raw <- function() {
 
-    # sequence_data_clean <- data_gene_signature_clusters %>%
-    #   dplyr::filter(clust != 0)
+    data_gene_signature_clusters <-
+      get_data_object(object_names = input$content,
+                    dataset_name = "gene_signature_clusters",
+                    pivotwider = TRUE) %>%
+      dplyr::mutate(across(contains(c("X", "clust", "member_prob")), as.numeric))
 
-    # sequence_data_clean <- data_gene_signature_clusters
+    data_gene_signatures <-
+      get_data_object(object_names = input$content,
+                      dataset_name = "gene_signatures",
+                      pivotwider = TRUE) %>%
+      dplyr::mutate(across(A:Y, as.numeric))
 
+    get_content("gene_signature_clusters", dataset = TRUE) #allows all genes, coordinates, and cluster
+    get_content("gene_signatures", dataset = TRUE) #all gene signatures
+
+    #vec of clusters in query
     query_clust <-
       data_gene_signature_clusters %>%
-      dplyr::filter(gene_name %in% input$content) %>%
       dplyr::pull(clust) %>%
       unique()
 
+    #table of all proteins in cluster containing: uniprot_id, gene_name, protein_name, clust, cluster_name
     cluster_table <-
-      data_gene_signature_clusters %>%
-      dplyr::left_join(data_gene_signatures, by = "uniprot_id") %>%
-      dplyr::select(uniprot_id, gene_name.x, protein_name, clust) %>%
+      gene_signature_clusters %>%
       dplyr::filter(clust %in% query_clust) %>%
-      dplyr::rename(gene_name = 2) %>%
-      dplyr::left_join(data_gene_signature_cluster_names, by = "clust") %>%
-      dplyr::relocate(cluster_name, .after = clust)
+      dplyr::select(gene_name = id, protein_name, description) %>%
+      #if cluster is true, then all proteins; if false, then just the query
+      {if(!cluster) dplyr::filter(., gene_name %in% input$content) else .}
 
-    if(!cluster) {
-      cluster_table <-
-        cluster_table %>%
-        dplyr::filter(gene_name %in% input$content)
-    }
-
+    # if show_sig is true, then calculate the signature of the cluster on the fly
     if(show_signature) {
       cluster_table <-
         cluster_table %>%
-        dplyr::left_join(data_gene_signatures %>%
-                           dplyr::select(uniprot_id, A:U) %>%
+        dplyr::left_join(gene_signatures %>%
+                           dplyr::select(gene_name, A:U) %>%
                            dplyr::mutate_at(dplyr::vars(A:U), ~ round(., 2)),
-                         by = "uniprot_id")
+                         by = "gene_name")
     }
 
     if(nrow(cluster_table) == 0) {
@@ -387,12 +397,7 @@ make_clustering_table <- function(data_gene_signature_clusters = gene_signature_
   #error handling
   tryCatch(make_clustering_table_raw(),
            error = function(e){
-             return(dplyr::tibble(uniprot_id = NA,
-                                  gene_name = NA,
-                                  protein_name = NA,
-                                  clust = NA,
-                                  cluster_name = NA) %>%
-                      dplyr::slice(0))
+             message(e)
            })
 }
 
@@ -608,10 +613,10 @@ make_top_table <- function(data_gene_master_top_table = gene_master_top_table,
       table_data <-
         data_gene_master_top_table %>%
         dplyr::filter_all(dplyr::any_vars(fav_gene %in% input$content))
-    # } else if(input$type == "cell") {
-    #   table_data <-
-    #     data_master_top_table_cell %>%
-    #     dplyr::filter_all(dplyr::any_vars(fav_cell %in% input$content))
+      # } else if(input$type == "cell") {
+      #   table_data <-
+      #     data_master_top_table_cell %>%
+      #     dplyr::filter_all(dplyr::any_vars(fav_cell %in% input$content))
     } else {
       stop("delcare your type")
     }
@@ -673,10 +678,10 @@ make_bottom_table <- function(data_gene_master_bottom_table = gene_master_bottom
       table_data <-
         data_gene_master_bottom_table %>%
         dplyr::filter_all(dplyr::any_vars(fav_gene %in% input$content))
-    # } else if(input$type == "cell") {
-    #   table_data <-
-    #     data_master_bottom_table_cell %>%
-    #     dplyr::filter_all(dplyr::any_vars(fav_cell %in% input$content))
+      # } else if(input$type == "cell") {
+      #   table_data <-
+      #     data_master_bottom_table_cell %>%
+      #     dplyr::filter_all(dplyr::any_vars(fav_cell %in% input$content))
     } else {
       stop("delcare your type")
     }
