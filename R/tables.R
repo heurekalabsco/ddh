@@ -342,9 +342,6 @@ make_humananatogram_table <- function(input = list()) {
 #' make_clustering_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
 make_clustering_table <- function(input = list(),
-                                  #data_gene_signature_clusters = gene_signature_clusters,
-                                  #data_gene_signatures = gene_signatures,
-                                  #data_gene_signature_cluster_names = gene_signature_cluster_names,
                                   cluster = FALSE,
                                   show_signature = FALSE) {
   make_clustering_table_raw <- function() {
@@ -370,13 +367,14 @@ make_clustering_table <- function(input = list(),
       dplyr::pull(clust) %>%
       unique()
 
+    if(show_signature == TRUE){cluster <- TRUE} #make sure you preserve clusters
     #table of all proteins in cluster containing: uniprot_id, gene_name, protein_name, clust, cluster_name
     cluster_table <-
       gene_signature_clusters %>%
       dplyr::filter(clust %in% query_clust) %>%
       dplyr::select(gene_name = id, protein_name, description) %>%
       #if cluster is true, then all proteins; if false, then just the query
-      {if(!cluster) dplyr::filter(., gene_name %in% input$content) else .}
+      {if(cluster == FALSE) dplyr::filter(., gene_name %in% input$content) else .}
 
     # if show_sig is true, then calculate the signature of the cluster on the fly
     if(show_signature) {
@@ -416,26 +414,29 @@ make_clustering_table <- function(input = list(),
 #' @export
 #' @examples
 #' make_clustering_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
+#' make_clustering_enrichment_table(input = list(type = 'gene', content = 'ROCK1'), ontology = "MF")
+#' make_clustering_enrichment_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
 #' make_clustering_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_clustering_enrichment_table <- function(data_gene_signature_clusters = gene_signature_clusters,
-                                             data_gene_signature_cluster_enrichment = gene_signature_cluster_enrichment,
-                                             input = list(),
+make_clustering_enrichment_table <- function(input = list(),
                                              ontology = "BP",
                                              filter_noise = FALSE) {
 
   make_clustering_enrichment_table_raw <- function() {
 
+    get_content("gene_signature_clusters", dataset = TRUE) #allows all genes, coordinates, and cluster
+    get_content("gene_signature_cluster_enrichment", dataset = TRUE)
+
     if(filter_noise) {
-      data_gene_signature_clusters <-
-        data_gene_signature_clusters %>%
+      gene_signature_clusters <-
+        gene_signature_clusters %>%
         dplyr::filter(clust != 0)
     }
 
     query_clust <-
-      data_gene_signature_clusters %>%
-      dplyr::filter(gene_name %in% input$content) %>%
+      gene_signature_clusters %>%
+      dplyr::filter(id %in% input$content) %>%
       dplyr::pull(clust) %>%
       unique()
 
@@ -444,25 +445,21 @@ make_clustering_enrichment_table <- function(data_gene_signature_clusters = gene
     }
 
     enrichment_table <-
-      data_gene_signature_cluster_enrichment %>%
-      dplyr::as_tibble() %>%
-      dplyr::filter(cluster %in% query_clust) %>%
+      gene_signature_cluster_enrichment %>%
+      dplyr::filter(clust %in% query_clust) %>%
       dplyr::filter(ont %in% ontology) %>%
-      dplyr::select(-ont, -cluster)
+      dplyr::select(-all_of(c("ont", "clust")))
 
     if(nrow(enrichment_table) == 0) {
       stop("No enriched terms for this cluster and ontology...")
     }
-    return(dplyr::as_tibble(enrichment_table))
+    return(enrichment_table)
   }
 
   #error handling
   tryCatch(make_clustering_enrichment_table_raw(),
            error = function(e){
-             return(data_gene_signature_cluster_enrichment %>%
-                      dplyr::as_tibble() %>%
-                      dplyr::select(-ont, -cluster) %>%
-                      dplyr::slice(0))
+             message(e)
            })
 }
 
