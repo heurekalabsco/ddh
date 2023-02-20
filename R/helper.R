@@ -6,7 +6,7 @@ content_cache <- cachem::cache_mem()
 
 #' Function to load data from AWS into environment
 #'
-#' @param object_names Character vector, can be greater than 1, of file names to get
+#' @param object_names String containing file name to get
 #' @param dataset Boolean that will indicate if it is a dataset and therefore fetch from _data/
 #'
 #' @importFrom magrittr %>%
@@ -14,13 +14,15 @@ content_cache <- cachem::cache_mem()
 #' @export
 #' @examples
 #' get_content("ROCK1")
-#' get_content(c("ROCK1", "ROCK2"))
-#' get_content(object_names = "gene_band_boundaries", dataset = TRUE)
+#' get_content(object_name = "ROCK1")
+#' get_content(object_name = "gene_band_boundaries", dataset = TRUE)
 #' \dontrun{
 #' get_content("ROCK1")
 #' }
-get_content <- function(object_names,
+get_content <- function(object_name,
                         dataset = FALSE){
+  if(length(object_name) > 1){
+    return(message("Stop: object length cannot be > 1"))}
   get_aws_object <- function(object_name){
       s3 <- paws::s3()
       single_object <-
@@ -32,14 +34,12 @@ get_content <- function(object_names,
       file_path <- glue::glue('{temp_dir}/{object_name}')
       writeBin(single_object$Body, con = file_path)
       obj <- arrow::read_feather(file = file_path) #need arrow because of weird feather versioning
-      obj
+      return(obj)
   }
   caching_get_aws_object <- memoise::memoise(get_aws_object, cache = content_cache)
 
-  #this enables multiple objects to be loaded (like  a multi-gene query)
-  object_names %>%
-    caching_get_aws_object() %>%
-    dplyr::bind_rows()
+  object_name %>%
+    caching_get_aws_object()
 }
 
 #' Function to get filtered data object from environment
