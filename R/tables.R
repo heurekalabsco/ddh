@@ -230,7 +230,7 @@ make_expression_table <- function(input = list(),
       dplyr::mutate(across(contains(c("expression")), as.numeric)) %>%
       dplyr::select(-name)
 
-    get_content("cell_expression_names", dataset = TRUE)
+    cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
 
     if (var == "gene") {
       table_data <-
@@ -358,8 +358,8 @@ make_clustering_table <- function(input = list(),
                       pivotwider = TRUE) %>%
       dplyr::mutate(across(A:Y, as.numeric))
 
-    get_content("gene_signature_clusters", dataset = TRUE) #allows all genes, coordinates, and cluster
-    get_content("gene_signatures", dataset = TRUE) #all gene signatures
+    gene_signature_clusters <- get_content("gene_signature_clusters", dataset = TRUE) #allows all genes, coordinates, and cluster
+    gene_signatures <- get_content("gene_signatures", dataset = TRUE) #all gene signatures
 
     #vec of clusters in query
     query_clust <-
@@ -425,8 +425,8 @@ make_clustering_enrichment_table <- function(input = list(),
 
   make_clustering_enrichment_table_raw <- function() {
 
-    get_content("gene_signature_clusters", dataset = TRUE) #allows all genes, coordinates, and cluster
-    get_content("gene_signature_cluster_enrichment", dataset = TRUE)
+    gene_signature_clusters <- get_content("gene_signature_clusters", dataset = TRUE) #allows all genes, coordinates, and cluster
+    gene_signature_cluster_enrichment <- get_content("gene_signature_cluster_enrichment", dataset = TRUE)
 
     if(filter_noise) {
       gene_signature_clusters <-

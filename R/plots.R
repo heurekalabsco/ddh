@@ -74,10 +74,10 @@ make_ideogram <- function(input = list(),
                       pivotwider = TRUE)
 
     # get data_gene_chromosome out of object
-    get_content("gene_chromosome", dataset = TRUE)
+    gene_chromosome <- get_content("gene_chromosome", dataset = TRUE)
 
     # get data to make some bands
-    get_content("gene_band_boundaries", dataset = TRUE)
+    gene_band_boundaries <- get_content("gene_band_boundaries", dataset = TRUE)
 
     #adjust by n so it bumps genes/bands off chromosome ends
     n <- 2000000 #chr1 is 250M
@@ -229,7 +229,7 @@ make_proteinsize <- function(input = list(),
         dplyr::filter(gene_name %in% var)
 
       #load mass strip data
-      get_content("gene_mass_decile", dataset = TRUE)
+      gene_mass_decile <- get_content("gene_mass_decile", dataset = TRUE)
       colors <- ddh_pal_c(palette = "protein")(length(gene_mass_decile$mass_group))
 
       if(card_var == TRUE){ #this solves for a single case
@@ -609,7 +609,7 @@ make_radial <- function(input = list(),
     dplyr::mutate(across(contains(c("X", "clust", "member")), as.numeric))
 
   # get gene_signatures_mean
-  get_content("gene_signatures_mean", dataset = TRUE)
+  gene_signatures_mean <- get_content("gene_signatures_mean", dataset = TRUE)
 
   plot_mean <-
     gene_signatures_mean %>%
@@ -625,7 +625,7 @@ make_radial <- function(input = list(),
         unique()
 
       # get gene_cluster_signatures out of object
-      get_content("gene_cluster_signatures", dataset = TRUE)
+      gene_cluster_signatures <- get_content("gene_cluster_signatures", dataset = TRUE)
 
       plot_aa <-
         gene_cluster_signatures %>%
@@ -813,7 +813,7 @@ make_umap_plot <- function(input = list(),
                            show_subset = FALSE,
                            labels = FALSE) {
   make_umap_plot_raw <- function() {
-    get_content("gene_cluster_position", dataset = TRUE)
+    gene_cluster_position <- get_content("gene_cluster_position", dataset = TRUE)
 
     data_gene_signature_clusters <-
       get_data_object(object_names = input$content,
@@ -900,13 +900,14 @@ make_cluster_enrich <- function(input = list(),
       as.numeric(.)
 
     # get gene_signature_cluster_enrichment
-    get_content("gene_signature_cluster_enrichment", dataset = TRUE)
-    data_gene_signature_cluster_enrichment <-
+    gene_signature_cluster_enrichment <- get_content("gene_signature_cluster_enrichment", dataset = TRUE)
+
+    gene_signature_cluster_enrichment <-
       gene_signature_cluster_enrichment %>%
       dplyr::filter(cluster %in% query_clust)
 
     plot_complete <-
-      data_gene_signature_cluster_enrichment %>%
+      gene_signature_cluster_enrichment %>%
       dplyr::arrange(pvalue) %>%
       dplyr::filter(ont == ontology) %>%
       dplyr::slice(1:10) %>%
@@ -1609,7 +1610,7 @@ make_cellexpression <- function(input = list(),
                                 var = "gene",
                                 card = FALSE) {
   # get universal_stats_summary from s3
-  get_content("universal_stats_summary", dataset = TRUE)
+  universal_stats_summary <- get_content("universal_stats_summary", dataset = TRUE)
 
   data_universal_expression_long <-
     get_data_object(object_names = input$content,
@@ -1617,7 +1618,7 @@ make_cellexpression <- function(input = list(),
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("expression")), as.numeric))
 
-  get_content("cell_expression_names", dataset = TRUE)
+  cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
 
   make_cellexpression_raw <- function() {
     if (var == "gene") {
@@ -1744,7 +1745,7 @@ make_cellgeneprotein <- function(input = list(),
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("expression")), as.numeric))
 
-  get_content("cell_expression_names", dataset = TRUE)
+  cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
 
   make_cellgeneprotein_raw <- function() {
     if (input$type == "gene") {
@@ -1853,9 +1854,9 @@ make_celldeps <- function(input = list(),
                           lineplot = FALSE,
                           scale = NULL) {#scale is expecting 0 to 1
   # get universal_stats_summary from s3
-  get_content("universal_stats_summary", dataset = TRUE)
+  universal_stats_summary <- get_content("universal_stats_summary", dataset = TRUE)
   # get cell_expression_names from s3
-  get_content("cell_expression_names", dataset = TRUE)
+  cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
 
   #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
   data_universal_achilles_long <-
@@ -2025,9 +2026,9 @@ make_cellbar <- function(input = list(),
                          card = FALSE,
                          scale = NULL) {
   # get universal_stats_summary from s3
-  get_content("universal_stats_summary", dataset = TRUE)
+  universal_stats_summary <- get_content("universal_stats_summary", dataset = TRUE)
   # get cell_expression_names from s3
-  get_content("cell_expression_names", dataset = TRUE)
+  cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
 
   #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
   data_universal_achilles_long <-
@@ -2191,7 +2192,7 @@ make_cellbar <- function(input = list(),
 make_cellbins <- function(input = list(),
                           card = FALSE) {
   # get cell_expression_names from s3
-  get_content("cell_expression_names", dataset = TRUE)
+  cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
 
   #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
   data_universal_achilles_long <-
@@ -2352,7 +2353,7 @@ make_lineage <- function(input = list(),
                          card = FALSE,
                          highlight = FALSE) {
   # get cell_expression_names from s3
-  get_content("cell_expression_names", dataset = TRUE)
+  cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
 
   #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
   data_universal_achilles_long <-
@@ -2541,7 +2542,7 @@ make_sublineage <- function(input = list(),
                             card = FALSE,
                             highlight = FALSE) {
   # get cell_expression_names from s3
-  get_content("cell_expression_names", dataset = TRUE)
+  cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
 
   #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
   data_universal_achilles_long <-
@@ -2728,7 +2729,7 @@ make_correlation <- function(input = list(),
                              card = FALSE,
                              scale = NULL) { #no card option, but need this to prevent error
   # get universal_stats_summary from s3
-  get_content("universal_stats_summary", dataset = TRUE)
+  universal_stats_summary <- get_content("universal_stats_summary", dataset = TRUE)
 
   #wrap data_gene_achilles_cor_nest in an if/else for type, and fetch data_prism_cor_nest instead?
   data_gene_achilles_cor_nest <-
@@ -2872,7 +2873,7 @@ make_expdep <- function(plot_se = TRUE,
                         input = list(),
                         card = FALSE) {
   # get cell_expression_names from s3
-  get_content("cell_expression_names", dataset = TRUE)
+  cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
 
   #wrap data_gene_achilles_cor_nest in an if/else for type, and fetch data_prism_cor_nest instead?
   data_universal_expression_long <-

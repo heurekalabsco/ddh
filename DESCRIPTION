@@ -54,6 +54,7 @@ Imports:
     knitr,
     magick,
     magrittr,
+    memoise,
     patchwork,
     paws,
     purrr,
