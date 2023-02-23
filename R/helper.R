@@ -1,5 +1,4 @@
-# ROCK1 <- feather::read_feather(path = here::here("data", "ROCK1"))
-# ROCK2 <- feather::read_feather(path = here::here("data", "ROCK2"))
+#this creates a cache, which funs get objects from AWS and place here
 content_cache <- cachem::cache_mem()
 
 #' Function to load data from AWS into environment
@@ -12,7 +11,7 @@ content_cache <- cachem::cache_mem()
 #' @export
 #' @examples
 #' get_content("ROCK1")
-#' get_content(object_name = "ROCK1")
+#' get_content(object_name = "ROCK2")
 #' get_content(object_name = "gene_band_boundaries", dataset = TRUE)
 #' \dontrun{
 #' get_content("ROCK1")
@@ -62,22 +61,23 @@ get_data_object <- function(object_names,
                             dataset_name = NULL,
                             pivotwider = FALSE){
   get_single_object <- function(object_name,
-                                data_set){ #cannot take >=1 data_set
+                                dataset_filter){ #cannot take >=1 dataset_name
     object <- get_content(object_name)
     if (is.null(dataset_name)) {
       single_object <- object
     } else {
       single_object <-
         object %>%
-        dplyr::filter(name %in% data_set)
+        dplyr::filter(data_set %in% dataset_filter)
     }
     return(single_object)
   }
 
   data_object <-
     object_names %>%
-    purrr::map(get_single_object, data_set = dataset_name) %>%
-    list_rbind() #requires purrr1.0
+    purrr::map(get_single_object, dataset_filter = dataset_name) %>%
+    purrr::list_rbind() %>% #requires purrr1.0
+    dplyr::distinct(id, data_set, key, value) #remove redundants introducted by rbind
 
   #pivot wider is last, so it can handle if any objects filter to length zero
   if(pivotwider == TRUE){ #&& nrow(data_object) > 0
@@ -846,13 +846,15 @@ clean_colnames <- function(dataset,
 #' @export
 #' @examples
 #' get_stats(data_set = "achilles", var = "sd")
-get_stats <- function(data_universal_stats_summary = universal_stats_summary,
-                      data_set,
+get_stats <- function(data_set,
                       var){
+  universal_stats_summary <- get_content("universal_stats_summary", dataset = TRUE)
+
   stat <-
-    data_universal_stats_summary %>%
+    universal_stats_summary %>%
     dplyr::filter(id == data_set) %>%
     dplyr::pull(var)
+  return(stat)
 }
 
 #CARD HELPERS----
