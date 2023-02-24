@@ -268,6 +268,7 @@ load_ddh_colors <- function() {
 #' make_empty_table()
 make_empty_table <- function() {
   message("No data available")
+  #consider making an "empty" feather to pull the dataframe headers from?
 }
 
 #' Function to create an empty plot

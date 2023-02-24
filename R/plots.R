@@ -144,7 +144,7 @@ make_ideogram <- function(input = list(),
                             ggplot2::aes(x = chromosome_name, xend = chromosome_name, y = min, yend = max),
                             linewidth = 6.5, color = "black", alpha = 0.5) +
       #gene points + labels
-      ggplot2::geom_point(data = gene_loci, ggplot2::aes(x = chromosome_name, y = start),  size = 6, color = ddh_pal_d(palette = "gene")(1), alpha = 1) +
+      ggplot2::geom_point(data = gene_loci, ggplot2::aes(x = chromosome_name, y = start),  size = 6, color = ddh::ddh_pal_d(palette = "gene")(1), alpha = 1) +
       ggrepel::geom_text_repel(data = gene_loci, ggplot2::aes(x = chromosome_name, y = start, label = approved_symbol), nudge_x = .2, min.segment.length = 1, family = "Chivo") +
       ggplot2::scale_fill_manual(values = c("#FFFFFF", "#FFFFFF")) +
       ggplot2::labs(y = NULL) +
@@ -230,7 +230,7 @@ make_proteinsize <- function(input = list(),
 
       #load mass strip data
       gene_mass_decile <- get_content("gene_mass_decile", dataset = TRUE)
-      colors <- ddh_pal_c(palette = "protein")(length(gene_mass_decile$mass_group))
+      colors <- ddh::ddh_pal_c(palette = "protein")(length(gene_mass_decile$mass_group))
 
       if(card_var == TRUE){ #this solves for a single case
         triangle_size <- 10
@@ -282,7 +282,7 @@ make_proteinsize <- function(input = list(),
         ggplot2::coord_cartesian(ylim = c(.95, 1.2), xlim = c(0, max_mass*2)) +
         ggplot2::scale_y_continuous(expand = c(0, 0)) +
         ggplot2::scale_color_manual(values = colors, guide = "none") +
-        theme_ddh() +
+        ddh::theme_ddh() +
         ggplot2::theme_void() +
         NULL
 
@@ -541,7 +541,7 @@ make_protein_domain <- function(input = list(),
       ggplot2::facet_wrap(~ id, ncol = 1,
                           labeller = wrapped_labels(.seq_len = lengths_data$seq_len)
       ) +
-      theme_ddh(base_size = 16) +
+      ddh::theme_ddh(base_size = 16) +
       ggplot2::theme_void() +
       ggplot2::theme(
         legend.title = ggplot2::element_blank(),
@@ -663,87 +663,86 @@ make_radial <- function(input = list(),
       dplyr::mutate(aa = as_factor(aa))
 
     # set colors -1 to assign specific color to "Mean"
-    colors_raw <- ddh_pal_d(palette = "protein")(length(unique(plot_data$id))-1)
+    colors_raw <- ddh::ddh_pal_d(palette = "protein")(length(unique(plot_data$id))-1)
     names(colors_raw) <- unique(plot_data$id)[unique(plot_data$id) != "Mean"]
     mean_color <- "gray48"
-    names(mean_color) <- "Mean"
-    colors_radial <- c(colors_raw, mean_color)
+      names(mean_color) <- "Mean"
+      colors_radial <- c(colors_raw, mean_color)
 
-    # barplot fill
-    mean_fill_bar <- "gray94"
-    names(mean_fill_bar) <- "Mean"
-    colors_bar <- c(colors_raw, mean_fill_bar)
+      # barplot fill
+      mean_fill_bar <- "gray94"
+        names(mean_fill_bar) <- "Mean"
+        colors_bar <- c(colors_raw, mean_fill_bar)
 
-    #relative label
-    if(relative == TRUE){
-      y_label = "Relative AA Frequency"
-    } else {
-      y_label = "AA Frequency (%)"
-    }
-    # RADIAL/BAR PLOT
-    plot_complete <-
-      ggplot2::ggplot(plot_data,
-                      ggplot2::aes(x = forcats::fct_inorder(aa),
-                                   y = plot_var,
-                                   group = id,
-                                   color = id
-                      )) +
-      {if(!barplot)ggplot2::geom_point(alpha = 0.8, show.legend = FALSE)} +
-      {if(!barplot)ggplot2::geom_polygon(fill = NA)} + #makes the radial connect
-      {if(barplot)ggplot2::geom_col(ggplot2::aes(x = reorder(id, plot_var),
-                                                 y = plot_var,
-                                                 group = aa,
-                                                 color = id,
-                                                 fill = id),
-                                    position = "dodge")} +
-      {if(barplot & relative)ggplot2::geom_hline(yintercept = 1, color = "gray48")} +
-      ggplot2::labs(y = y_label,
-                    x = ggplot2::element_blank()) +
-      {if(!barplot)ggplot2::coord_polar()} +
-      ggplot2::scale_color_manual(values = colors_radial) +
-      {if(barplot)ggplot2::scale_fill_manual(values = colors_bar)} +
-      ## theme changes
-      theme_ddh(base_size = 16) +
-      {if(!barplot)ggplot2::theme_minimal()} +
-      {if(!barplot)ggplot2::theme(
-        text = ggplot2::element_text(family = "Nunito Sans"),
-        legend.position = "top",
-        legend.title = ggplot2::element_blank(),
-        legend.text = ggplot2::element_text(size = 15),
-        axis.line.y = ggplot2::element_blank(),
-        axis.ticks.y = ggplot2::element_blank(),
-        axis.text = ggplot2::element_text(family = "Roboto Slab", size = 16),
-        axis.text.y = ggplot2::element_text(size = 16, color = "grey30"),
-        axis.title = ggplot2::element_text(size = 16)
-      )} +
-      {if(barplot)ggplot2::theme(
-        text = ggplot2::element_text(family = "Nunito Sans"),
-        legend.position = "top",
-        legend.title = ggplot2::element_blank(),
-        legend.text = ggplot2::element_text(size = 15),
-        axis.text = ggplot2::element_text(family = "Roboto Slab"),
-        axis.ticks.x = ggplot2::element_blank(),
-        axis.line.x = ggplot2::element_blank()
-      )} +
-      NULL
+        #relative label
+        if(relative == TRUE){
+          y_label = "Relative AA Frequency"
+        } else {
+          y_label = "AA Frequency (%)"
+        }
+        # RADIAL/BAR PLOT
+        plot_complete <-
+          ggplot2::ggplot(plot_data,
+                          ggplot2::aes(x = forcats::fct_inorder(aa),
+                                       y = plot_var,
+                                       group = id,
+                                       color = id
+                          )) +
+          {if(!barplot)ggplot2::geom_point(alpha = 0.8, show.legend = FALSE)} +
+          {if(!barplot)ggplot2::geom_polygon(fill = NA)} + #makes the radial connect
+          {if(barplot)ggplot2::geom_col(ggplot2::aes(x = forcats::fct_reorder(aa, plot_var, .desc = TRUE),
+                                                     y = plot_var,
+                                                     color = id,
+                                                     fill = id),
+                                        position = "dodge")} +
+          {if(barplot & relative)ggplot2::geom_hline(yintercept = 1, color = "gray48")} +
+          ggplot2::labs(y = y_label,
+                        x = ggplot2::element_blank()) +
+          {if(!barplot)ggplot2::coord_polar()} +
+          ggplot2::scale_color_manual(values = colors_radial) +
+          {if(barplot)ggplot2::scale_fill_manual(values = colors_bar)} +
+          ## theme changes
+          ddh::theme_ddh(base_size = 16) +
+          {if(!barplot)ggplot2::theme_minimal()} +
+          {if(!barplot)ggplot2::theme(
+            text = ggplot2::element_text(family = "Nunito Sans"),
+            legend.position = "top",
+            legend.title = ggplot2::element_blank(),
+            legend.text = ggplot2::element_text(size = 15),
+            axis.line.y = ggplot2::element_blank(),
+            axis.ticks.y = ggplot2::element_blank(),
+            axis.text = ggplot2::element_text(family = "Roboto Slab", size = 16),
+            axis.text.y = ggplot2::element_text(size = 16, color = "grey30"),
+            axis.title = ggplot2::element_text(size = 16)
+          )} +
+          {if(barplot)ggplot2::theme(
+            text = ggplot2::element_text(family = "Nunito Sans"),
+            legend.position = "top",
+            legend.title = ggplot2::element_blank(),
+            legend.text = ggplot2::element_text(size = 15),
+            axis.text = ggplot2::element_text(family = "Roboto Slab"),
+            axis.ticks.x = ggplot2::element_blank(),
+            axis.line.x = ggplot2::element_blank()
+          )} +
+          NULL
 
-    if(card == TRUE){
-      plot_complete <-
-        plot_complete +
-        ggplot2::labs(x = "", y = "") + #, title = "Signature Information", caption = "more ...") +
-        ggplot2::theme(
-          text = ggplot2::element_text(family = "Nunito Sans"),
-          legend.position = "none",
-          legend.title = ggplot2::element_blank(),
-          legend.text = ggplot2::element_blank(),
-          axis.text.x = ggplot2::element_text(family = "Roboto Slab"),
-          axis.text.y = ggplot2::element_blank(),
-          axis.ticks.x = ggplot2::element_blank(),
-          axis.line.x = ggplot2::element_blank()
-        )
-    }
+        if(card == TRUE){
+          plot_complete <-
+            plot_complete +
+            ggplot2::labs(x = "", y = "") + #, title = "Signature Information", caption = "more ...") +
+            ggplot2::theme(
+              text = ggplot2::element_text(family = "Nunito Sans"),
+              legend.position = "none",
+              legend.title = ggplot2::element_blank(),
+              legend.text = ggplot2::element_blank(),
+              axis.text.x = ggplot2::element_text(family = "Roboto Slab"),
+              axis.text.y = ggplot2::element_blank(),
+              axis.ticks.x = ggplot2::element_blank(),
+              axis.line.x = ggplot2::element_blank()
+            )
+        }
 
-    return(plot_complete)
+        return(plot_complete)
   }
 
   #error handling
@@ -826,7 +825,7 @@ make_umap_plot <- function(input = list(),
       dplyr::pull(clust) %>%
       unique()
 
-    colors <- ddh_pal_c(palette = "protein")(length(query_clust))
+    colors <- ddh::ddh_pal_c(palette = "protein")(length(query_clust))
 
     # UMAP PLOT
     plot_complete <-
@@ -921,7 +920,7 @@ make_cluster_enrich <- function(input = list(),
       ggplot2::guides(fill = ggplot2::guide_colorbar(barheight = ggplot2::unit(6, "lines"),
                                                      barwidth = ggplot2::unit(.6, "lines"),
                                                      reverse = TRUE)) +
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         title = ggplot2::element_blank(),
         text = ggplot2::element_text(family = "Nunito Sans"),
@@ -1149,8 +1148,8 @@ make_pubmed <- function(input = list(),
       ggplot2::scale_y_continuous(expand = c(.01, .01), limits = c(0, max(plot_max$cumsum))) +
       scale_color_ddh_d(palette = input$type) +
       ggplot2::labs(x = "Year of Publication", y = "Cumulative Sum") +
-      theme_ddh(base_size = 16,
-                margin = 20) +
+      ddh::theme_ddh(base_size = 16,
+                     margin = 20) +
       ggplot2::theme(
         #text = element_text(family = "Nunito Sans"),
         #axis.text.y = element_text(family = "Roboto Slab"),
@@ -1543,7 +1542,7 @@ make_tissue <- function(input = list(),
       ggplot2::coord_cartesian(clip = "off") +
       ggplot2::scale_x_continuous(expand = c(0, 0), sec.axis = ggplot2::dup_axis()) +
       ggplot2::scale_y_discrete(expand = c(.01, .01)) +
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, family = "Roboto Slab"),
                      axis.ticks.y = ggplot2::element_blank(),
                      axis.line.y = ggplot2::element_blank()) +
@@ -1793,7 +1792,7 @@ make_cellgeneprotein <- function(input = list(),
       # R coefs
       {if(card == FALSE)ggpubr::stat_cor(digits = 3)} +
       scale_color_ddh_d(palette = input$type) +
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab")
@@ -1968,7 +1967,7 @@ make_celldeps <- function(input = list(),
         fill = "Query"
       ) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
@@ -2137,7 +2136,7 @@ make_cellbar <- function(input = list(),
         fill = "Query"
       ) +
       ## theme changes
-      theme_ddh() + #base_size = 15 default
+      ddh::theme_ddh() + #base_size = 15 default
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
@@ -2248,7 +2247,7 @@ make_cellbins <- function(input = list(),
       return("stop! delcare your type")
     }
 
-    colors <- ddh_pal_d(palette = input$type)(length(input$content))
+    colors <- ddh::ddh_pal_d(palette = input$type)(length(input$content))
 
     plot_complete <-
       plot_data %>%
@@ -2303,7 +2302,7 @@ make_cellbins <- function(input = list(),
         fill = ggplot2::guide_legend(size = 1, reverse = TRUE)
       ) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         legend.position = "none",
@@ -2490,7 +2489,7 @@ make_lineage <- function(input = list(),
       ) +
       {if(highlight)gghighlight::gghighlight(lineage %in% stats_data$group2, use_direct_label = FALSE)} + # toggle
       ## theme changes
-      theme_ddh(grid = "none") +
+      ddh::theme_ddh(grid = "none") +
       ggplot2::theme(
         legend.position = "top",
         axis.line.y = ggplot2::element_blank(),
@@ -2676,7 +2675,7 @@ make_sublineage <- function(input = list(),
       ) +
       {if(highlight)gghighlight::gghighlight(lineage_subtype %in% stats_data$group2, use_direct_label = FALSE)} + # toggle
       ## theme changes
-      theme_ddh(grid = "none") +
+      ddh::theme_ddh(grid = "none") +
       ggplot2::theme(
         legend.position = "top",
         axis.line.y = ggplot2::element_blank(),
@@ -2823,7 +2822,7 @@ make_correlation <- function(input = list(),
         fill = glue::glue("Query {text_var}")
       ) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
@@ -2972,7 +2971,7 @@ make_expdep <- function(plot_se = TRUE,
         fill = ifelse(input$type == "gene", "Query Gene", "Query Cell Line")
       ) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab")
@@ -3146,7 +3145,7 @@ make_cell_similarity <- function(data_cell_dependency_sim = cell_dependency_sim,
         fill = "Query Cell"
       ) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
@@ -3304,7 +3303,7 @@ make_functional_cell <- function(data_gene_pathways = gene_pathways,
         color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 5))
       ) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
@@ -3448,7 +3447,7 @@ make_metadata_cell <- function(data_cell_dependency_sim = cell_dependency_sim,
         color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 5))
       ) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
