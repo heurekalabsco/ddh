@@ -1,6 +1,6 @@
 #' Make Gene Summary
 #'
-#' The make_gene_summary function take a gene as an input and returns summary text.
+#' The make_gene_summary function takes a gene as an input and returns summary text.
 #'
 #' @param input A list containing a content variable.
 #' @param var Variable that determines which text is returned
@@ -28,7 +28,7 @@ make_summary_gene <- function(input = list(),
 
 #' Make Pathway Summary
 #'
-#' The make_pathway_summary function take a GO id as an input and returns summary information of the pathway.
+#' The make_pathway_summary function takes a GO id as an input and returns summary information of the pathway.
 #'
 #' @param input A list containing a content variable.
 #' @param var Variable that determines which text is returned
@@ -69,6 +69,11 @@ make_summary_pathway <- function(data_gene_pathways = gene_pathways,
 
 #' Make List Summary
 #'
+#' The make_summary_list function takes one or many genes as inputs and returns summary list key summary information. This is a solution for make_summary_gene to make summaries of more than one gene.
+#'
+#' @param input A list containing a content variable.
+#' @param var Variable that determines which text is returned
+#'
 #' @importFrom magrittr %>%
 #'
 #' @export
@@ -84,20 +89,25 @@ make_summary_list <- function(data_universal_gene_summary = universal_gene_summa
   if (is.null(input$content)) {
     return (NULL)
   }
-
   if(input$type == "gene") {
+    data_gene_location <-
+      get_data_object(object_names = input$content,
+                      dataset_name = "gene_location",
+                      pivotwider = TRUE)
+
     custom_list <-
-      data_universal_gene_summary %>%
-      dplyr::filter(approved_symbol %in% input$content) %>%
-      dplyr::left_join(data_gene_location, by = "approved_symbol")
+      get_data_object(object_name = input$content,
+                      dataset_name = "universal_gene_summary",
+                      pivotwider = TRUE) %>%
+      dplyr::left_join(data_gene_location, by = "id")
 
     custom_list[custom_list == "NA"] <- NA
     custom_list[custom_list == ""] <- NA
-    custom_list <- custom_list %>%
+    custom_list <-
+      custom_list %>%
       dplyr::mutate_all(~ ifelse(is.na(.), "No info.", .))
 
     if(length(input$content) == 1) {
-
       valid_summaries <- glue::glue("<div><h3>{custom_list$approved_symbol}: {custom_list$approved_name}</h3></div>
                                     <div><b>Entrez ID: </b><a href='https://www.ncbi.nlm.nih.gov/gene/?term={custom_list$ncbi_gene_id}' target='_blank'>{custom_list$ncbi_gene_id}</a></div>
                                     <div><b>ENSEMBL ID: </b>{custom_list$ensembl_gene_id}</div>
@@ -108,8 +118,7 @@ make_summary_list <- function(data_universal_gene_summary = universal_gene_summa
                                     <div><p>{custom_list$entrez_summary}</p></div>
                                     ") %>%
         htmltools::HTML()
-    }
-    else {
+    } else {
       custom_list <-
         custom_list %>%
         dplyr::mutate(entrez_summary = ifelse(stringr::str_count(entrez_summary) >= summary_len,
@@ -117,13 +126,13 @@ make_summary_list <- function(data_universal_gene_summary = universal_gene_summa
                                               entrez_summary)
         )
 
-      custom_list_split <- split(custom_list, custom_list$approved_symbol)
+      custom_list_split <- split(custom_list, custom_list$id)
 
       tab_fun_gene <- function(custom_list_split){
         summary_tables <- list()
         for (i in names(custom_list_split)){
           tabledata <- custom_list_split[[i]]
-          summary_tables[[i]] <- glue::glue("<div><a href='?show=gene&query={tabledata$approved_symbol}' target='_blank'><h3>{tabledata$approved_symbol}</a>: {tabledata$approved_name}</h3></div>
+          summary_tables[[i]] <- glue::glue("<div><a href='?show=gene&query={tabledata$id}' target='_blank'><h3>{tabledata$id}</a>: {tabledata$id}</h3></div>
                                             <div><b>Entrez ID: </b><a href='https://www.ncbi.nlm.nih.gov/gene/?term={tabledata$ncbi_gene_id}' target='_blank'>{tabledata$ncbi_gene_id}</a></div>
                                             <div><b>ENSEMBL ID: </b>{tabledata$ensembl_gene_id}</div>
                                             <div><b>Description</b></div>
@@ -142,71 +151,75 @@ make_summary_list <- function(data_universal_gene_summary = universal_gene_summa
         htmltools::HTML()
     }
 
-  } else if (input$type == "cell") {
-    custom_list <-
-      data_cell_expression_meta %>%
-      dplyr::filter(cell_line %in% input$content) %>%
-      dplyr::select(cell_line, lineage, lineage_subtype, age, sex) %>%
-      dplyr::left_join(data_cell_osaurus %>%
-                         dplyr::select(name, CC) %>%
-                         dplyr::rename(cell_line = name),
-                       by = c("cell_line")) %>%
-      tidyr::replace_na(list(CC = "NA"))
-
-    custom_list[custom_list == "NA"] <- NA
-    custom_list[custom_list == ""] <- NA
-    custom_list <- custom_list %>%
-      dplyr::mutate_all(~ ifelse(is.na(.), "No info.", .))
-
-    if(length(input$content) == 1) {
-
-      valid_summaries <- glue::glue("<div><h3>{custom_list$cell_line} ({custom_list$lineage})</h3></div>
-                                    <div><b>Lineage: </b>{custom_list$lineage}</div>
-                                    <div><b>Lineage subtype: </b>{custom_list$lineage_subtype}</div>
-                                    <div><b>Age: </b>{custom_list$age}</div>
-                                    <div><b>Sex: </b>{custom_list$sex}</div>
-                                    <div><b>Description</b></div>
-                                    <div><p>{custom_list$CC}</p></div>
-                                    ") %>%
-        htmltools::HTML()
-    }
-    else {
-      custom_list <-
-        custom_list %>%
-        dplyr::mutate(CC = ifelse(stringr::str_count(CC) >= summary_len,
-                                  paste0(gsub(paste0("^((\\w+\\W+){", summary_len, "}\\w+).*$"), "\\1", CC), " ..."),
-                                  CC)
-        )
-
-      custom_list_split <- split(custom_list, custom_list$cell_line)
-
-      tab_fun_cell <- function(custom_list_split){
-        summary_tables <- list()
-        for (i in names(custom_list_split)){
-          tabledata <- custom_list_split[[i]]
-          summary_tables[[i]] <- glue::glue("<div><a href='?show=cell&query={tabledata$cell_line}' target='_blank'><h3>{tabledata$cell_line} ({tabledata$lineage})</a></h3></div>
-                                            <div><b>Lineage: </b>{tabledata$lineage}</div>
-                                            <div><b>Lineage subtype: </b>{tabledata$lineage_subtype}</div>
-                                            <div><b>Description</b></div>
-                                            <div><p>{tabledata$CC}</p></div>
-                                            ")
-        }
-        return(dplyr::bind_rows(summary_tables) %>%
-                 tidyr::unite("text", dplyr::everything(), sep = " ")
-        )
-      }
-
-      valid_summaries <-
-        custom_list_split %>%
-        tab_fun_cell() %>%
-        dplyr::pull(text) %>%
-        htmltools::HTML()
-    }
+  # } else if (input$type == "cell") {
+    # custom_list <-
+    #   data_cell_expression_meta %>%
+    #   dplyr::filter(cell_line %in% input$content) %>%
+    #   dplyr::select(cell_line, lineage, lineage_subtype, age, sex) %>%
+    #   dplyr::left_join(data_cell_osaurus %>%
+    #                      dplyr::select(name, CC) %>%
+    #                      dplyr::rename(cell_line = name),
+    #                    by = c("cell_line")) %>%
+    #   tidyr::replace_na(list(CC = "NA"))
+    #
+    # custom_list[custom_list == "NA"] <- NA
+    # custom_list[custom_list == ""] <- NA
+    # custom_list <- custom_list %>%
+    #   dplyr::mutate_all(~ ifelse(is.na(.), "No info.", .))
+    #
+    # if(length(input$content) == 1) {
+    #
+    #   valid_summaries <- glue::glue("<div><h3>{custom_list$cell_line} ({custom_list$lineage})</h3></div>
+    #                                 <div><b>Lineage: </b>{custom_list$lineage}</div>
+    #                                 <div><b>Lineage subtype: </b>{custom_list$lineage_subtype}</div>
+    #                                 <div><b>Age: </b>{custom_list$age}</div>
+    #                                 <div><b>Sex: </b>{custom_list$sex}</div>
+    #                                 <div><b>Description</b></div>
+    #                                 <div><p>{custom_list$CC}</p></div>
+    #                                 ") %>%
+    #     htmltools::HTML()
+    # } else {
+    #   custom_list <-
+    #     custom_list %>%
+    #     dplyr::mutate(CC = ifelse(stringr::str_count(CC) >= summary_len,
+    #                               paste0(gsub(paste0("^((\\w+\\W+){", summary_len, "}\\w+).*$"), "\\1", CC), " ..."),
+    #                               CC)
+    #     )
+    #
+    #   custom_list_split <- split(custom_list, custom_list$cell_line)
+    #
+    #   tab_fun_cell <- function(custom_list_split){
+    #     summary_tables <- list()
+    #     for (i in names(custom_list_split)){
+    #       tabledata <- custom_list_split[[i]]
+    #       summary_tables[[i]] <- glue::glue("<div><a href='?show=cell&query={tabledata$cell_line}' target='_blank'><h3>{tabledata$cell_line} ({tabledata$lineage})</a></h3></div>
+    #                                         <div><b>Lineage: </b>{tabledata$lineage}</div>
+    #                                         <div><b>Lineage subtype: </b>{tabledata$lineage_subtype}</div>
+    #                                         <div><b>Description</b></div>
+    #                                         <div><p>{tabledata$CC}</p></div>
+    #                                         ")
+    #     }
+    #     return(dplyr::bind_rows(summary_tables) %>%
+    #              tidyr::unite("text", dplyr::everything(), sep = " ")
+    #     )
+    #   }
+    #
+    #   valid_summaries <-
+    #     custom_list_split %>%
+    #     tab_fun_cell() %>%
+    #     dplyr::pull(text) %>%
+    #     htmltools::HTML()
+    # }
   }
   return(valid_summaries)
 }
 
 #' Make Protein Summary
+#'
+#' The make_summary_protein function takes a gene as an input and returns summary text about its protein.
+#'
+#' @param input A list containing a content variable.
+#' @param var Variable that determines which text is returned
 #'
 #' @importFrom magrittr %>%
 #'
@@ -215,20 +228,28 @@ make_summary_list <- function(data_universal_gene_summary = universal_gene_summa
 #' make_summary_protein(input = list(content = "ROCK1"), var = "gene_name")
 #' make_summary_protein(input = list(content = "ROCK2"), var = "protein_name")
 #' make_summary_protein(input = list(content = "ROCK1"), var = "sequence")
-make_summary_protein <- function(data_universal_proteins = universal_proteins,
-                                 input = list(),
+make_summary_protein <- function(input = list(),
                                  var = "gene_name") { #default so no error if empty, but this pulls the var out of the df
-  if (is.null(input$query)) {
+  if (is.null(input$content)) {
     return (NULL)
   }
   protein_summary_var <-
-    data_universal_proteins %>%
-    dplyr::filter(gene_name %in% input$query) %>%
+    get_data_object(object_name = input$content,
+                    dataset_name = "universal_proteins",
+                    pivotwider = TRUE) %>%
+    dplyr::mutate(across(contains(c("mass")), as.numeric)) %>%
+    dplyr::rename("gene_name" = "id") %>%
     dplyr::pull(var) #any column name
+
   return(protein_summary_var)
 }
 
 #' Make Cell Summary
+#'
+#' The make_summary_cell function takes a cell as an input and returns summary text about it.
+#'
+#' @param input A list containing a content variable.
+#' @param var Variable that determines which text is returned
 #'
 #' @importFrom magrittr %>%
 #'
@@ -236,17 +257,17 @@ make_summary_protein <- function(data_universal_proteins = universal_proteins,
 #' @examples
 #' make_summary_cell(input = list(content = "HEPG2"), var = "cell_line")
 #' make_summary_cell(input = list(content = "HEPG2"), var = "lineage_subtype")
-make_summary_cell <- function(data_cell_expression_names = cell_expression_names,
-                              input = list(),
-                              var = "cell_line") { #default so no error if empty, but this pulls the var out of the df
-  if (is.null(input$content)) {
-    return (NULL)
-  }
-  cell_summary_var <-
-    data_cell_expression_names %>%
-    dplyr::filter(cell_line %in% input$content) %>%
-    dplyr::pull(var) #any column name
-  return(cell_summary_var)
+make_summary_cell <- function(input = list(),
+                              #data_cell_expression_names = cell_expression_names,
+                              var = "cell_line") {
+  # if (is.null(input$content)) {
+  #   return (NULL)
+  # }
+  # cell_summary_var <-
+  #   data_cell_expression_names %>%
+  #   dplyr::filter(cell_line %in% input$content) %>%
+  #   dplyr::pull(var) #any column name
+  # return(cell_summary_var)
 }
 
 #' Make Lineage Summary
@@ -256,17 +277,17 @@ make_summary_cell <- function(data_cell_expression_names = cell_expression_names
 #' @export
 #' @examples
 #' make_summary_lineage(input = list(content = "Cervix"))
-make_summary_lineage <- function(data_cell_expression_names = cell_expression_names,
-                                 input = list(),
+make_summary_lineage <- function(input = list(),
+                                 #data_cell_expression_names = cell_expression_names,
                                  var = "cell_line") { #default so no error if empty, but this pulls the var out of the df
-  if (is.null(input$query)) {
-    return (NULL)
-  }
-  cell_lineage_var <-
-    data_cell_expression_names %>%
-    dplyr::filter(lineage == input$query) %>%
-    dplyr::pull(var) #any column name
-  return(cell_lineage_var)
+  # if (is.null(input$query)) {
+  #   return (NULL)
+  # }
+  # cell_lineage_var <-
+  #   data_cell_expression_names %>%
+  #   dplyr::filter(lineage == input$query) %>%
+  #   dplyr::pull(var) #any column name
+  # return(cell_lineage_var)
 }
 
 #' Make cell_osaurus Summary
@@ -279,16 +300,16 @@ make_summary_lineage <- function(data_cell_expression_names = cell_expression_na
 #' make_summary_cellosaurus(input = list(content = "HEPG2"), var = "AG") #age
 #' make_summary_cellosaurus(input = list(content = "HEPG2"), var = "CC") %>% lit_linkr(data_universal_gene_summary = universal_gene_summary)
 #' make_summary_cellosaurus(input = list(content = "HEPG2"), var = "ATCC_url") #url
-make_summary_cellosaurus <- function(data_cell_osaurus = cell_osaurus,
-                                     input = list(),
+make_summary_cellosaurus <- function(input = list(),
+                                     # data_cell_osaurus = cell_osaurus,
                                      var = "ID") {
-  cell_var <-
-    data_cell_osaurus %>%
-    dplyr::filter(name %in% input$content) %>%
-    dplyr::select(var) %>%
-    dplyr::pull()
-
-  return(cell_var)
+  # cell_var <-
+  #   data_cell_osaurus %>%
+  #   dplyr::filter(name %in% input$content) %>%
+  #   dplyr::select(var) %>%
+  #   dplyr::pull()
+  #
+  # return(cell_var)
 }
 
 #' Get Essential
@@ -306,55 +327,38 @@ make_summary_cellosaurus <- function(data_cell_osaurus = cell_osaurus,
 #' get_essential(input = list(type = "cell", content = "HEPG2"))
 #' get_essential(input = list(type = "cell", content = c("HEPG2", "HUH7")))
 #' get_essential(input = list(type = "compound", content = "aspirin"))
-get_essential <- function(data_universal_achilles_long = universal_achilles_long,
-                          data_universal_prism_long = universal_prism_long,
-                          data_cell_expression_names = cell_expression_names,
-                          input = list()) {
+get_essential <- function(input = list()#,
+                          #data_universal_prism_long = universal_prism_long,
+                          #data_cell_expression_names = cell_expression_names
+                          ) {
   if(input$type == "gene") {
+    #new pre-computed
     essential <-
-      data_universal_achilles_long %>%
-      dplyr::filter(gene %in% input$content) %>%
-      dplyr::group_by(gene) %>%
-      dplyr::summarize(n = sum(dep_score < -1, na.rm = TRUE)) %>%
-      dplyr::mutate(cell_line = dplyr::case_when(
-        n == 1 ~ "cell line",
-        TRUE ~ "cell lines"
-      )) %>%
-      dplyr::arrange(dplyr::desc(n)) %>%
-      glue::glue_data("{gene} is essential in {n} {cell_line}") %>%
-      stringr::str_c(collapse = ", ")
-  } else if(input$type == "compound") {
-    essential <-
-      data_universal_prism_long %>%
-      dplyr::filter(name %in% input$content) %>%
-      dplyr::group_by(name) %>%
-      dplyr::summarize(n = sum(log2fc < -1, na.rm = TRUE)) %>%
-      dplyr::mutate(cell_line = dplyr::case_when(
-        n == 1 ~ "cell line",
-        TRUE ~ "cell lines"
-      )) %>%
-      dplyr::arrange(dplyr::desc(n)) %>%
-      glue::glue_data("{name} is toxic in {n} {cell_line}") %>%
-      stringr::str_c(collapse = ", ")
-  } else if(input$type == "cell") {
-    essential <-
-      data_universal_achilles_long %>%
-      dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-      dplyr::select(cell_line, gene, dep_score) %>%
-      dplyr::filter(cell_line %in% input$content) %>%
-      dplyr::group_by(cell_line) %>%
-      dplyr::summarize(n = sum(dep_score < -1, na.rm = TRUE)) %>%
-      dplyr::mutate(gene = dplyr::case_when(
-        n == 1 ~ "gene",
-        TRUE ~ "genes"
-      )) %>%
-      dplyr::arrange(dplyr::desc(n)) %>%
-      glue::glue_data("{cell_line} has {n} essential {gene}") %>%
-      stringr::str_c(collapse = ", ")
-  } else {
-    stop("uh oh")
+      get_data_object(object_name = input$content,
+                      dataset_name = "gene_essential",
+                      pivotwider = TRUE)
+    if(length(input$content) >1){
+      #instead of reconstructing it, you could simply grab them, and str_c(). what would be the best (most concise) format?
+      #what about counting unique? (data cannot do that as presented)...
+      sentence <-
+        essential %>%
+        glue::glue_data("{id} is essential in {n} {cell_line}") %>%
+        stringr::str_c(collapse = ", ")
+    } else {
+      #length == 1
+      sentence <-
+        essential %>%
+        dplyr::pull(sentence)
+    }
+  # } else if(input$type == "compound") {
+    #ibid
+    #when you start this up again, the data are ready to be generated in ddh-data, and then added to a query object (not yet generated), and then queried here using same logic
+  # } else if(input$type == "cell") {
+    #ibid
+  # } else {
+  #   stop("uh oh")
   }
-  return(essential)
+  return(sentence)
 }
 
 #' Make Compound Summary
@@ -364,17 +368,17 @@ get_essential <- function(data_universal_achilles_long = universal_achilles_long
 #' @export
 #' @examples
 #' make_summary_compound(input = list(content = "aspirin"), var = "name")
-make_summary_compound <- function(data_universal_prism_meta = universal_prism_meta,
-                                  input = list(),
+make_summary_compound <- function(input = list(),
+                                  # data_universal_prism_meta = universal_prism_meta,
                                   var = "name") { #default so no error if empty, but this pulls the var out of the df
-  if (is.null(input$query)) {
-    return (NULL)
-  }
-  compound_summary_var <-
-    data_universal_prism_meta %>%
-    dplyr::filter(name == input$content) %>%
-    dplyr::pull(var)#any column name
-  return(compound_summary_var)
+  # if (is.null(input$query)) {
+  #   return (NULL)
+  # }
+  # compound_summary_var <-
+  #   data_universal_prism_meta %>%
+  #   dplyr::filter(name == input$content) %>%
+  #   dplyr::pull(var)#any column name
+  # return(compound_summary_var)
 }
 
 #' Make Metabolite Summary
@@ -384,17 +388,17 @@ make_summary_compound <- function(data_universal_prism_meta = universal_prism_me
 #' @export
 #' @examples
 #' make_summary_metabolite(input = list(content = "citrate"), var = "name")
-make_summary_metabolite <- function(data_compound_hmdb_names = compound_hmdb_names,
-                                    input = list(),
+make_summary_metabolite <- function(input = list(),
+                                    # data_compound_hmdb_names = compound_hmdb_names,
                                     var = "name") { #default so no error if empty, but this pulls the var out of the df
-  if (is.null(input$query)) {
-    return (NULL)
-  }
-  compound_summary_var <-
-    data_compound_hmdb_names %>%
-    dplyr::filter(name == input$content) %>% #are names good enough at matching?
-    dplyr::pull(var) #any column name
-  return(compound_summary_var)
+  # if (is.null(input$query)) {
+  #   return (NULL)
+  # }
+  # compound_summary_var <-
+  #   data_compound_hmdb_names %>%
+  #   dplyr::filter(name == input$content) %>% #are names good enough at matching?
+  #   dplyr::pull(var) #any column name
+  # return(compound_summary_var)
 }
 
 #' Make MOA Summary
@@ -405,19 +409,19 @@ make_summary_metabolite <- function(data_compound_hmdb_names = compound_hmdb_nam
 #' @examples
 #' make_summary_moa(input = list(content = "cyclooxygenase inhibitor", content = "cyclooxygenase inhibitor"), var = "name")
 #' make_summary_moa(input = list(content = "cyclooxygenase inhibitor", content = "cyclooxygenase inhibitor"), var = "moa")
-make_summary_moa <- function(data_universal_prism_meta = universal_prism_meta,
-                             input = list(),
+make_summary_moa <- function(input = list(),
+                             # data_universal_prism_meta = universal_prism_meta,
                              var = "name") {
-  if (is.null(input$query)) {
-    return (NULL)
-  }
-  moa_summary_var <-
-    data_universal_prism_meta %>%
-    dplyr::filter(moa == input$content) %>%
-    dplyr::pull(var) %>%
-    stringr::str_c(collapse = ", ")
-
-  return(moa_summary_var)
+  # if (is.null(input$query)) {
+  #   return (NULL)
+  # }
+  # moa_summary_var <-
+  #   data_universal_prism_meta %>%
+  #   dplyr::filter(moa == input$content) %>%
+  #   dplyr::pull(var) %>%
+  #   stringr::str_c(collapse = ", ")
+  #
+  # return(moa_summary_var)
 }
 
 #' Make Compound List Summary
@@ -427,17 +431,18 @@ make_summary_moa <- function(data_universal_prism_meta = universal_prism_meta,
 #' @export
 #' @examples
 #' make_summary_compound_list(input = list(content = c("aspirin", "carprofen")))
-make_summary_compound_list <- function(data_universal_prism_meta = universal_prism_meta,
-                                       input = list()) {
-  if (is.null(input$content)) {
-    return (NULL)
-  }
-  # Filter out invalid symbols for when a user edits "custom_gene_list" content parameter
-  valid_compound_name <-
-    data_universal_prism_meta %>%
-    dplyr::filter(name %in% input$content) %>%
-    dplyr::pull(name) %>%
-    stringr::str_c(collapse = ", ")
-  return(valid_compound_name)
+make_summary_compound_list <- function(input = list(),
+                                       # data_universal_prism_meta = universal_prism_meta
+                                       ) {
+  # if (is.null(input$content)) {
+  #   return (NULL)
+  # }
+  # # Filter out invalid symbols for when a user edits "custom_gene_list" content parameter
+  # valid_compound_name <-
+  #   data_universal_prism_meta %>%
+  #   dplyr::filter(name %in% input$content) %>%
+  #   dplyr::pull(name) %>%
+  #   stringr::str_c(collapse = ", ")
+  # return(valid_compound_name)
 }
 
