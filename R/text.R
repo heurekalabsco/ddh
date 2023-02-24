@@ -1,5 +1,9 @@
-
 #' Make Gene Summary
+#'
+#' The make_gene_summary function take a gene as an input and returns summary text.
+#'
+#' @param input A list containing a content variable.
+#' @param var Variable that determines which text is returned
 #'
 #' @importFrom magrittr %>%
 #'
@@ -24,11 +28,17 @@ make_summary_gene <- function(input = list(),
 
 #' Make Pathway Summary
 #'
+#' The make_pathway_summary function take a GO id as an input and returns summary information of the pathway.
+#'
+#' @param input A list containing a content variable.
+#' @param var Variable that determines which text is returned
+#'
 #' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
 #' make_summary_pathway(input = list(query = "1902965"), var = "data")
+#' make_summary_pathway(input = list(query = "1902965"), var = "pathway")
 make_summary_pathway <- function(data_gene_pathways = gene_pathways,
                                  input = list(),
                                  var = "pathway") {
@@ -36,24 +46,24 @@ make_summary_pathway <- function(data_gene_pathways = gene_pathways,
     return (NULL)
   }
 
-  # gene_pathways isn't in feather file. Is it global?
+  # REWRITE WHEN PATHWAY IS A QUERY TYPE
   # get_data_object(object_name = input$content,
   #                 dataset_name = "gene_pathways",
   #                 pivotwider = TRUE)
 
-  if (var == "data") {
-    pathway_summary_var <-
-      data_gene_pathways %>%
-      dplyr::filter(go == input$query) %>%
-      tidyr::unnest(data) %>%
-      dplyr::pull(gene) %>%
-      stringr::str_c(collapse = ", ")
-  } else {
-    pathway_summary_var <-
-      data_gene_pathways %>%
-      dplyr::filter(go == input$query) %>%
-      dplyr::pull(var)
-  }
+  # if (var == "data") {
+  #   pathway_summary_var <-
+  #     data_gene_pathways %>%
+  #     dplyr::filter(go == input$query) %>%
+  #     tidyr::unnest(data) %>%
+  #     dplyr::pull(gene) %>%
+  #     stringr::str_c(collapse = ", ")
+  # } else {
+  #   pathway_summary_var <-
+  #     data_gene_pathways %>%
+  #     dplyr::filter(go == input$query) %>%
+  #     dplyr::pull(var)
+  # }
   return(pathway_summary_var)
 }
 
