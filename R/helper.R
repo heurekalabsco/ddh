@@ -1,3 +1,4 @@
+#DATA LOADING----
 #this creates a cache, which funs get objects from AWS and place here
 content_cache <- cachem::cache_mem()
 
@@ -94,171 +95,115 @@ get_data_object <- function(object_names,
   return(data_object)
 }
 
-#' Function to Load All DDH Data Including .Rds Files and Colors
+#' Get Stats
 #'
-#' @param app_data_dir Data directory path.
-#' @param file_name Optional file name to get a single file; default loads all files
-#' @param privateMode Boolean indicating if private data is required.
-#'
-#' @export
-load_ddh_data <- function(app_data_dir,
-                          object_name = NULL,
-                          db = FALSE) {
-
-  # Load colors
-  load_ddh_colors()
-  message("loaded colors")
-
-  # Load feather files
-  load_ddh_feather(app_data_dir,
-                   object_name)
-  message("loaded feather files")
-
-  if(db == TRUE) {
-    #load DB cons
-    load_ddh_db()
-    message("loaded db connections")
-  }
-  message("finished loading")
-}
-
-#' Function to load all DDH files
-#'
-#' @param app_data_dir Data directory path.
-#' @param object_name Optional object name to load a single file; default loads all files
+#' @param data_set A character indicating data set from which the stats were generated, typically one of achilles, expression_gene, expression_protein, or prism name.
+#' @param var A character indicating the variable to extract from the stats summary dataframe, typically one of threshold, sd, mean, upper, pr lower.
 #'
 #' @importFrom magrittr %>%
 #'
 #' @export
-load_ddh_feather <- function(app_data_dir,
-                             object_name = NULL) {
-  if(is.null(object_name)){ #all objects
-    all_objects <- fs::dir_ls(path = app_data_dir)
-  } else if(object_name %in% c("gene", "cell", "compound")) { #object "group"
-    object_regex <- stringr::str_c(paste0(object_name, "_"), "universal_", sep = "|")
-    all_objects <-
-      fs::dir_ls(path = app_data_dir) %>%
-      stringr::str_subset(pattern = object_regex)
-  } else { #single object
-    all_objects <- glue::glue('{app_data_dir}/{object_name}')
-  }
+#' @examples
+#' get_stats(data_set = "achilles", var = "sd")
+get_stats <- function(data_set,
+                      var){
+  universal_stats_summary <- get_content("universal_stats_summary", dataset = TRUE)
 
-  #file loader constructor
-  load_feather_object <- function(filename) {
-    object <- basename(filename) #removes filepath
-    object <- sub("_test", "", object)
-    assign(object, arrow::read_feather(filename), envir = .GlobalEnv)
-
-    message(glue::glue("loaded {object}"))
-  }
-
-  #walk through to load all files
-  all_objects %>%
-    purrr::walk(load_feather_object)
-
-  #print done
-  message("finished loading feathers")
+  stat <-
+    universal_stats_summary %>%
+    dplyr::filter(id == data_set) %>%
+    dplyr::pull(var)
+  return(stat)
 }
 
-#' Function to load all DDH db connections
-#'
-#' @param object_name Optional object name to load a single db connection; default loads all connections
+#DATA CARDS----
+#' Load single card
 #'
 #' @importFrom magrittr %>%
 #'
 #' @export
-load_ddh_db <- function(object_name = NULL) {
-  #fun for db connection
-  #load_db_connection <- function(db_name){}
+#' @examples
+#' load_image(input = list(type = "gene", content = c("ROCK3")), fun_name = "make_female_anatogram")
+#' load_image(input = list(type = "gene", content = c("ROCK1")), fun_name = "make_female_anatogram", card = TRUE)
+#' load_image(input = list(type = "gene", content = c("ROCK1", "ROCK2")), fun_name = "make_female_anatogram")
+#' load_image(input = list(type = "compound", content = c("aspirin")), fun_name = "make_celldeps")
+#' load_image(input = list(type = "compound", content = c("aspirin")), fun_name = "make_molecule_structure")
+load_image <- function(input = list(),
+                       fun_name,
+                       card = FALSE) { #type is either card or plot
+  load_image_raw <- function(){
+    #build the input for the raw fun() & call function
+    name <- stringr::str_c(input$content, collapse="-") #intended to fail with multigene query to return NULL
+    fun <- stringr::str_remove(fun_name, "make_")
+    if(card == TRUE){image_type = "card"} else {image_type = "plot"}
 
-  #manually (?) list all dbs to connect to
+    file_name <- glue::glue('{name}/{name}_{fun}_{image_type}.jpg')
 
-  #filter list for those in file_name
-  #db_cons <-
-  # if(is.null(file_name)){
-  #   db_cons <-  #manually (?) list all dbs to connect to
-  # } else {
-  #   db_cons <- file_name
-  # }
+    #check to see if file exists
+    #check if exists
+    url <- glue::glue("https://{Sys.getenv('AWS_IMAGES_BUCKET_ID')}.s3.amazonaws.com/{file_name}")
+    status <- httr::GET(url) %>% httr::status_code()
 
-  #db_cons %>% purrr::walk(load_db_connection)
-
-  #placeholder for db connections
-  message("placeholder for db connections")
+    if(status == 200){
+      return(url)
+    } else {
+      return(NULL)
+    }
+  }
+  #error handling
+  tryCatch(load_image_raw(),
+           error = function(e){
+             message(e)
+             NULL
+           })
 }
 
-#' Function to load DDH colors
+#' Load PDB file
+#'
+#' @param input Expecting a list containing type and content variable.
+#'
+#' @return Path to a url containing a PDB file.
 #'
 #' @export
-load_ddh_colors <- function() {
-  ## MAIN COLORS
-  ##2EC09C  ## cyan
-  ##BE34EF  ## violet
-  ##E06B12  ## orange
-  ##004AAB  ## blue
-  ##F0CE44  ## yellow
-  ##1785A4  ## blend cyan + blue
+#' @examples
+#' load_pdb(input = list(content = c("ROCK1")))
+#' load_pdb(input = list(content = c("ROCK3")))
+#' load_pdb(input = list(content = c("ROCK1", "ROCK2")))
+load_pdb <- function(input = list()){
+  load_pdb_raw <- function(){
+    if(length(input$content > 1)){
+      gene_symbol <- input$content[1]
+    } else {
+      gene_symbol <- input$content
+    }
 
-  load_colors <- function() {
-    ## Color sets  for genes
-    color_set_gene <- generate_colors("#2EC09C")  ## cyan
-    #CC is the hex alpha conversion for 80%, so the next line adds it; used in graph
-    color_set_gene_alpha <- purrr::map_chr(color_set_gene, ~ glue::glue_collapse(c(.x, "CC"), sep = ""))
+    #check if exists
+    url <- glue::glue("https://{Sys.getenv('AWS_PROTEINS_BUCKET_ID')}.s3.amazonaws.com/{gene_symbol}.pdb")
+    status <- httr::GET(url) %>% httr::status_code()
 
-    ## Palette function for genes
-    color_pal_gene <- grDevices::colorRampPalette(color_set_gene)
-
-    ## Color sets for proteins
-    color_set_protein <- generate_colors("#004AAB")  ## blue
-    color_set_protein_alpha <- purrr::map_chr(color_set_protein, ~ glue::glue_collapse(c(.x, "CC"), sep = ""))
-
-    ## Palette function for proteins
-    color_pal_protein <- grDevices::colorRampPalette(color_set_protein)
-
-    ## Color sets for proteins
-    color_set_geneprotein <- generate_colors("#1785A4")  ## blue
-    color_set_geneprotein_alpha <- purrr::map_chr(color_set_geneprotein, ~ glue::glue_collapse(c(.x, "CC"), sep = ""))
-
-    ## Palette function for proteins
-    color_pal_geneprotein <- grDevices::colorRampPalette(color_set_geneprotein)
-
-    ## Color sets for cells
-    color_set_cell <- generate_colors("#BE34EF")  ## violet
-    color_set_cell_alpha <- purrr::map_chr(color_set_cell, ~ glue::glue_collapse(c(.x, "CC"), sep = ""))
-
-    ## Palette function for cells
-    color_pal_cell <- grDevices::colorRampPalette(color_set_cell)
-
-    ## Color sets for compounds
-    color_set_compound <- generate_colors("#E06B12")  ## orange
-    color_set_compound_alpha <- purrr::map_chr(color_set_compound, ~ glue::glue_collapse(c(.x, "CC"), sep = ""))
-
-    ## Palette function for compounds
-    color_pal_compound <- grDevices::colorRampPalette(color_set_compound)
-
-    return(list(color_set_gene=color_set_gene,
-                color_set_gene_alpha=color_set_gene_alpha,
-                color_pal_gene=color_pal_gene,
-                color_set_protein=color_set_protein,
-                color_set_protein_alpha=color_set_protein_alpha,
-                color_pal_protein=color_pal_protein,
-                color_set_geneprotein=color_set_geneprotein,
-                color_set_geneprotein_alpha=color_set_geneprotein_alpha,
-                color_pal_geneprotein=color_pal_geneprotein,
-                color_set_cell=color_set_cell,
-                color_set_cell_alpha=color_set_cell_alpha,
-                color_pal_cell=color_pal_cell,
-                color_set_compound=color_set_compound,
-                color_set_compound_alpha=color_set_compound_alpha,
-                color_pal_compound=color_pal_compound)
-    )
+    if(status == 200){
+      return(url)
+    } else {
+      return(NULL)
+    }
   }
-
-  ddh_colors <- load_colors()
-  list2env(ddh_colors, .GlobalEnv)
-
+  #error handling
+  tryCatch(load_pdb_raw(),
+           error = function(e){
+             message(e)
+             NULL
+           })
 }
 
+#' Format Path Part
+#'
+#' @export
+format_path_part <- function(key) {
+  # formats part of an image path replacing invalid characters slashes with "_"
+  gsub("[/]", "_", key)
+}
+
+#EMPTY----
 #' Function to create an empty table
 #'
 #' @return A data.frame.
@@ -281,6 +226,52 @@ make_empty_table <- function() {
 make_empty_plot <- function() {
   ggplot2::ggplot() +
     ggplot2::labs(title = "Nothing to see here. Try again.")
+}
+
+#' Empty Graph Graph
+#'
+#' \code{make_empty_graph} returns an image of ...
+#'
+#' This is a graph function that takes a gene name and returns a empty graph graph
+#'
+#' @param input Expecting a list containing type and content variable.
+#' @return If no error, then returns a empty graph graph. If an error is thrown, then will return an empty graph.
+#'
+#' @importFrom magrittr %>%
+#' @import visNetwork
+#'
+#' @export
+#' @examples
+#' make_empty_graph()
+#' \dontrun{
+#' make_empty_graph()
+#' }
+make_empty_graph <- function(type = "gene") {
+  if(type == "gene") {
+    queryColor <- color_set_gene_alpha[2]
+  } else if (type == "cell") {
+    queryColor <- color_set_cell_alpha[2]
+  }else if (type == "compound") {
+    queryColor <- color_set_compound_alpha[2]
+  } else {
+    stop("declare your type")
+  }
+  #set params, copied from below
+  borderColor <- "rgba(204, 204, 204, 0.8)" #(gray80), formerly white 255, 255, 255
+  displayHeight = '90vh'
+  displayWidth = '100%'
+  #make empty nodes table
+  nodes_empty = dplyr::tibble(id = 0,
+                              name = "Empty",
+                              group = "Query",
+                              title = "Not enough data to build a network")
+  visNetwork(nodes = nodes_empty,
+             width = displayWidth,
+             height = displayHeight) %>%
+    visGroups(groupname = "Query",
+              color = list(background = queryColor, border = borderColor, highlight = queryColor, hover = queryColor),
+              shape='dot',
+              borderWidth = 2)
 }
 
 #' Function to create a bomb plot
@@ -550,6 +541,49 @@ make_bomb_plot <- function(){
   return(plot_complete)
 }
 
+#DATA GENERATION----
+#' Fix names
+#'
+#' @param wrong_name A gene name that is not its official symbol
+#' @param summary_df The gene_summary dataframe with all gene symbols
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+fix_names <- function(wrong_name,
+                      summary_df = universal_gene_summary) {
+  var <- stringr::str_which(summary_df$aka, paste0("(?<![:alnum:])", wrong_name, "(?![:alnum:]|\\-)")) #finds index
+  df <- summary_df[var,]
+  right_name <- df$approved_symbol
+  if (length(var) == 1) {
+    return(right_name)
+  } else {
+    return(wrong_name)
+  }
+  #fixes 251, leaves 11
+}
+
+#' Clean colnames
+#'
+#' @param dataset A dataset to fix gene names
+#' @param summary_df The gene_summary dataframe with all gene symbols
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+clean_colnames <- function(dataset,
+                           summary_df = universal_gene_summary) {
+  for (name in names(dataset)) {
+    if (name %in% summary_df$approved_symbol == FALSE) {
+      fixed_name <- fix_names(name, summary_df = summary_df)
+      if (fixed_name %in% names(dataset) == FALSE) {
+        names(dataset)[names(dataset) == name] <- fixed_name
+      }
+    }
+  }
+  return(dataset)
+}
+
 #' Function to obtain plot sizes
 #'
 #' @param function_name Function name.
@@ -628,6 +662,7 @@ plot_size_finder <- function(function_name){ #this function sets the output size
   return(plot_size)
 }
 
+#DOCUMENTATION----
 #' Function to create roxygen structures
 #'
 #' @param fun_name Function name.
@@ -667,52 +702,6 @@ make_roxygen <- function(fun_name,
   roxygen <- unlist(roxygen_c)
   output_file <- here::here("tmp.Rmd")
   writeLines(roxygen, con = output_file)
-}
-
-#' Empty Graph Graph
-#'
-#' \code{make_empty_graph} returns an image of ...
-#'
-#' This is a graph function that takes a gene name and returns a empty graph graph
-#'
-#' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a empty graph graph. If an error is thrown, then will return an empty graph.
-#'
-#' @importFrom magrittr %>%
-#' @import visNetwork
-#'
-#' @export
-#' @examples
-#' make_empty_graph()
-#' \dontrun{
-#' make_empty_graph()
-#' }
-make_empty_graph <- function(type = "gene") {
-  if(type == "gene") {
-    queryColor <- color_set_gene_alpha[2]
-  } else if (type == "cell") {
-    queryColor <- color_set_cell_alpha[2]
-  }else if (type == "compound") {
-    queryColor <- color_set_compound_alpha[2]
-  } else {
-    stop("declare your type")
-  }
-  #set params, copied from below
-  borderColor <- "rgba(204, 204, 204, 0.8)" #(gray80), formerly white 255, 255, 255
-  displayHeight = '90vh'
-  displayWidth = '100%'
-  #make empty nodes table
-  nodes_empty = dplyr::tibble(id = 0,
-                              name = "Empty",
-                              group = "Query",
-                              title = "Not enough data to build a network")
-  visNetwork(nodes = nodes_empty,
-             width = displayWidth,
-             height = displayHeight) %>%
-    visGroups(groupname = "Query",
-              color = list(background = queryColor, border = borderColor, highlight = queryColor, hover = queryColor),
-              shape='dot',
-              borderWidth = 2)
 }
 
 #' Extract Documentation Sections
@@ -793,156 +782,34 @@ make_legend <- function(fun,
   return(legend)
 }
 
-#DATA GENERATION----
-#' Fix names
+###make example
+#' Make Example
 #'
-#' @param wrong_name A gene name that is not its official symbol
-#' @param summary_df The gene_summary dataframe with all gene symbols
+#' Function to create an HTML string of examples to use on the index page and the start here methods doc
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
-fix_names <- function(wrong_name,
-                      summary_df = universal_gene_summary) {
-  var <- stringr::str_which(summary_df$aka, paste0("(?<![:alnum:])", wrong_name, "(?![:alnum:]|\\-)")) #finds index
-  df <- summary_df[var,]
-  right_name <- df$approved_symbol
-  if (length(var) == 1) {
-    return(right_name)
-  } else {
-    return(wrong_name)
-  }
-  #fixes 251, leaves 11
-}
-
-#' Clean colnames
-#'
-#' @param dataset A dataset to fix gene names
-#' @param summary_df The gene_summary dataframe with all gene symbols
-#'
-#' @importFrom magrittr %>%
-#'
-#' @export
-clean_colnames <- function(dataset,
-                           summary_df = universal_gene_summary) {
-  for (name in names(dataset)) {
-    if (name %in% summary_df$approved_symbol == FALSE) {
-      fixed_name <- fix_names(name, summary_df = summary_df)
-      if (fixed_name %in% names(dataset) == FALSE) {
-        names(dataset)[names(dataset) == name] <- fixed_name
-      }
-    }
-  }
-  return(dataset)
-}
-
-#' Get Stats
-#'
-#' @param data_universal_stats_summary Dataframe of stats summary generated in ddh_data.
-#' @param data_set A character indicating data set from which the stats were generated, typically one of achilles, expression_gene, expression_protein, or prism name.
-#' @param var A character indicating the variable to extract from the stats summary dataframe, typically one of threshold, sd, mean, upper, pr lower.
-#'
-#' @importFrom magrittr %>%
+#' @param privateMode Boolean indicating if private data is pointed to
+#' @return An HTML string.
 #'
 #' @export
 #' @examples
-#' get_stats(data_set = "achilles", var = "sd")
-get_stats <- function(data_set,
-                      var){
-  universal_stats_summary <- get_content("universal_stats_summary", dataset = TRUE)
+#' make_example()
+#' \dontrun{
+#' make_example()
+#' }
+make_example <- function(privateMode = TRUE){
+  #need to dynamically switch depending on privateMode
+  tld <- dplyr::if_else(privateMode == TRUE, "com", "org")
+  url <- glue::glue('http://www.datadrivenhypothesis.{tld}/')
 
-  stat <-
-    universal_stats_summary %>%
-    dplyr::filter(id == data_set) %>%
-    dplyr::pull(var)
-  return(stat)
-}
-
-#CARD HELPERS----
-#' Load single card
-#'
-#' @importFrom magrittr %>%
-#'
-#' @export
-#' @examples
-#' load_image(input = list(type = "gene", content = c("ROCK3")), fun_name = "make_female_anatogram")
-#' load_image(input = list(type = "gene", content = c("ROCK1")), fun_name = "make_female_anatogram", card = TRUE)
-#' load_image(input = list(type = "gene", content = c("ROCK1", "ROCK2")), fun_name = "make_female_anatogram")
-#' load_image(input = list(type = "compound", content = c("aspirin")), fun_name = "make_celldeps")
-#' load_image(input = list(type = "compound", content = c("aspirin")), fun_name = "make_molecule_structure")
-load_image <- function(input = list(),
-                       fun_name,
-                       card = FALSE) { #type is either card or plot
-  load_image_raw <- function(){
-    #build the input for the raw fun() & call function
-    name <- stringr::str_c(input$content, collapse="-") #intended to fail with multigene query to return NULL
-    fun <- stringr::str_remove(fun_name, "make_")
-    if(card == TRUE){image_type = "card"} else {image_type = "plot"}
-
-    file_name <- glue::glue('{name}/{name}_{fun}_{image_type}.jpg')
-
-    #check to see if file exists
-    #check if exists
-    url <- glue::glue("https://{Sys.getenv('AWS_IMAGES_BUCKET_ID')}.s3.amazonaws.com/{file_name}")
-    status <- httr::GET(url) %>% httr::status_code()
-
-    if(status == 200){
-      return(url)
-    } else {
-      return(NULL)
-    }
-  }
-  #error handling
-  tryCatch(load_image_raw(),
-           error = function(e){
-             message(e)
-             NULL
-           })
-}
-
-#' Load PDB file
-#'
-#' @param input Expecting a list containing type and content variable.
-#'
-#' @return Path to a url containing a PDB file.
-#'
-#' @export
-#' @examples
-#' load_pdb(input = list(content = c("ROCK1")))
-#' load_pdb(input = list(content = c("ROCK3")))
-#' load_pdb(input = list(content = c("ROCK1", "ROCK2")))
-load_pdb <- function(input = list()){
-  load_pdb_raw <- function(){
-    if(length(input$content > 1)){
-      gene_symbol <- input$content[1]
-    } else {
-      gene_symbol <- input$content
-    }
-
-    #check if exists
-    url <- glue::glue("https://{Sys.getenv('AWS_PROTEINS_BUCKET_ID')}.s3.amazonaws.com/{gene_symbol}.pdb")
-    status <- httr::GET(url) %>% httr::status_code()
-
-    if(status == 200){
-      return(url)
-    } else {
-      return(NULL)
-    }
-  }
-  #error handling
-  tryCatch(load_pdb_raw(),
-           error = function(e){
-             message(e)
-             NULL
-           })
-}
-
-#' Format Path Part
-#'
-#' @export
-format_path_part <- function(key) {
-  # formats part of an image path replacing invalid characters slashes with "_"
-  gsub("[/]", "_", key)
+  #need full urls so works in methods, instead of reference url
+  examples <- glue::glue('<h4>Search for genes</h5>
+              <ul>
+                <li>A single gene, such as <a href="{url}?show=gene&query=TP53">TP53</a> or <a href="{url}?show=gene&query=BRCA1">BRCA1</a></li>
+                <li>A pathway name, such as <a href="{url}?show=search&query=cholesterol">cholesterol</a>, which will lead you to <a href="{url}?show=pathway&query=0006695">Cholesterol Biosynthetic Process</a></li>
+                <li>The Gene Ontology biological process identifier, such as <a href="{url}?show=search&query=1901989">1901989</a>, which will find <a href="{url}?show=pathway&query=1901989">Pathway: Positive Regulation Of Cell Cycle Phase Transition (GO:1901989)</a></li>
+                <li>A custom list of genes (separated by commas), such as <a href="{url}?show=search&query=BRCA1,%20BRCA2">BRCA1, BRCA2</a>, which will search <a href="{url}?show=gene_list&query=BRCA1,BRCA2">a custom gene list</a></li>
+              </ul>')
+  return(examples)
 }
 
 #QUARTO HELPER----
@@ -1295,35 +1162,5 @@ cell_linkr <- function(query, type) {
   } else {
     return(query)
   }
-}
-
-###make example
-#' Make Example
-#'
-#' Function to create an HTML string of examples to use on the index page and the start here methods doc
-#'
-#' @param privateMode Boolean indicating if private data is pointed to
-#' @return An HTML string.
-#'
-#' @export
-#' @examples
-#' make_example()
-#' \dontrun{
-#' make_example()
-#' }
-make_example <- function(privateMode = TRUE){
-  #need to dynamically switch depending on privateMode
-  tld <- dplyr::if_else(privateMode == TRUE, "com", "org")
-  url <- glue::glue('http://www.datadrivenhypothesis.{tld}/')
-
-  #need full urls so works in methods, instead of reference url
-  examples <- glue::glue('<h4>Search for genes</h5>
-              <ul>
-                <li>A single gene, such as <a href="{url}?show=gene&query=TP53">TP53</a> or <a href="{url}?show=gene&query=BRCA1">BRCA1</a></li>
-                <li>A pathway name, such as <a href="{url}?show=search&query=cholesterol">cholesterol</a>, which will lead you to <a href="{url}?show=pathway&query=0006695">Cholesterol Biosynthetic Process</a></li>
-                <li>The Gene Ontology biological process identifier, such as <a href="{url}?show=search&query=1901989">1901989</a>, which will find <a href="{url}?show=pathway&query=1901989">Pathway: Positive Regulation Of Cell Cycle Phase Transition (GO:1901989)</a></li>
-                <li>A custom list of genes (separated by commas), such as <a href="{url}?show=search&query=BRCA1,%20BRCA2">BRCA1, BRCA2</a>, which will search <a href="{url}?show=gene_list&query=BRCA1,BRCA2">a custom gene list</a></li>
-              </ul>')
-  return(examples)
 }
 

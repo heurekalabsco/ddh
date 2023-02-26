@@ -342,6 +342,7 @@ get_essential <- function(input = list()#,
       #what about counting unique? (data cannot do that as presented)...
       sentence <-
         essential %>%
+        dplyr::arrange(desc(n)) %>%
         glue::glue_data("{id} is essential in {n} {cell_line}") %>%
         stringr::str_c(collapse = ", ")
     } else {
