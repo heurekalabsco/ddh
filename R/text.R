@@ -431,7 +431,7 @@ make_summary_moa <- function(input = list(),
 #' @export
 #' @examples
 #' make_summary_compound_list(input = list(content = c("aspirin", "carprofen")))
-make_summary_compound_list <- function(input = list(),
+make_summary_compound_list <- function(input = list()
                                        # data_universal_prism_meta = universal_prism_meta
                                        ) {
   # if (is.null(input$content)) {

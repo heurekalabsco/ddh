@@ -91,6 +91,7 @@ make_compound_table <- function(input = list(),
                                 # data_compound_prism_names = compound_prism_names,
                                 # data_universal_stats_summary = universal_stats_summary,
                                 top = TRUE) {
+  NULL
   # make_compound_table_raw <- function() {
   #   prism_cor_upper <- get_stats(data_set = "prism", var = "upper")
   #   prism_cor_lower <- get_stats(data_set = "prism", var = "lower")
@@ -1103,7 +1104,7 @@ make_gene_drugs_cor_table <- function(#data_gene_drugs_cor_table = gene_drugs_co
 #' \dontrun{
 #' make_drug_genes_table(drug = "aspirin")
 #' }
-make_drug_genes_table <- function(input = list(),
+make_drug_genes_table <- function(input = list()
                                   #data_compound_genes_table = compound_genes_table,
                                   #drug
 ) {
@@ -1115,6 +1116,7 @@ make_drug_genes_table <- function(input = list(),
     #   dplyr::ungroup() %>%
     #   dplyr::arrange(fav_gene)
     # return(unnested_table)
+    NULL
   }
   #error handling
   tryCatch(make_drug_genes_table_raw(),
