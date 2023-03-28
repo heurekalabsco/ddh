@@ -4,7 +4,7 @@
 #'
 #' \code{make_pathway_list} returns an image of ...
 #'
-#' This is a table function that takes a gene name and returns a subtable of gene_pathways that contains your gene query
+#' This is a table function that takes a gene name and returns a subtable of gene sets and pathways that contain your gene query
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a pathway list table. If an error is thrown, then will return an empty table.
@@ -22,9 +22,9 @@ make_pathway_list <- function(input = list()) {
   make_pathway_list_raw <- function() {
     gene_pathways <-
       get_data_object(object_name = input$content,
-                      dataset_name = "gene_pathways",
+                      dataset_name = "universal_gene_pathways",
                       pivotwider = TRUE) %>%
-      dplyr::select(-name)
+      dplyr::select(-any_of(c("id", "data_set")))
     return(gene_pathways)
   }
   #error handling
@@ -36,38 +36,46 @@ make_pathway_list <- function(input = list()) {
 
 #' Pathway Genes Table
 #'
-#' \code{make_pathway_genes} returns a table. This is temporarily commented out becuase we will eventually elevate pathway to a search subtype with its own query feathers.
+#' \code{make_pathway_genes} returns a table of genes in a queried pathway
 #'
-#' This is a table function that takes a GO id and returns a subtable of genes that your pathway contains
+#' This is a table function that takes a gene_set id in the query slot and returns a subtable of genes that your gene set contains
 #'#'
 #' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
-#' make_pathway_genes(go_id = "1902965")
-# make_pathway_genes <- function(data_gene_pathways = gene_pathways,
-#                                data_universal_gene_summary = universal_gene_summary,
-#                                go_id) {
-#   make_pathway_genes_raw <- function() {
-#     pathway_table <-
-#       data_gene_pathways %>%
-#       dplyr::filter(go %in% go_id) %>%
-#       tidyr::unnest(data) %>%
-#       dplyr::left_join(data_universal_gene_summary, by = c("gene" = "approved_symbol")) %>%
-#       dplyr::select(gene, approved_name, aka)
-#     return(pathway_table)
-#   }
-#   #error handling
-#   tryCatch(make_pathway_genes_raw(),
-#            error = function(e){
-#              #make empty table equivalent to returned table
-#              return(data_gene_pathways %>%
-#                       tidyr::unnest(data) %>%
-#                       dplyr::left_join(data_universal_gene_summary, by = c("gene" = "approved_symbol")) %>%
-#                       dplyr::select(gene, approved_name, aka) %>%
-#                       dplyr::slice(0))
-#            })
-# }
+#' make_pathway_genes(input = list(type = 'gene', subtype = 'pathway', query = '16769'))
+#' make_pathway_genes(input = list(type = 'gene', subtype = 'pathway', query = '16769'), vec = TRUE)
+make_pathway_genes <- function(input = list(),
+                               vec = FALSE){ #set to TRUE to return vector
+  make_pathway_genes_raw <- function() {
+    gene_pathways <-
+      get_data_object(object_name = input$query,
+                      dataset_name = "universal_pathways",
+                      pivotwider = TRUE) %>%
+      dplyr::select(gene_symbol) %>%
+      tidyr::unnest(cols = "gene_symbol")
+
+    if(vec == TRUE){
+      gene_pathway_vec <-
+        gene_pathways %>%
+        dplyr::pull(gene_symbol)
+      return(gene_pathway_vec)
+    } else {
+      gene_pathway_table <-
+        gene_pathways %>%
+        # dplyr::filter(gene_symbol %in% c("ROCK1", "ROCK2")) %>% #for testing
+        dplyr::mutate(gene_description = purrr::map_chr(gene_symbol, ~ make_summary_gene(input = list(content = .), var = "approved_name")))
+
+      return(gene_pathway_table)
+    }
+  }
+  #error handling
+  tryCatch(make_pathway_genes_raw(),
+           error = function(e){
+             message(e)
+           })
+}
 
 #' Compound Table
 #'
@@ -228,7 +236,7 @@ make_expression_table <- function(input = list(),
                       dataset_name = "universal_expression_long",
                       pivotwider = TRUE) %>%
       dplyr::mutate(across(contains(c("expression")), as.numeric)) %>%
-      dplyr::select(-name)
+      dplyr::select(-data_set)
 
     cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
 
@@ -537,7 +545,7 @@ make_dep_table <- function(input = list()#,
                         dataset_name = "universal_achilles_long",
                         pivotwider = TRUE) %>%
         dplyr::mutate(across(contains(c("score")), as.numeric)) %>%
-        dplyr::select(-name)
+        dplyr::select(-data_set)
 
       data_cell_expression_names <- get_content(object_name = "cell_expression_names", dataset = TRUE)
 

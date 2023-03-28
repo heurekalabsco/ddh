@@ -10,8 +10,9 @@
 #' @export
 #' @examples
 #' make_summary_gene(input = list(content = "ROCK1"), var = "approved_symbol")
-#' make_summary_gene(input = list(content = "ROCK1"), var = "aka")
+#' make_summary_gene(input = list(content = "ROCK1"), var = "approved_name")
 #' make_summary_gene(input = list(content = "ROCK1"), var = "entrez_summary")
+#' make_summary_gene(input = list(content = c("ROCK1", "ROCK2")), var = "approved_name")
 make_summary_gene <- function(input = list(),
                               var = "approved_symbol") { #default so no error if empty, but this pulls the var out of the df
   if (is.null(input$content)) {
@@ -28,7 +29,7 @@ make_summary_gene <- function(input = list(),
 
 #' Make Pathway Summary
 #'
-#' The make_pathway_summary function takes a GO id as an input and returns summary information of the pathway.
+#' The make_pathway_summary function takes an id as a character input and returns summary information of the pathway.
 #'
 #' @param input A list containing a content variable.
 #' @param var Variable that determines which text is returned
@@ -37,33 +38,19 @@ make_summary_gene <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' make_summary_pathway(input = list(query = "1902965"), var = "data")
-#' make_summary_pathway(input = list(query = "1902965"), var = "pathway")
-make_summary_pathway <- function(data_gene_pathways = gene_pathways,
-                                 input = list(),
-                                 var = "pathway") {
+#' make_summary_pathway(input = list(query = "16769"), var = "gs_description")
+#' make_summary_pathway(input = list(query = "16769"), var = "pathway_size")
+make_summary_pathway <- function(input = list(),
+                                 var = "gs_description") {
   if (is.null(input$query)) {
     return (NULL)
   }
-
-  # REWRITE WHEN PATHWAY IS A QUERY TYPE
-  # get_data_object(object_name = input$content,
-  #                 dataset_name = "gene_pathways",
-  #                 pivotwider = TRUE)
-
-  # if (var == "data") {
-  #   pathway_summary_var <-
-  #     data_gene_pathways %>%
-  #     dplyr::filter(go == input$query) %>%
-  #     tidyr::unnest(data) %>%
-  #     dplyr::pull(gene) %>%
-  #     stringr::str_c(collapse = ", ")
-  # } else {
-  #   pathway_summary_var <-
-  #     data_gene_pathways %>%
-  #     dplyr::filter(go == input$query) %>%
-  #     dplyr::pull(var)
-  # }
+  pathway_summary_var <-
+    get_data_object(object_name = input$query,
+                    dataset_name = "universal_pathways",
+                    pivotwider = FALSE) %>%
+    dplyr::filter(key == var) %>%
+    dplyr::pull(value) #any column name
   return(pathway_summary_var)
 }
 
