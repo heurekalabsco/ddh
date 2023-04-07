@@ -62,32 +62,29 @@ make_barcode <- function(input = list(),
 #' make_ideogram(input = list(type = "gene", query = "ROCK1", content = "ROCK1"))
 #' make_ideogram(input = list(type = "gene", query = "ROCK1", content = "ROCK1"), card = TRUE)
 #' \dontrun{
-#' make_ideogram(input = list(type = "gene", content = "ROCK1"))
+#' make_ideogram(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 #' }
-make_ideogram <- function(data_gene_location = gene_location,
-                          data_gene_chromosome = gene_chromosome,
-                          input = list(),
+make_ideogram <- function(input = list(),
                           card = FALSE) {
   make_ideogram_raw <- function() {
-    #set baseline chromosome info
-    chromosome_list <- dplyr::pull(data_gene_chromosome, id)
-    chromosome_levels <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "X", "Y")
-    chromosome_list <- forcats::fct_relevel(chromosome_list, chromosome_levels)
+    # get data_gene_location out of object
+    data_gene_location <-
+      get_data_object(object_names = input$content,
+                      dataset_name = "gene_location",
+                      pivotwider = TRUE)
+
+    # get data_gene_chromosome out of object
+    gene_chromosome <- get_content("gene_chromosome", dataset = TRUE)
+
+    # get data to make some bands
+    gene_band_boundaries <- get_content("gene_band_boundaries", dataset = TRUE)
 
     #adjust by n so it bumps genes/bands off chromosome ends
     n <- 2000000 #chr1 is 250M
 
     #get some pq arms for the background images
     pq <-
-      data_gene_chromosome %>%
-      dplyr::mutate(centromere = (centromereposition_mbp * 1000000), #correct for n adjustment here
-                    p = centromere + (n/2),
-                    q = (basepairs+n) - p) %>% #correct for n adjustment here
-      dplyr::select(chromosome_name = id, p, q) %>%
-      dplyr::mutate(q_start = 0,
-                    q_end = q,
-                    p_start = q + 1,
-                    p_end = q + p) %>%
+      gene_chromosome %>%
       tidyr::pivot_longer(cols = c("p", "q"), names_to = "arm", values_to = "length") %>%
       dplyr::mutate(y_start = ifelse(arm == "q", q_start, p_start+n),
                     y_end = ifelse(arm == "q", q_end-n, p_end)) %>%
@@ -95,40 +92,24 @@ make_ideogram <- function(data_gene_location = gene_location,
 
     #get max lengths for left_join below to normalize transcript sites to maximum, so bands are plotted in the right direction
     max_lengths <-
-      data_gene_chromosome %>%
-      dplyr::select(chromosome_name = id, basepairs) %>%
-      dplyr::mutate(basepairs = basepairs + n) #correct for n adjustment here
-
-    #make some bands
-    band_boundaries <-
-      data_gene_location %>%
-      dplyr::group_by(chromosome_name, band) %>%
-      dplyr::summarize(abs_min = min(transcript_start),
-                       abs_max = max(transcript_end),
-                       length = abs_max - abs_min) %>%
-      dplyr::ungroup() %>%
-      dplyr::filter(chromosome_name %in% chromosome_list) %>%
-      dplyr::left_join(max_lengths, by = "chromosome_name") %>%
-      dplyr::mutate(min = basepairs - abs_min - (n/2), #chromosome positions count from the top, so need to reverse order for plotting
-                    max = basepairs - abs_max - (n/2) #correct for n adjustment here
-      ) %>%
-      dplyr::mutate(alternate = dplyr::row_number(chromosome_name) %% 2)
+      gene_chromosome %>%
+      dplyr::select(chromosome_name, basepairs_adj) #correct for n adjustment here
 
     #adding if (is.null(gene_symbol)), gene_symbol=NULL allows me to generate a plot, even without gene_symbol data, #no data filters, #drop geom_point here
     #get location data for each gene query
     gene_loci <-
       data_gene_location %>%
-      dplyr::filter(approved_symbol %in% input$content) %>%
-      dplyr::select(approved_symbol, chromosome_name, transcript_start, transcript_end) %>%
+      dplyr::mutate(across(starts_with("transcript"), as.numeric)) %>%
+      dplyr::select(approved_symbol = id, chromosome_name, transcript_start, transcript_end) %>%
       dplyr::left_join(max_lengths, by = "chromosome_name") %>% #need to flip the query gene start site around b/c chromosome positions count from the top, but ggplots from the bottom
-      dplyr::mutate(start = basepairs - transcript_start - (n/2)) #correct for n adjustment here
+      dplyr::mutate(start = basepairs_adj - transcript_start - (n/2)) #correct for n adjustment here
 
     #error catching
     if(nrow(gene_loci) == 0){stop("gene not found")}
 
     #pull the choromosomes here, and then add a filter in the ggplot to plot them only
     chromosome_loci <-
-      gene_loci %>%
+      data_gene_location %>%
       dplyr::distinct(chromosome_name) %>%
       dplyr::pull(.)
 
@@ -136,38 +117,38 @@ make_ideogram <- function(data_gene_location = gene_location,
     clip_height <-
       max_lengths %>%
       dplyr::filter(chromosome_name %in% chromosome_loci) %>%
-      dplyr::slice_max(basepairs) %>%
-      dplyr::pull(basepairs)
+      dplyr::slice_max(basepairs_adj) %>%
+      dplyr::pull(basepairs_adj)
 
     ideogram_plot <-
       ggplot2::ggplot() +
       #background line fixes height
       ggplot2::geom_segment(data = pq %>% dplyr::filter(chromosome_name %in% chromosome_loci),
                             ggplot2::aes(x = chromosome_name, xend = chromosome_name, y = 0, yend = 260000000, alpha = 1),
-                            color = "white", size = 1, lineend = "butt") +
+                            color = "white", linewidth = 1, lineend = "butt") +
       #background for black line
       ggplot2::geom_segment(data = pq %>% dplyr::filter(chromosome_name %in% chromosome_loci),
                             ggplot2::aes(x = chromosome_name, xend = chromosome_name, y = y_start, yend = y_end, alpha = 0.5),
-                            color = "black", size = 7, lineend = "round") +
+                            color = "black", linewidth = 7, lineend = "round") +
       #chromosome
       ggplot2::geom_segment(data = pq %>% dplyr::filter(chromosome_name %in% chromosome_loci),
                             ggplot2::aes(x = chromosome_name, xend = chromosome_name, y = y_start, yend = y_end),
-                            color = "gray95", size = 6, lineend = "round") +
+                            color = "gray95", linewidth = 6, lineend = "round") +
       #centromere
       ggplot2::geom_point(data = pq %>% dplyr::filter(chromosome_name %in% chromosome_loci,
                                                       arm == "q"),
                           ggplot2::aes(x = chromosome_name, y = y_end + n), #calculated 1/2 of distance between
                           color = "gray90", size = 5.5) +
       #pq bands
-      ggplot2::geom_segment(data = band_boundaries %>% dplyr::filter(alternate == 1, chromosome_name %in% chromosome_loci),
+      ggplot2::geom_segment(data = gene_band_boundaries %>% dplyr::filter(alternate == 1, chromosome_name %in% chromosome_loci),
                             ggplot2::aes(x = chromosome_name, xend = chromosome_name, y = min, yend = max),
-                            size = 6.5, color = "black", alpha = 0.5) +
+                            linewidth = 6.5, color = "black", alpha = 0.5) +
       #gene points + labels
-      ggplot2::geom_point(data = gene_loci, ggplot2::aes(x = chromosome_name, y = start),  size = 6, color = ddh_pal_d(palette = "gene")(1), alpha = 1) +
+      ggplot2::geom_point(data = gene_loci, ggplot2::aes(x = chromosome_name, y = start),  size = 6, color = ddh::ddh_pal_d(palette = "gene")(1), alpha = 1) +
       ggrepel::geom_text_repel(data = gene_loci, ggplot2::aes(x = chromosome_name, y = start, label = approved_symbol), nudge_x = .2, min.segment.length = 1, family = "Chivo") +
       ggplot2::scale_fill_manual(values = c("#FFFFFF", "#FFFFFF")) +
       ggplot2::labs(y = NULL) +
-      theme_ddh(base_size = 16) +
+      ddh::theme_ddh(base_size = 16) +
       ggplot2::theme_void() +
       ggplot2::theme(legend.position = "none",
                      axis.text.x = ggplot2::element_text(size = 12)) +
@@ -205,19 +186,21 @@ make_ideogram <- function(data_gene_location = gene_location,
 #' @examples
 #' make_proteinsize(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_proteinsize(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+#' make_proteinsize(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
+#' make_proteinsize(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')), card = TRUE)
 #' \dontrun{
 #' make_proteinsize(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_proteinsize <- function(data_universal_proteins = universal_proteins,
-                             input = list(),
+make_proteinsize <- function(input = list(),
                              card = FALSE) {
   make_proteinsize_raw <- function() {
-
-    ### widths: distinct chunks or gradual strip?
-    w <- seq(.1, 1, by = .1) ## 10 steps
-    # w <- seq(.01, 1, by = .01) ## 100 steps ~ almost gradient
-    # w <- c(0.5, 0.95, 1) ## threshold values: 50%, 95%, 100% (or smt similar)
-    colors <- ddh_pal_c(palette = "protein")(length(w))
+    # get data_universal_proteins out of object
+    data_universal_proteins <-
+      get_data_object(object_names = input$content,
+                      dataset_name = "universal_proteins",
+                      pivotwider = TRUE) %>%
+      dplyr::rename(gene_name = 1) %>%
+      dplyr::mutate(across(contains(c("length", "mass")), as.numeric))
 
     ## sort alphabetically
     #gene_symbol <- sort(gene_symbol)
@@ -238,14 +221,16 @@ make_proteinsize <- function(data_universal_proteins = universal_proteins,
       dplyr::filter(gene_name == last_gene) %>%
       dplyr::pull(mass)
 
-    make_mass_strip <- function(data = data_universal_proteins,
-                                var,
+    make_mass_strip <- function(var,
                                 card_var = card,
                                 max_mass = last_mass) {
-
       selected <-
-        data %>%
+        data_universal_proteins %>%
         dplyr::filter(gene_name %in% var)
+
+      #load mass strip data
+      gene_mass_decile <- get_content("gene_mass_decile", dataset = TRUE)
+      colors <- ddh::ddh_pal_c(palette = "protein")(length(gene_mass_decile$mass_group))
 
       if(card_var == TRUE){ #this solves for a single case
         triangle_size <- 10
@@ -260,57 +245,60 @@ make_proteinsize <- function(data_universal_proteins = universal_proteins,
       }
 
       base_plot <-
-        data %>%
-        ggplot2::ggplot(ggplot2::aes(x = mass)) +
+        ggplot2::ggplot() +
         ## draw distribution as colored strip
-        ggdist::stat_interval(
-          ggplot2::aes(y = 1),
-          .width = w, size = 10
-        ) +
+        ggplot2::geom_segment(data = gene_mass_decile,
+                              ggplot2::aes(x = start,
+                                           xend = end,
+                                           y = 1,
+                                           yend = 1,
+                                           color = mass_group),
+                              linewidth = 8) +
+        # ggdist::stat_interval(ggplot2::aes(y = 1), .width = w, size = 10) +
         ## line locator
         ggplot2::geom_linerange(
-          data = selected, ggplot2::aes(ymin = .9, ymax = 1.03),
-          color = "white", size = .8
+          data = selected,
+          ggplot2::aes(x = mass,
+                       ymin = 1,
+                       ymax = 1),
+          color = "white", linewidth = 8
         ) +
         ## add triangular locator symbol
         ggplot2::geom_point(
-          data = selected, ggplot2::aes(y = triangle_y),
+          data = selected, ggplot2::aes(x = mass, y = triangle_y),
           shape = 6, size = triangle_size, stroke = 1
         ) +
         ## add gene name label
         {if(!card_var)ggplot2::geom_text( #| !moreThanFour
-          data = selected, ggplot2::aes(y = gene_y, label = gene_name),
+          data = selected, ggplot2::aes(x = mass, y = gene_y, label = gene_name),
           family = "Chivo", size = 5.2, vjust = 0
         )} +
         ## add mass label
         {if(!card_var)ggplot2::geom_text( # | !moreThanThree
-          data = selected, ggplot2::aes(y = mass_y, label = paste(mass, "kDa")),
+          data = selected, ggplot2::aes(x = mass, y = mass_y, label = paste(mass, "kDa")),
           family = "Chivo", size = 4.3, vjust = 0
         )} +
-        ggplot2::scale_x_continuous(limits = c(0, max_mass*2),
-                                    labels = function(x) paste(x, "kDa")) +
-        ggplot2::coord_cartesian(ylim = c(.95, 1.2)) +
+        ggplot2::scale_x_continuous(labels = function(x) paste(x, "kDa")) +
+        ggplot2::coord_cartesian(ylim = c(.95, 1.2), xlim = c(0, max_mass*2)) +
         ggplot2::scale_y_continuous(expand = c(0, 0)) +
         ggplot2::scale_color_manual(values = colors, guide = "none") +
-        theme_ddh() +
+        ddh::theme_ddh() +
         ggplot2::theme_void() +
         NULL
 
-
-      if (var == last_gene) {
-        base_plot <-
-          base_plot +
-          ggplot2::labs(x = "Protein Size") +
-          ggplot2::theme(axis.text.x = ggplot2::element_text(family = "Roboto Slab", size = 14),
-                         axis.title.x = ggplot2::element_text(family = "Nunito Sans", size = 18,
-                                                              margin = ggplot2::margin(t = 12, b = 12)))
+      if(card_var == FALSE){
+        if (var == last_gene) {
+          base_plot <-
+            base_plot +
+            ggplot2::labs(x = "Protein Size") +
+            ggplot2::theme(axis.text.x = ggplot2::element_text(family = "Roboto Slab", size = 14),
+                           axis.title.x = ggplot2::element_text(family = "Nunito Sans", size = 18,
+                                                                margin = ggplot2::margin(t = 12, b = 12)))
+        }
       }
 
       return(base_plot)
     }
-
-    glist <- lapply(gene_symbol, make_mass_strip, data = data_universal_proteins)
-    plot_complete <- patchwork::wrap_plots(glist, nrow = length(glist))
 
     if(card == TRUE){
       plot_complete <- make_mass_strip(var = gene_symbol)
@@ -330,8 +318,10 @@ make_proteinsize <- function(data_universal_proteins = universal_proteins,
         ggplot2::theme(axis.text.x = ggplot2::element_blank(),
                        axis.title.x = ggplot2::element_blank()
         )
+    } else {
+      glist <- lapply(gene_symbol, make_mass_strip)
+      plot_complete <- patchwork::wrap_plots(glist, nrow = length(glist))
     }
-
     return(plot_complete)
   }
   #error handling
@@ -358,17 +348,19 @@ make_proteinsize <- function(data_universal_proteins = universal_proteins,
 #' @examples
 #' make_sequence(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_sequence(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+#' make_sequence(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
 #' make_sequence(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_sequence <- function(data_universal_proteins = universal_proteins,
-                          input = list(),
+make_sequence <- function(input = list(),
                           card = FALSE) {
   make_sequence_raw <- function() {
+    # get data_universal_proteins out of object
     sequence_string <-
-      data_universal_proteins %>%
-      dplyr::filter(gene_name %in% input$content) %>%
-      dplyr::pull("sequence") %>%
+      get_data_object(object_names = input$content,
+                      dataset_name = "universal_proteins") %>%
+      dplyr::filter(key == "sequence") %>%
+      dplyr::pull("value") %>%
       stringr::str_sub(start = 1L, end = 100L) %>%
       stringr::str_pad(100, "right")
 
@@ -391,7 +383,7 @@ make_sequence <- function(data_universal_proteins = universal_proteins,
                   .y = sequence_num,
                   .f = get_subsequence)
 
-    sequence_font <- "Roboto Slab"
+    sequence_font <- "Roboto Mono"
     sequence_size <- 10
 
     plot_complete <-
@@ -443,29 +435,31 @@ make_sequence <- function(data_universal_proteins = universal_proteins,
 #' make_protein_domain(input = list(content = "ROCK2"), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
 #' make_protein_domain(input = list(content = c("ROCK1", "ROCK2")), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
 #' \dontrun{
-#' make_protein_domain(input = list(content = "ROCK2"), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
+#' make_protein_domain(input = list(content = "ROCK1"), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
 #' }
 make_protein_domain <- function(input = list(),
-                                data_gene_protein_domains = gene_protein_domains,
                                 dom_var = NULL,
                                 ptm_var = NULL) {
+  data_gene_protein_domains <-
+    get_data_object(object_names = input$content,
+                    dataset_name = "gene_protein_domains",
+                    pivotwider = TRUE) %>%
+    dplyr::select(c(id, type, description, category, begin, end, url, seq_len, length)) %>%
+    dplyr::mutate(across(contains(c("begin", "end", "seq_len", "length")), as.numeric))
 
   make_protein_domain_raw <- function() {
-
     gene_symbol <-
       data_gene_protein_domains %>%
-      dplyr::filter(gene_name %in% input$content) %>%
-      dplyr::pull(gene_name) %>%
+      dplyr::pull(id) %>%
       unique()
 
     lengths_data <-
       data_gene_protein_domains %>%
-      dplyr::filter(gene_name %in% input$content) %>%
-      dplyr::filter(!duplicated(gene_name))
+      dplyr::distinct(id, .keep_all = TRUE) %>%
+      dplyr::select(id, seq_len)
 
     plot_data <-
       data_gene_protein_domains %>%
-      dplyr::filter(gene_name %in% input$content) %>%
       dplyr::mutate(order = 1)
 
     prots_dr <-
@@ -487,7 +481,7 @@ make_protein_domain <- function(input = list(),
                                          y = order,
                                          yend = order),
                             colour = "black",
-                            size = 1.5,
+                            linewidth = 1.5,
                             lineend = "round")
     #DOMAINS
     if(nrow(prots_dr) != 0) {
@@ -522,7 +516,7 @@ make_protein_domain <- function(input = list(),
                                            xend = begin,
                                            y = order,
                                            yend = order + 3),
-                              size = 0.5,
+                              linewidth = 0.5,
                               linetype = 2,
                               color = "black") +
         ggplot2::scale_y_continuous(limits=c(0,4.1)) + #should be a touch larger than yend
@@ -544,10 +538,10 @@ make_protein_domain <- function(input = list(),
       base_plot +
       ggplot2::labs(x = NULL,
                     y = NULL) +
-      ggplot2::facet_wrap(~ gene_name, ncol = 1,
+      ggplot2::facet_wrap(~ id, ncol = 1,
                           labeller = wrapped_labels(.seq_len = lengths_data$seq_len)
       ) +
-      theme_ddh(base_size = 16) +
+      ddh::theme_ddh(base_size = 16) +
       ggplot2::theme_void() +
       ggplot2::theme(
         legend.title = ggplot2::element_blank(),
@@ -597,172 +591,158 @@ make_protein_domain <- function(input = list(),
 #' \dontrun{
 #' make_radial(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_radial <- function(data_gene_signatures = gene_signatures,
-                        data_gene_signature_clusters = gene_signature_clusters,
-                        input = list(),
+make_radial <- function(input = list(),
                         relative = TRUE,
                         cluster = FALSE,
                         barplot = FALSE,
                         card = FALSE) {
+  data_gene_signatures <-
+    get_data_object(object_names = input$content,
+                    dataset_name = "gene_signatures",
+                    pivotwider = TRUE) %>%
+    dplyr::mutate(across(A:Y, as.numeric))
+
+  data_gene_signature_clusters <-
+    get_data_object(object_names = input$content,
+                    dataset_name = "gene_signature_clusters",
+                    pivotwider = TRUE) %>%
+    dplyr::mutate(across(contains(c("X", "clust", "member")), as.numeric))
+
+  # get gene_signatures_mean
+  gene_signatures_mean <- get_content("gene_signatures_mean", dataset = TRUE)
+
+  plot_mean <-
+    gene_signatures_mean %>%
+    dplyr::select(id, A:Y) %>%
+    tidyr::pivot_longer(cols = -id, names_to = "aa", values_to = "freq") %>%
+    dplyr::mutate(plot_var = freq)
+
   make_radial_raw <- function() {
-    if(cluster) {
+    if(cluster == TRUE) {
       query_clust <-
         data_gene_signature_clusters %>%
-        dplyr::filter(gene_name %in% input$content) %>%
         dplyr::pull(clust) %>%
         unique()
 
-      signature_cluster_means_prep <-
-        data_gene_signatures %>%
-        dplyr::select(uniprot_id, A:Y) %>%
-        dplyr::inner_join(data_gene_signature_clusters, by = "uniprot_id") %>%
-        dplyr::select(-gene_name, -X1, -X2, -member_prob)
+      # get gene_cluster_signatures out of object
+      gene_cluster_signatures <- get_content("gene_cluster_signatures", dataset = TRUE)
 
-      signature_cluster_means_query <-
-        signature_cluster_means_prep %>%
-        dplyr::mutate(clust = as.numeric(as.character(clust)),
-                      clust = as.factor(ifelse(clust %in% as.numeric(as.character(query_clust)), clust, "Mean"))) %>%
-        dplyr::group_by(clust) %>%
-        dplyr::summarise_if(is.numeric, list(mean = mean)) %>%
-        tidyr::pivot_longer(cols = -clust) %>%
-        dplyr::mutate(name = stringr::str_remove(name, "_mean"),
-                      clust = as.factor(ifelse(clust == "Mean", "Mean",
-                                               paste0("Cluster ", as.numeric(as.character(clust)))))
-        )
+      plot_aa <-
+        gene_cluster_signatures %>%
+        dplyr::select(id, A:Y) %>%
+        dplyr::filter(id %in% query_clust) %>%
+        tidyr::pivot_longer(cols = -id, names_to = "aa", values_to = "freq") %>%
+        dplyr::mutate(plot_var = freq)
 
-      if(relative){
-        signature_cluster_means_query <-
-          signature_cluster_means_query %>%
-          tidyr::pivot_wider(id_cols = clust, values_fn = mean) %>%
-          dplyr::arrange(factor(clust, levels = "Mean")) %>%
-          dplyr::mutate(across(A:Y, ~ . / .[1])) %>%
-          tidyr::pivot_longer(cols = -clust)
-      }
-
-      if(length(unique(signature_cluster_means_query$clust)) == 1) {
-        stop("Unable to cluster this protein by its amino acid sequence.")
-      }
+      # if(length(unique(signature_cluster_means_query$clust)) == 1) {
+      #   stop("Unable to cluster this protein by its amino acid sequence.")
+      # }
 
     } else {
-      signature_cluster_means_prep <-
+      #if not a cluster query
+      plot_aa <-
         data_gene_signatures %>%
-        dplyr::select(gene_name, A:Y)
-
-      signature_cluster_means_query <-
-        signature_cluster_means_prep %>%
-        dplyr::filter(!gene_name %in% input$content) %>%
-        dplyr::rename(Mean = gene_name) %>%
-        dplyr::summarise_if(is.numeric, list(mean = mean)) %>%
-        tibble::rownames_to_column("clust") %>%
-        tidyr::pivot_longer(cols = -clust) %>%
-        dplyr::mutate(name = stringr::str_remove(name, "_mean"),
-                      clust = "Mean")
-
-      signature_gene_query <-
-        signature_cluster_means_prep %>%
-        dplyr::filter(gene_name %in% input$content) %>%
-        tidyr::pivot_longer(cols = -gene_name) %>%
-        dplyr::rename(clust = gene_name)
-
-      signature_cluster_means_query <-
-        dplyr::bind_rows(signature_cluster_means_query,
-                         signature_gene_query)
-
-      if(relative){
-        signature_cluster_means_query <-
-          signature_cluster_means_query %>%
-          tidyr::pivot_wider(id_cols = clust, values_fn = mean) %>%
-          dplyr::arrange(factor(clust, levels = "Mean")) %>%
-          dplyr::mutate(across(A:Y, ~ . / .[1])) %>%
-          tidyr::pivot_longer(cols = -clust)
-      }
+        dplyr::select(id, A:Y) %>%
+        tidyr::pivot_longer(cols = -id, names_to = "aa", values_to = "freq") %>%
+        dplyr::mutate(plot_var = freq)
     }
+    if(relative == TRUE){
+      plot_mean <-
+        plot_mean %>%
+        dplyr::mutate(plot_var = freq/freq)
+
+      plot_aa <-
+        plot_aa %>%
+        dplyr::mutate(plot_var = freq/plot_mean$freq)
+    }
+
+    #BIND ROWS TO MAKE PLOT DATA
+    plot_data <-
+      plot_aa %>%
+      dplyr::bind_rows(plot_mean) %>%
+      dplyr::mutate(aa = as_factor(aa))
 
     # set colors -1 to assign specific color to "Mean"
-    colors_raw <- ddh_pal_d(palette = "protein")(length(unique(signature_cluster_means_query$clust))-1)
-    names(colors_raw) <- unique(signature_cluster_means_query$clust)[unique(signature_cluster_means_query$clust) != "Mean"]
+    colors_raw <- ddh::ddh_pal_d(palette = "protein")(length(unique(plot_data$id))-1)
+    names(colors_raw) <- unique(plot_data$id)[unique(plot_data$id) != "Mean"]
     mean_color <- "gray48"
-    names(mean_color) <- "Mean"
-    colors_radial <- c(colors_raw, mean_color)
+      names(mean_color) <- "Mean"
+      colors_radial <- c(colors_raw, mean_color)
 
-    # barplot fill
-    mean_fill_bar <- "gray94"
-    names(mean_fill_bar) <- "Mean"
-    colors_bar <- c(colors_raw, mean_fill_bar)
+      # barplot fill
+      mean_fill_bar <- "gray94"
+        names(mean_fill_bar) <- "Mean"
+        colors_bar <- c(colors_raw, mean_fill_bar)
 
-    #relative label
-    if(relative == TRUE){
-      y_label = "Relative AA Frequency"
-    } else {
-      y_label = "AA Frequency (%)"
-    }
-    # RADIAL/BAR PLOT
-    plot_complete <-
-      ggplot2::ggplot(signature_cluster_means_query,
-                                     ggplot2::aes(x = forcats::fct_inorder(name),
-                                                  y = value,
-                                                  group = clust,
-                                                  color = clust
-                                     )) +
-      {if(!barplot)ggplot2::geom_point(alpha = 0.8, show.legend = FALSE)} +
-      {if(!barplot)ggplot2::geom_polygon(fill = NA)} +
-      {if(barplot & relative)ggplot2::geom_col(data = signature_cluster_means_query %>%
-                                                 dplyr::filter(clust != "Mean"),
-                                               ggplot2::aes(x = reorder(name, -value),
-                                                            y = value,
-                                                            group = clust,
-                                                            color = clust,
-                                                            fill = clust),
-                                               position = "dodge2")} +
-      {if(barplot & !relative)ggplot2::geom_col(aes(fill = clust), position = "dodge2")} +
-      {if(barplot & relative)ggplot2::geom_hline(yintercept = 1, color = "gray48")} +
-      ggplot2::labs(y = y_label,
-                    x = ggplot2::element_blank()) +
-      {if(!barplot)ggplot2::coord_polar()} +
-      ggplot2::scale_color_manual(values = colors_radial) +
-      {if(barplot)ggplot2::scale_fill_manual(values = colors_bar)} +
-      ## theme changes
-      theme_ddh(base_size = 16) +
-      {if(!barplot)ggplot2::theme_minimal()} +
-      {if(!barplot)ggplot2::theme(
-        text = ggplot2::element_text(family = "Nunito Sans"),
-        legend.position = "top",
-        legend.title = ggplot2::element_blank(),
-        legend.text = ggplot2::element_text(size = 15),
-        axis.line.y = ggplot2::element_blank(),
-        axis.ticks.y = ggplot2::element_blank(),
-        axis.text = ggplot2::element_text(family = "Roboto Slab", size = 16),
-        axis.text.y = ggplot2::element_text(size = 16, color = "grey30"),
-        axis.title = ggplot2::element_text(size = 16)
-      )} +
-      {if(barplot)ggplot2::theme(
-        text = ggplot2::element_text(family = "Nunito Sans"),
-        legend.position = "top",
-        legend.title = ggplot2::element_blank(),
-        legend.text = ggplot2::element_text(size = 15),
-        axis.text = ggplot2::element_text(family = "Roboto Slab"),
-        axis.ticks.x = ggplot2::element_blank(),
-        axis.line.x = ggplot2::element_blank()
-      )} +
-      NULL
+        #relative label
+        if(relative == TRUE){
+          y_label = "Relative AA Frequency"
+        } else {
+          y_label = "AA Frequency (%)"
+        }
+        # RADIAL/BAR PLOT
+        plot_complete <-
+          ggplot2::ggplot(plot_data,
+                          ggplot2::aes(x = forcats::fct_inorder(aa),
+                                       y = plot_var,
+                                       group = id,
+                                       color = id
+                          )) +
+          {if(!barplot)ggplot2::geom_point(alpha = 0.8, show.legend = FALSE)} +
+          {if(!barplot)ggplot2::geom_polygon(fill = NA)} + #makes the radial connect
+          {if(barplot)ggplot2::geom_col(ggplot2::aes(x = forcats::fct_reorder(aa, plot_var, .desc = TRUE),
+                                                     y = plot_var,
+                                                     color = id,
+                                                     fill = id),
+                                        position = "dodge")} +
+          {if(barplot & relative)ggplot2::geom_hline(yintercept = 1, color = "gray48")} +
+          ggplot2::labs(y = y_label,
+                        x = ggplot2::element_blank()) +
+          {if(!barplot)ggplot2::coord_polar()} +
+          ggplot2::scale_color_manual(values = colors_radial) +
+          {if(barplot)ggplot2::scale_fill_manual(values = colors_bar)} +
+          ## theme changes
+          ddh::theme_ddh(base_size = 16) +
+          {if(!barplot)ggplot2::theme_minimal()} +
+          {if(!barplot)ggplot2::theme(
+            text = ggplot2::element_text(family = "Nunito Sans"),
+            legend.position = "top",
+            legend.title = ggplot2::element_blank(),
+            legend.text = ggplot2::element_text(size = 15),
+            axis.line.y = ggplot2::element_blank(),
+            axis.ticks.y = ggplot2::element_blank(),
+            axis.text = ggplot2::element_text(family = "Roboto Slab", size = 16),
+            axis.text.y = ggplot2::element_text(size = 16, color = "grey30"),
+            axis.title = ggplot2::element_text(size = 16)
+          )} +
+          {if(barplot)ggplot2::theme(
+            text = ggplot2::element_text(family = "Nunito Sans"),
+            legend.position = "top",
+            legend.title = ggplot2::element_blank(),
+            legend.text = ggplot2::element_text(size = 15),
+            axis.text = ggplot2::element_text(family = "Roboto Slab"),
+            axis.ticks.x = ggplot2::element_blank(),
+            axis.line.x = ggplot2::element_blank()
+          )} +
+          NULL
 
-    if(card == TRUE){
-      plot_complete <-
-        plot_complete +
-        ggplot2::labs(x = "", y = "") + #, title = "Signature Information", caption = "more ...") +
-        ggplot2::theme(
-          text = ggplot2::element_text(family = "Nunito Sans"),
-          legend.position = "none",
-          legend.title = ggplot2::element_blank(),
-          legend.text = ggplot2::element_blank(),
-          axis.text.x = ggplot2::element_text(family = "Roboto Slab"),
-          axis.text.y = ggplot2::element_blank(),
-          axis.ticks.x = ggplot2::element_blank(),
-          axis.line.x = ggplot2::element_blank()
-        )
-    }
+        if(card == TRUE){
+          plot_complete <-
+            plot_complete +
+            ggplot2::labs(x = "", y = "") + #, title = "Signature Information", caption = "more ...") +
+            ggplot2::theme(
+              text = ggplot2::element_text(family = "Nunito Sans"),
+              legend.position = "none",
+              legend.title = ggplot2::element_blank(),
+              legend.text = ggplot2::element_blank(),
+              axis.text.x = ggplot2::element_text(family = "Roboto Slab"),
+              axis.text.y = ggplot2::element_blank(),
+              axis.ticks.x = ggplot2::element_blank(),
+              axis.line.x = ggplot2::element_blank()
+            )
+        }
 
-    return(plot_complete)
+        return(plot_complete)
   }
 
   #error handling
@@ -800,7 +780,6 @@ make_radial_bar <- function(input = list(),
                                  cluster = cluster,
                                  barplot = TRUE,
                                  card = card)
-
     return(plot_complete)
   }
 
@@ -824,55 +803,51 @@ make_radial_bar <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' make_umap_plot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-#' make_umap_plot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+#' make_umap_plot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), show_subset = TRUE)
+#' make_umap_plot(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')), labels = TRUE)
 #' \dontrun{
 #' make_umap_plot(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_umap_plot <- function(data_gene_signature_clusters = gene_signature_clusters,
-                           input = list(),
+make_umap_plot <- function(input = list(),
                            show_subset = FALSE,
                            labels = FALSE) {
   make_umap_plot_raw <- function() {
+    gene_cluster_position <- get_content("gene_cluster_position", dataset = TRUE)
 
-    data_proteins_clean <-
-      data_gene_signature_clusters %>%
-      # dplyr::filter(clust != 0) %>%
-      dplyr::mutate(clust = paste0("Cluster ", clust))
+    data_gene_signature_clusters <-
+      get_data_object(object_names = input$content,
+                      dataset_name = "gene_signature_clusters",
+                      pivotwider = TRUE) %>%
+      dplyr::mutate(across(contains(c("X", "clust", "member")), as.numeric))
 
     query_clust <-
-      data_proteins_clean %>%
-      dplyr::filter(gene_name %in% input$content) %>%
+      data_gene_signature_clusters %>%
       dplyr::pull(clust) %>%
       unique()
 
-    cluster_genes <-
-      data_proteins_clean %>%
-      dplyr::filter(clust %in% query_clust)
-
-    colors <- ddh_pal_c(palette = "protein")(length(query_clust))
+    colors <- ddh::ddh_pal_c(palette = "protein")(length(query_clust))
 
     # UMAP PLOT
-    plot_complete <- ggplot2::ggplot() +
-      {if(!show_subset)ggplot2::geom_point(data = data_proteins_clean %>%
-                                             dplyr::filter(!uniprot_id %in% cluster_genes$uniprot_id),
-                                           ggplot2::aes(X1, X2), size = 0.8, color = "grey80")} +
-      ggplot2::geom_point(data = data_proteins_clean %>%
-                            dplyr::filter(uniprot_id %in% cluster_genes$uniprot_id),
-                          ggplot2::aes(X1, X2, color = clust), size = 0.8) +
-      {if(labels)ggrepel::geom_label_repel(data = cluster_genes %>%
-                                             dplyr::filter(gene_name %in% input$content),
-                                           ggplot2::aes(X1, X2, label = gene_name))} +
+    plot_complete <-
+      ggplot2::ggplot() +
+      ggplot2::geom_point(data = gene_cluster_position,
+                          ggplot2::aes(X1, X2), size = 0.8, color = "grey80") +
+      {if(show_subset)ggplot2::geom_point(data = gene_cluster_position %>%
+                                            dplyr::filter(clust %in% query_clust),
+                                          ggplot2::aes(X1, X2, color = clust), size = 0.8)} +
+      {if(labels)ggplot2::geom_point(data = data_gene_signature_clusters,
+                                     ggplot2::aes(X1, X2), color = "navy")} +
+      {if(labels)ggrepel::geom_label_repel(data = data_gene_signature_clusters,
+                                           ggplot2::aes(X1, X2, label = id))} +
       ggplot2::labs(x = "UMAP 1",
                     y = "UMAP 2") +
       ggplot2::scale_color_manual(
         values = rep(colors, length.out =
-                       nrow(data_proteins_clean %>%
-                              dplyr::filter(uniprot_id %in% cluster_genes$uniprot_id)))
+                       nrow(gene_cluster_position %>% dplyr::filter(clust %in% query_clust)))
       ) +
       ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 3))) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         legend.position = "top",
@@ -908,27 +883,33 @@ make_umap_plot <- function(data_gene_signature_clusters = gene_signature_cluster
 #' @export
 #' @examples
 #' make_cluster_enrich(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-#' make_cluster_enrich(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+#' make_cluster_enrich(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
 #' make_cluster_enrich(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_cluster_enrich <- function(data_gene_signature_clusters = gene_signature_clusters,
-                                data_gene_signature_cluster_enrichment = gene_signature_cluster_enrichment,
-                                input = list(),
-                                ontology = "BP",
-                                num_terms = 20) {
-
+make_cluster_enrich <- function(input = list(),
+                                ontology = "BP"){
   make_cluster_enrich_plot_raw <- function() {
+    #get clust numbers
+    query_clust <-
+      get_data_object(object_names = input$content,
+                      dataset_name = "gene_signature_clusters") %>%
+      dplyr::filter(key == "member_prob") %>%
+      dplyr::pull(value) %>%
+      as.numeric(.)
 
-    plot_data <- make_clustering_enrichment_table(data_gene_signature_clusters,
-                                                  data_gene_signature_cluster_enrichment,
-                                                  input = input,
-                                                  ontology = ontology)
+    # get gene_signature_cluster_enrichment
+    gene_signature_cluster_enrichment <- get_content("gene_signature_cluster_enrichment", dataset = TRUE)
+
+    gene_signature_cluster_enrichment <-
+      gene_signature_cluster_enrichment %>%
+      dplyr::filter(cluster %in% query_clust)
 
     plot_complete <-
-      plot_data %>%
+      gene_signature_cluster_enrichment %>%
       dplyr::arrange(pvalue) %>%
-      dplyr::slice(1:num_terms) %>%
+      dplyr::filter(ont == ontology) %>%
+      dplyr::slice(1:10) %>%
       ggplot2::ggplot(ggplot2::aes(x = Count,
                                    y = reorder(substr(paste0(Description, " (", ID, ")"), 1, 40), Count),
                                    fill = pvalue)) +
@@ -939,7 +920,7 @@ make_cluster_enrich <- function(data_gene_signature_clusters = gene_signature_cl
       ggplot2::guides(fill = ggplot2::guide_colorbar(barheight = ggplot2::unit(6, "lines"),
                                                      barwidth = ggplot2::unit(.6, "lines"),
                                                      reverse = TRUE)) +
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         title = ggplot2::element_blank(),
         text = ggplot2::element_text(family = "Nunito Sans"),
@@ -1027,9 +1008,7 @@ make_structure <- function(input = list(),
 #' \dontrun{
 #' make_structure3d(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_structure3d <- function(data_gene_uniprot_pdb_table = gene_uniprot_pdb_table,
-                             data_universal_proteins = universal_proteins,
-                             gene_symbol = NULL,
+make_structure3d <- function(gene_symbol = NULL,
                              pdb_id = NULL,
                              input = list(),
                              color = FALSE,
@@ -1041,6 +1020,9 @@ make_structure3d <- function(data_gene_uniprot_pdb_table = gene_uniprot_pdb_tabl
                              invert = NULL,
                              elem = NULL
 ) {
+  data_gene_pdb_table <-
+    get_data_object(object_names = input$content,
+                    dataset_name = "gene_pdb_table")
   make_structure3d_raw <- function() {
     #because this fun doesn't take multi-gene queries
     if(is.null(gene_symbol)) {
@@ -1050,19 +1032,17 @@ make_structure3d <- function(data_gene_uniprot_pdb_table = gene_uniprot_pdb_tabl
         gene_symbol <- input$content[1]
       }
     }
-    #check  to see if pdb file exists
+    #check  to see if pdb file exists from alpha fold model
     pdb_path <- load_pdb(input = input)
 
     if(!is.null(pdb_path) & is.null(pdb_id)) {
       plot_data <- bio3d::read.pdb(pdb_path)
     } else {
       plot_data <-
-        data_universal_proteins %>%
-        dplyr::filter(gene_name %in% gene_symbol) %>%
-        dplyr::left_join(data_gene_uniprot_pdb_table, by = c("uniprot_id" = "uniprot")) %>%
-        tidyr::unnest(data) %>%
-        {if (is.null(pdb_id)) dplyr::slice(., 1) else dplyr::filter(., pdb == pdb_id)} %>%
-        dplyr::pull(pdb) %>%
+        data_gene_pdb_table %>%
+        dplyr::filter(key == "pdb") %>%
+        {if (is.null(pdb_id)) dplyr::slice(., 1) else dplyr::filter(., value == pdb_id)} %>%
+        dplyr::pull(value) %>%
         r3dmol::m_fetch_pdb()
     }
 
@@ -1072,17 +1052,20 @@ make_structure3d <- function(data_gene_uniprot_pdb_table = gene_uniprot_pdb_tabl
       r3dmol::m_center()
 
     if(color) {
-      plot_complete <- plot_complete %>%
+      plot_complete <-
+        plot_complete %>%
         r3dmol::m_set_style(style = r3dmol::m_style_cartoon(color = "spectrum", ribbon = ribbon)) %>%
         r3dmol::m_center()
     } else {
-      plot_complete <- plot_complete %>%
+      plot_complete <-
+        plot_complete %>%
         r3dmol::m_set_style(style = r3dmol::m_style_cartoon(ribbon = ribbon)) %>%
         r3dmol::m_center()
     }
 
     if(selection) {
-      plot_complete <- plot_complete %>%
+      plot_complete <-
+        plot_complete %>%
         r3dmol::m_add_style(
           style = c(
             r3dmol::m_style_stick(),
@@ -1125,21 +1108,22 @@ make_structure3d <- function(data_gene_uniprot_pdb_table = gene_uniprot_pdb_tabl
 #' @export
 #' @examples
 #' make_pubmed(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_pubmed(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' make_pubmed(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' make_pubmed(input = list(type = 'compound', content = 'aspirin'))
 #' \dontrun{
 #' make_pubmed(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_pubmed <- function(data_universal_pubmed = universal_pubmed,
-                        input = list(),
+make_pubmed <- function(input = list(),
                         card = FALSE) {
+  #get data
+  data_universal_pubmed <-
+    make_pubmed_table(input = input) #from tables.R
+
   make_pubmed_raw <- function() {
     plot_data <-
       data_universal_pubmed %>%
-      dplyr::filter(name %in% input$content) %>%
-      tidyr::unnest(data) %>%
-      dplyr::ungroup() %>%
-      dplyr::group_by(name, year) %>%
+      dplyr::group_by(id, year) %>%
       dplyr::summarize(n = dplyr::n()) %>%
       dplyr::mutate(cumsum = cumsum(n)) %>%
       dplyr::arrange(year)
@@ -1154,9 +1138,9 @@ make_pubmed <- function(data_universal_pubmed = universal_pubmed,
       ggplot2::geom_step(
         ggplot2::aes(x = year,
                      y = cumsum,
-                     group = name,
-                     color = forcats::fct_reorder2(name, year, cumsum)),
-        size = 1.2
+                     group = id,
+                     color = forcats::fct_reorder2(id, year, cumsum)),
+        linewidth = 1.2
       ) +
       ggplot2::coord_cartesian(clip = "off") + #allows points & labels to fall off plotting area
       ggplot2::scale_x_continuous(breaks = scales::breaks_pretty(4),
@@ -1164,8 +1148,8 @@ make_pubmed <- function(data_universal_pubmed = universal_pubmed,
       ggplot2::scale_y_continuous(expand = c(.01, .01), limits = c(0, max(plot_max$cumsum))) +
       scale_color_ddh_d(palette = input$type) +
       ggplot2::labs(x = "Year of Publication", y = "Cumulative Sum") +
-      theme_ddh(base_size = 16,
-                margin = 20) +
+      ddh::theme_ddh(base_size = 16,
+                     margin = 20) +
       ggplot2::theme(
         #text = element_text(family = "Nunito Sans"),
         #axis.text.y = element_text(family = "Roboto Slab"),
@@ -1174,7 +1158,7 @@ make_pubmed <- function(data_universal_pubmed = universal_pubmed,
       NULL
 
     ## only add labels + white space if several genes queried
-    if (length(unique(plot_data$name)) > 1) {
+    if (length(unique(plot_data$id)) > 1) {
       plot_complete <-
         plot_step +
         {if(card == FALSE)
@@ -1183,7 +1167,7 @@ make_pubmed <- function(data_universal_pubmed = universal_pubmed,
             ggplot2::aes(x = year,
                          y = cumsum,
                          #label = name),
-                         label = paste0(name, " (", cumsum, ")")),
+                         label = paste0(id, " (", cumsum, ")")),
             size = 5.5,
             hjust = 0,
             direction = "y",
@@ -1206,12 +1190,13 @@ make_pubmed <- function(data_universal_pubmed = universal_pubmed,
           data = plot_max,
           ggplot2::aes(x = year,
                        y = cumsum,
-                       group = name,
-                       color = forcats::fct_reorder2(name, year, cumsum)),
+                       group = id,
+                       color = forcats::fct_reorder2(id, year, cumsum)),
           size = 4, shape = 21, fill = "white", stroke = 2
         ) +
         ggplot2::theme(
-          plot.margin = ggplot2::margin(7, 180, 7, 7) #adds margin to right side of graph for label #adds margin to right side of graph for label
+          plot.margin = ggplot2::margin(7, 180, 7, 7), #adds margin to right side of graph for label #adds margin to right side of graph for label
+          legend.position="none"
         )
     } else {
       plot_complete <-
@@ -1220,8 +1205,8 @@ make_pubmed <- function(data_universal_pubmed = universal_pubmed,
           data = plot_max,
           ggplot2::aes(x = year,
                        y = cumsum,
-                       group = name,
-                       color = forcats::fct_reorder2(name, year, cumsum)),
+                       group = id,
+                       color = forcats::fct_reorder2(id, year, cumsum)),
           size = 4, shape = 21, fill = "white", stroke = 2
         )
     }
@@ -1236,7 +1221,7 @@ make_pubmed <- function(data_universal_pubmed = universal_pubmed,
       plot_complete <-
         plot_complete +
         ggplot2::labs(y = "Cumulative Publications",
-                      color = "Query")
+                      color = "")
     }
 
     if(card == TRUE){
@@ -1276,19 +1261,21 @@ make_pubmed <- function(data_universal_pubmed = universal_pubmed,
 #' @examples
 #' make_cellanatogram(input = list(type = "gene", content = c("ROCK2")))
 #' make_cellanatogram(input = list(type = "gene", content = c("ROCK2")), card = TRUE)
-#' make_cellanatogram(input = list(type = "gene", query = "ROCK1", content = c("ROCK1", "ROCK2")))
+#' make_cellanatogram(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 #' \dontrun{
 #' make_cellanatogram(input = list(type = 'gene', content = 'ROCK2'))
 #' }
-make_cellanatogram <- function(data_gene_subcell = gene_subcell,
-                               input = list(),
+make_cellanatogram <- function(input = list(),
                                card = FALSE) {
+  data_gene_subcell <-
+    get_data_object(object_names = input$content,
+                    dataset_name = "gene_subcell",
+                    pivotwider = TRUE) %>%
+    dplyr::mutate(value = round(as.numeric(value), 1)) %>%
+    dplyr::select(organ, type, colour, value)
   make_cellanatogram_raw <- function() {
     plot_data <-
       data_gene_subcell %>%
-      dplyr::filter(gene_name %in% input$content) %>%
-      dplyr::select(organ, type, colour, value) %>%
-      tidyr::drop_na() %>%
       dplyr::group_by(organ) %>%
       dplyr::summarise(type = type[1], value = mean(value)) %>%
       dplyr::ungroup() %>%
@@ -1340,14 +1327,16 @@ make_cellanatogram <- function(data_gene_subcell = gene_subcell,
 #' @export
 #' @examples
 #' make_cellanatogramfacet(input = list(type = "gene", content = c("BRCA1", "ROCK2")))
-make_cellanatogramfacet <- function(data_gene_subcell = gene_subcell,
-                                    input = list()) {
+make_cellanatogramfacet <- function(input = list()) {
+  data_gene_subcell <-
+    get_data_object(object_names = input$content,
+                    dataset_name = "gene_subcell",
+                    pivotwider = TRUE) %>%
+    dplyr::select(organ, type, colour, value) %>%
+    mutate(value = as.numeric(value))
   make_cellanatogramfacet_raw <- function() {
     plot_data <-
       data_gene_subcell %>%
-      dplyr::filter(gene_name %in% input$content) %>%
-      dplyr::select(gene_name, organ, type, colour, value) %>%
-      tidyr::drop_na() %>%
       dplyr::group_by(organ) %>%
       dplyr::summarise(type = gene_name, value = mean(value)) %>%
       dplyr::ungroup() %>%
@@ -1398,27 +1387,34 @@ make_cellanatogramfacet <- function(data_gene_subcell = gene_subcell,
 #' @export
 #' @examples
 #' make_female_anatogram(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_female_anatogram(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' make_female_anatogram(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' \dontrun{
 #' make_female_anatogram(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_female_anatogram <- function(data_gene_female_tissue = gene_female_tissue,
-                                  data_gene_male_tissue = gene_male_tissue,
+make_female_anatogram <- function(input = list(),
                                   anatogram = "female",
-                                  input = list(),
                                   card = FALSE) {
+
   make_female_anatogram_raw <- function() {
     if(anatogram == "female"){
-      data_tissue <- data_gene_female_tissue
+      data_tissue <-
+        get_data_object(object_names = input$content,
+                        dataset_name = "gene_female_tissue",
+                        pivotwider = TRUE)
     } else if (anatogram == "male") {
-      data_tissue <- data_gene_male_tissue
+      data_tissue <-
+        get_data_object(object_names = input$content,
+                        dataset_name = "gene_male_tissue",
+                        pivotwider = TRUE)
     } else {
       print("Declare your anatogram type")
     }
 
     body_data <-
       data_tissue %>%
-      dplyr::filter_all(dplyr::any_vars(gene_name %in% input$content)) %>%
+      dplyr::select(id, organ, type, colour, value) %>%
+      dplyr::mutate(value = as.numeric(value)) %>%
       dplyr::filter(!is.na(type)) %>%
       dplyr::arrange(dplyr::desc(-value))
 
@@ -1434,7 +1430,7 @@ make_female_anatogram <- function(data_gene_female_tissue = gene_female_tissue,
 
     body_plot <-
       body_data %>%
-      gganatogram(outline = TRUE, fillOutline='grey95', organism = "human", sex = anatogram, fill = 'value') +
+      gganatogram::gganatogram(outline = TRUE, fillOutline='grey95', organism = "human", sex = anatogram, fill = 'value') +
       ggplot2::coord_fixed() +
       scale_fill_ddh_c(palette = "gene", breaks = break_points, name = NULL) +
       ggplot2::guides(fill = ggplot2::guide_colorsteps(show.limits = TRUE)) +
@@ -1445,6 +1441,7 @@ make_female_anatogram <- function(data_gene_female_tissue = gene_female_tissue,
       body_plot <-
         body_plot +
         ggplot2::labs(x = "") + #, title = "Tissue Distribution", caption = "more ...") +
+        ggplot2::theme(legend.position="none") +
         NULL
     }
 
@@ -1476,8 +1473,8 @@ make_female_anatogram <- function(data_gene_female_tissue = gene_female_tissue,
 #' \dontrun{
 #' make_male_anatogram(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_male_anatogram <- function(anatogram = "male",
-                                input = list(),
+make_male_anatogram <- function(input = list(),
+                                anatogram = "male",
                                 card = FALSE){
 
   male_anatogram <- make_female_anatogram(anatogram = anatogram,
@@ -1506,13 +1503,18 @@ make_male_anatogram <- function(anatogram = "male",
 #' \dontrun{
 #' make_tissue(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_tissue <- function(data_gene_tissue = gene_tissue,
-                        input = list(),
+make_tissue <- function(input = list(),
                         card = FALSE) {
+  data_gene_tissue <-
+    get_data_object(object_names = input$content,
+                    dataset_name = "gene_tissue",
+                    pivotwider = TRUE) %>%
+    dplyr::select(id, organ, value) %>%
+    dplyr::mutate(value = as.numeric(value))
+
   make_tissue_raw <- function() {
     plot_data <-
       data_gene_tissue %>%
-      dplyr::filter_all(dplyr::any_vars(gene_name %in% input$content)) %>%
       dplyr::group_by(organ) %>%
       dplyr::mutate(sum_value = sum(value),
                     organ = stringr::str_replace_all(organ, "_", " "),
@@ -1540,7 +1542,7 @@ make_tissue <- function(data_gene_tissue = gene_tissue,
       ggplot2::coord_cartesian(clip = "off") +
       ggplot2::scale_x_continuous(expand = c(0, 0), sec.axis = ggplot2::dup_axis()) +
       ggplot2::scale_y_discrete(expand = c(.01, .01)) +
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(axis.text.y = ggplot2::element_text(angle = 0, family = "Roboto Slab"),
                      axis.ticks.y = ggplot2::element_blank(),
                      axis.line.y = ggplot2::element_blank()) +
@@ -1598,21 +1600,30 @@ make_tissue <- function(data_gene_tissue = gene_tissue,
 #' @export
 #' @examples
 #' make_cellexpression(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_cellexpression(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' make_cellexpression(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' \dontrun{
 #' make_cellexpression(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_cellexpression <- function(data_universal_expression_long = universal_expression_long,
-                                data_cell_expression_names = cell_expression_names,
-                                data_universal_stats_summary = universal_stats_summary,
-                                input = list(),
+make_cellexpression <- function(input = list(),
                                 var = "gene",
                                 card = FALSE) {
+  # get universal_stats_summary from s3
+  universal_stats_summary <- get_content("universal_stats_summary", dataset = TRUE)
+
+  data_universal_expression_long <-
+    get_data_object(object_names = input$content,
+                    dataset_name = "universal_expression_long",
+                    pivotwider = TRUE) %>%
+    dplyr::mutate(across(contains(c("expression")), as.numeric))
+
+  cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
+
   make_cellexpression_raw <- function() {
     if (var == "gene") {
       plot_initial <-
         data_universal_expression_long %>%
-        dplyr::select(dplyr::any_of(c("X1", "gene", "gene_expression"))) %>%
+        dplyr::select(dplyr::any_of(c("id", "depmap_id", "gene_expression"))) %>%
         dplyr::rename("expression_var" = "gene_expression")
       mean <- get_stats(data_set = "expression_gene", var = "mean")
       upper_limit <- get_stats(data_set = "expression_gene", var = "upper")
@@ -1621,7 +1632,7 @@ make_cellexpression <- function(data_universal_expression_long = universal_expre
     } else if (var == "protein") {
       plot_initial <-
         data_universal_expression_long %>%
-        dplyr::select(dplyr::any_of(c("X1", "gene", "protein_expression"))) %>%
+        dplyr::select(dplyr::any_of(c("id", "depmap_id", "protein_expression"))) %>%
         dplyr::rename("expression_var" = "protein_expression")
       mean <- get_stats(data_set = "expression_protein", var = "mean")
       upper_limit <- get_stats(data_set = "expression_protein", var = "upper")
@@ -1634,27 +1645,26 @@ make_cellexpression <- function(data_universal_expression_long = universal_expre
     if (input$type == "gene") {
       plot_data <-
         plot_initial %>%
-        dplyr::filter(gene %in% input$content,
-                      !is.na(expression_var)) %>%
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(-X1) %>%
+        dplyr::filter(!is.na(expression_var)) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
         dplyr::select(cell_line, lineage, lineage_subtype, dplyr::everything()) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
-        dplyr::mutate(gene_fct = forcats::fct_inorder(gene)) %>%
+        dplyr::mutate(gene_fct = forcats::fct_inorder(id)) %>%
         ggplot2::ggplot(ggplot2::aes(y = gene_fct,
                                      x = expression_var,
                                      text = paste0("Cell Line: ", cell_line),
-                                     color = gene
+                                     color = id
         ))
     } else if (input$type == "cell") {
       color_type <- "cell"
+      #REVISIT select(cell_line), mutate(cell_fct), and color=cell_line
       plot_data <-
         plot_initial %>%
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(-X1) %>%
+        dplyr::left_join(data_cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
         dplyr::select(cell_line, lineage, lineage_subtype, dplyr::everything()) %>%
-        dplyr::filter(cell_line %in% input$content,
-                      !is.na(expression_var)) %>%
+        dplyr::filter(!is.na(expression_var)) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
         dplyr::mutate(cell_fct = forcats::fct_inorder(cell_line)) %>%
         ggplot2::ggplot(ggplot2::aes(y = cell_fct,
@@ -1712,7 +1722,7 @@ make_cellexpression <- function(data_universal_expression_long = universal_expre
              make_bomb_plot()})
 }
 
-# G-EXPvP-EXP ----------------------------------
+# GENE V. PROTEIN EXPRESSION ----------------------------------
 #' Gene Expression versus Protein Expression
 #'
 #' Each point shows the gene expression value compared to the protein expression value for gene within a given cell line. The Pearson correlation coefficient and the p-values are provided in the top-left corner of the plot.
@@ -1726,42 +1736,47 @@ make_cellexpression <- function(data_universal_expression_long = universal_expre
 #' \dontrun{
 #' make_cellgeneprotein(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_cellgeneprotein <- function(data_universal_expression_long = universal_expression_long,
-                                 data_cell_expression_names = cell_expression_names,
-                                 input = list(),
+make_cellgeneprotein <- function(input = list(),
                                  card = FALSE) {
+  data_universal_expression_long <-
+    get_data_object(object_names = input$content,
+                    dataset_name = "universal_expression_long",
+                    pivotwider = TRUE) %>%
+    dplyr::mutate(across(contains(c("expression")), as.numeric))
+
+  cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
+
   make_cellgeneprotein_raw <- function() {
     if (input$type == "gene") {
       plot_initial <-
         data_universal_expression_long %>%
-        dplyr::filter(gene %in% input$content,
-                      !is.na(gene_expression),
+        dplyr::filter(!is.na(gene_expression),
                       !is.na(protein_expression)) %>%
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(-X1) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
         dplyr::select(cell_line, lineage, lineage_subtype, dplyr::everything()) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
         ggplot2::ggplot(ggplot2::aes(x = gene_expression,
                                      y = protein_expression,
                                      text = paste0("Cell Line: ", cell_line),
-                                     color = gene,
-                                     group = gene)
+                                     color = id,
+                                     group = id)
         )
     } else if (input$type == "cell") {
+      #CHECK select(cell_line); should be id?; text should be gene or id?
       plot_initial <-
         data_universal_expression_long %>%
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(-X1) %>%
+        dplyr::left_join(data_cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
         dplyr::select(cell_line, lineage, lineage_subtype, dplyr::everything()) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
-        dplyr::filter(cell_line %in% input$content,
-                      !is.na(gene_expression),
+        dplyr::filter(!is.na(gene_expression),
                       !is.na(protein_expression)) %>%
         ggplot2::ggplot(ggplot2::aes(x = gene_expression,
                                      y = protein_expression,
                                      text = paste0("Gene: ", gene),
-                                     color = cell_line,
-                                     group = cell_line)
+                                     color = id,
+                                     group = id)
         )
     }
 
@@ -1777,7 +1792,7 @@ make_cellgeneprotein <- function(data_universal_expression_long = universal_expr
       # R coefs
       {if(card == FALSE)ggpubr::stat_cor(digits = 3)} +
       scale_color_ddh_d(palette = input$type) +
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab")
@@ -1828,51 +1843,55 @@ make_cellgeneprotein <- function(data_universal_expression_long = universal_expr
 #' @export
 #' @examples
 #' make_celldeps(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_celldeps(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' make_celldeps(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' \dontrun{
 #' make_celldeps(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_celldeps <- function(data_universal_achilles_long = universal_achilles_long,
-                          data_universal_prism_long = universal_prism_long,
-                          data_universal_stats_summary = universal_stats_summary,
-                          data_cell_expression_names = cell_expression_names,
-                          input = list(),
+make_celldeps <- function(input = list(),
                           card = FALSE,
                           lineplot = FALSE,
                           scale = NULL) {#scale is expecting 0 to 1
+  # get universal_stats_summary from s3
+  universal_stats_summary <- get_content("universal_stats_summary", dataset = TRUE)
+  # get cell_expression_names from s3
+  cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
+
+  #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
+  data_universal_achilles_long <-
+    get_data_object(object_names = input$content,
+                    dataset_name = "universal_achilles_long",
+                    pivotwider = TRUE) %>%
+    dplyr::mutate(across(contains(c("score")), as.numeric))
+
   make_celldeps_raw <- function() {
     if(input$type == "gene") {
-      aes_var <- rlang::sym("name")
       var_title <- "Gene"
       ylab <- "Dependecy Score"
       mean <- get_stats(data_set = "achilles", var = "mean")
 
       plot_data <-
         data_universal_achilles_long %>% #plot setup
-        dplyr::filter(gene %in% input$content) %>%
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(-X1) %>%
-        dplyr::group_by(gene) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
+        dplyr::group_by(id) %>%
         dplyr::arrange(dep_score) %>%
         dplyr::mutate(
           rank = 1:dplyr::n(),
           med = median(dep_score, na.rm= TRUE)
         ) %>%
-        dplyr::ungroup() %>%
-        dplyr::rename(name = gene)
+        dplyr::ungroup()
 
     } else if(input$type == "compound") {
-      aes_var <- rlang::sym("name")
       var_title <- "Compound"
       ylab <- "Log2FC"
       mean <- get_stats(data_set = "prism", var = "mean")
 
       plot_data <-
         data_universal_prism_long %>% #plot setup
-        dplyr::filter(name %in% input$content) %>%
-        dplyr::left_join(data_cell_expression_names, by = c("x1" = "X1")) %>%
-        dplyr::select(-1) %>%
-        dplyr::group_by(name) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
+        dplyr::group_by(id) %>%
         dplyr::arrange(log2fc) %>%
         dplyr:: mutate(
           rank = 1:n(),
@@ -1882,24 +1901,21 @@ make_celldeps <- function(data_universal_achilles_long = universal_achilles_long
         dplyr::rename(dep_score = log2fc) #rename for graph
 
     } else { #cell lines
-      aes_var <- rlang::sym("cell_line")
       var_title <- "Gene"
       ylab <- "Dependecy Score"
       mean <- get_stats(data_set = "achilles_cell", var = "mean")
 
       plot_data <-
         data_universal_achilles_long %>% #plot setup
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::filter(cell_line %in% input$content) %>%
-        dplyr::select(-X1) %>%
-        dplyr::group_by(cell_line) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
+        dplyr::group_by(id) %>%
         dplyr::arrange(dep_score) %>%
         dplyr:: mutate(
           rank = 1:dplyr::n(),
           med = median(dep_score, na.rm= TRUE)
         ) %>%
-        dplyr::ungroup() %>%
-        dplyr::rename(name = gene)
+        dplyr::ungroup()
     }
 
     if(!is.null(scale) & !card){
@@ -1912,32 +1928,24 @@ make_celldeps <- function(data_universal_achilles_long = universal_achilles_long
       if(is.null(scale)) {
         scale <- 0.3
       }
-      if(input$type == "gene") {
-        plot_data <-
-          plot_data %>%
-          dplyr::group_by(name) %>%
-          dplyr::sample_n(scale*dplyr::n()) %>%
-          dplyr::ungroup()
-      } else {
-        plot_data <-
-          plot_data %>%
-          dplyr::group_by(cell_line) %>%
-          dplyr::sample_n(scale*dplyr::n()) %>%
-          dplyr::ungroup()
-      }
+      plot_data <-
+        plot_data %>%
+        dplyr::group_by(id) %>%
+        dplyr::sample_n(scale*dplyr::n()) %>%
+        dplyr::ungroup()
     }
 
     plot_complete <-
       plot_data %>%
       ggplot2::ggplot(ggplot2::aes(x = rank,
                                    y = dep_score,
-                                   text = glue::glue('{var_title}: {name}\nCell Line: {cell_line}'),
-                                   color = forcats::fct_reorder(!!aes_var, med),
-                                   fill = forcats::fct_reorder(!!aes_var, med)
+                                   text = glue::glue('{var_title}: {id}\nCell Line: {cell_line}'),
+                                   color = forcats::fct_reorder(id, med),
+                                   fill = forcats::fct_reorder(id, med)
       )) +
       ## dot/line plot
       {if(!card & !lineplot)ggplot2::geom_point(size = 1.1, stroke = .25, alpha = 0.6)} +
-      {if(input$type == "gene" & (card | lineplot))ggplot2::geom_line(ggplot2::aes(group = name))} +
+      {if(input$type == "gene" & (card | lineplot))ggplot2::geom_line(ggplot2::aes(group = id))} +
       {if(input$type == "cell" & (card | lineplot))ggplot2::geom_line(ggplot2::aes(group = cell_line))} +
       ## indicator lines dep. score
       ggplot2::geom_hline(yintercept = mean, linetype = "dashed", color = "grey80") +
@@ -1959,7 +1967,7 @@ make_celldeps <- function(data_universal_achilles_long = universal_achilles_long
         fill = "Query"
       ) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
@@ -2013,37 +2021,41 @@ make_celldeps <- function(data_universal_achilles_long = universal_achilles_long
 #' \dontrun{
 #' make_cellbar(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_cellbar <- function(data_universal_achilles_long = universal_achilles_long,
-                         data_universal_prism_long = universal_prism_long,
-                         data_cell_expression_names = cell_expression_names,
-                         data_universal_stats_summary = universal_stats_summary,
-                         input = list(),
+make_cellbar <- function(input = list(),
                          card = FALSE,
                          scale = NULL) {
+  # get universal_stats_summary from s3
+  universal_stats_summary <- get_content("universal_stats_summary", dataset = TRUE)
+  # get cell_expression_names from s3
+  cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
+
+  #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
+  data_universal_achilles_long <-
+    get_data_object(object_names = input$content,
+                    dataset_name = "universal_achilles_long",
+                    pivotwider = TRUE) %>%
+    dplyr::mutate(across(contains(c("score")), as.numeric))
+
   make_cellbar_raw <- function() {
     if(input$type == "gene") {
-      aes_var <- rlang::sym("name")
       var_title <- "Gene"
       ylab <- "Dependecy Score"
       mean <- get_stats(data_set = "achilles", var = "mean")
 
       plot_data <-
         data_universal_achilles_long %>% #plot setup
-        dplyr::filter(gene %in% input$content) %>%
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(-X1) %>%
-        dplyr::group_by(gene) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
+        dplyr::group_by(id) %>%
         dplyr::arrange(dep_score) %>%
         dplyr::mutate(
           rank = 1:dplyr::n(),
           med = median(dep_score, na.rm= TRUE)
         ) %>%
         dplyr::ungroup() %>%
-        dplyr::rename(name = gene) %>%
         dplyr::mutate(rank = as.integer(forcats::fct_reorder(cell_line, dep_score)))
 
     } else if(input$type == "compound") {
-      aes_var <- rlang::sym("name")
       var_title <- "Compound"
       ylab <- "Log2FC"
       mean <- get_stats(data_set = "prism", var = "mean")
@@ -2064,54 +2076,42 @@ make_cellbar <- function(data_universal_achilles_long = universal_achilles_long,
         dplyr::mutate(rank = as.integer(forcats::fct_reorder(name, dep_score)))
 
     } else { #cell lines
-      aes_var <- rlang::sym("cell_line")
       var_title <- "Gene"
       ylab <- "Dependecy Score"
       mean <- get_stats(data_set = "achilles_cell", var = "mean")
 
       plot_data <-
         data_universal_achilles_long %>% #plot setup
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::filter(cell_line %in% input$content) %>%
-        dplyr::select(-X1) %>%
-        dplyr::group_by(cell_line) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
+        dplyr::group_by(id) %>%
         dplyr::arrange(dep_score) %>%
-        dplyr::mutate(
+        dplyr:: mutate(
           rank = 1:dplyr::n(),
           med = median(dep_score, na.rm= TRUE)
         ) %>%
         dplyr::ungroup() %>%
-        dplyr::rename(name = gene) %>%
         dplyr::mutate(rank = as.integer(forcats::fct_reorder(name, dep_score)))
-
     }
 
     if(card) {
       if(is.null(scale)) {
         scale <- 0.3
       }
-      if(input$type == "gene") {
-        plot_data <-
-          plot_data %>%
-          dplyr::group_by(name) %>%
-          dplyr::sample_n(scale*dplyr::n()) %>%
-          dplyr::ungroup()
-      } else {
-        plot_data <-
-          plot_data %>%
-          dplyr::group_by(cell_line) %>%
-          dplyr::sample_n(scale*dplyr::n()) %>%
-          dplyr::ungroup()
-      }
+      plot_data <-
+        plot_data %>%
+        dplyr::group_by(id) %>%
+        dplyr::sample_n(scale*dplyr::n()) %>%
+        dplyr::ungroup()
     }
 
     plot_complete <-
       plot_data %>%
       ggplot2::ggplot(ggplot2::aes(x = rank,
                                    y = dep_score,
-                                   text = glue::glue('{var_title}: {name}\nCell Line: {cell_line}'),
-                                   color = forcats::fct_reorder(!!aes_var, med),
-                                   fill = forcats::fct_reorder(!!aes_var, med)
+                                   text = glue::glue('{var_title}: {id}\nCell Line: {cell_line}'),
+                                   color = forcats::fct_reorder(id, med),
+                                   fill = forcats::fct_reorder(id, med)
       )) +
       ## bar plot
       ggplot2::geom_bar(stat = "identity", width = 0.5) +
@@ -2136,7 +2136,7 @@ make_cellbar <- function(data_universal_achilles_long = universal_achilles_long,
         fill = "Query"
       ) +
       ## theme changes
-      theme_ddh() + #base_size = 15 default
+      ddh::theme_ddh() + #base_size = 15 default
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
@@ -2183,42 +2183,45 @@ make_cellbar <- function(data_universal_achilles_long = universal_achilles_long,
 #' @examples
 #'
 #' make_cellbins(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_cellbins(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' make_cellbins(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' \dontrun{
 #' make_cellbins(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_cellbins <- function(data_universal_achilles_long = universal_achilles_long,
-                          data_universal_prism_long = universal_prism_long,
-                          data_cell_expression_names = cell_expression_names,
-                          input = list(),
+make_cellbins <- function(input = list(),
                           card = FALSE) {
+  # get cell_expression_names from s3
+  cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
+
+  #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
+  data_universal_achilles_long <-
+    get_data_object(object_names = input$content,
+                    dataset_name = "universal_achilles_long",
+                    pivotwider = TRUE) %>%
+    dplyr::mutate(across(contains(c("score")), as.numeric))
+
   make_cellbins_raw <- function() {
     if(input$type == "gene") {
       xlab <- "Dependency Score (distribution)"
-      aes_var <- rlang::sym("name")
 
       plot_data <-
         data_universal_achilles_long %>% #plot setup
-        dplyr::filter(gene %in% input$content) %>%
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(-X1) %>%
-        dplyr::group_by(gene) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
+        dplyr::group_by(id) %>%
         dplyr::arrange(dep_score) %>%
         dplyr::mutate(med = median(dep_score, na.rm= TRUE)) %>%
         dplyr::ungroup() %>%
-        dplyr::filter(!is.na(dep_score)) %>%
-        dplyr::rename(name = gene)
+        dplyr::filter(!is.na(dep_score))
 
     } else if(input$type == "compound") {
       xlab <- "Log2FC (distribution)"
-      aes_var <- rlang::sym("name")
 
       plot_data <-
         data_universal_prism_long %>% #plot setup
-        dplyr::filter(name %in% input$content) %>%
-        dplyr::left_join(data_cell_expression_names, by = c("x1" = "X1")) %>%
-        dplyr::select(-1) %>%
-        dplyr::group_by(name) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
+        dplyr::group_by(id) %>%
         dplyr::arrange(log2fc) %>%
         dplyr::mutate(
           rank = 1:dplyr::n(),
@@ -2229,25 +2232,22 @@ make_cellbins <- function(data_universal_achilles_long = universal_achilles_long
 
     } else if(input$type == "cell") {
       xlab <- "Dependency Scores (distribution)"
-      aes_var <- rlang::sym("cell_line")
 
       plot_data <-
         data_universal_achilles_long %>% #plot setup
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::filter(cell_line %in% input$content) %>%
-        dplyr::select(-X1) %>%
-        dplyr::group_by(cell_line) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
+        dplyr::group_by(id) %>%
         dplyr::arrange(dep_score) %>%
         dplyr::mutate(med = median(dep_score, na.rm= TRUE)) %>%
         dplyr::ungroup() %>%
-        dplyr::filter(!is.na(dep_score)) %>%
-        dplyr::rename(name = gene)
+        dplyr::filter(!is.na(dep_score))
 
     } else {
       return("stop! delcare your type")
     }
 
-    colors <- ddh_pal_d(palette = input$type)(length(input$content))
+    colors <- ddh::ddh_pal_d(palette = input$type)(length(input$content))
 
     plot_complete <-
       plot_data %>%
@@ -2263,7 +2263,7 @@ make_cellbins <- function(data_universal_achilles_long = universal_achilles_long
       ## indicator line y axis
       ggplot2::geom_linerange(
         ggplot2::aes(xmin = -Inf, xmax = med,
-                     y = forcats::fct_reorder(!!aes_var, -med),
+                     y = forcats::fct_reorder(id, -med),
                      color = med < -1),
         linetype = "dotted",
         size = .2,
@@ -2271,7 +2271,7 @@ make_cellbins <- function(data_universal_achilles_long = universal_achilles_long
       ) +
       ## density curves via {ggdist}
       ggdist::stat_halfeye(ggplot2::aes(x = dep_score,
-                                        y = forcats::fct_reorder(!!aes_var, -med),
+                                        y = forcats::fct_reorder(id, -med),
                                         fill = stat(abs(x) > 1),
                                         point_fill = ggplot2::after_scale(fill)),
                            .width = c(.025, .975),
@@ -2302,7 +2302,7 @@ make_cellbins <- function(data_universal_achilles_long = universal_achilles_long
         fill = ggplot2::guide_legend(size = 1, reverse = TRUE)
       ) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         legend.position = "none",
@@ -2348,12 +2348,19 @@ make_cellbins <- function(data_universal_achilles_long = universal_achilles_long
 #' \dontrun{
 #' make_lineage(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_lineage <- function(data_universal_achilles_long = universal_achilles_long,
-                         data_universal_prism_long = universal_prism_long,
-                         data_cell_expression_names = cell_expression_names,
-                         input = list(),
+make_lineage <- function(input = list(),
                          card = FALSE,
                          highlight = FALSE) {
+  # get cell_expression_names from s3
+  cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
+
+  #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
+  data_universal_achilles_long <-
+    get_data_object(object_names = input$content,
+                    dataset_name = "universal_achilles_long",
+                    pivotwider = TRUE) %>%
+    dplyr::mutate(across(contains(c("score")), as.numeric))
+
   make_lineage_raw <- function() {
     if(input$type == "gene" ) {
       xlab <- "Dependency Score"
@@ -2361,9 +2368,8 @@ make_lineage <- function(data_universal_achilles_long = universal_achilles_long,
 
       data_full <-
         data_universal_achilles_long %>% #plot setup
-        dplyr::filter(gene %in% input$content) %>%
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(-X1) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
         dplyr::mutate_at("lineage", function(str) {
           str <- stringr::str_replace_all(str, "\\_", " ")
           str <- stringr::str_to_title(str)
@@ -2376,7 +2382,8 @@ make_lineage <- function(data_universal_achilles_long = universal_achilles_long,
         dplyr::ungroup() %>%
         dplyr::mutate(lineage = forcats::fct_reorder(lineage, -mean))
 
-      data_mean <- data_full %>%
+      data_mean <-
+        data_full %>%
         dplyr::group_by(lineage) %>%
         dplyr::summarize(dep_score = mean(dep_score))
 
@@ -2386,9 +2393,8 @@ make_lineage <- function(data_universal_achilles_long = universal_achilles_long,
 
       data_full <-
         data_universal_prism_long %>% #plot setup
-        dplyr::filter(name %in% input$content) %>%
-        dplyr::left_join(data_cell_expression_names, by = c("x1" = "X1")) %>%
-        dplyr::select(-1) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
         dplyr::mutate_at("lineage", function(str) {
           str <- stringr::str_replace_all(str, "\\_", " ")
           str <- stringr::str_to_title(str)
@@ -2413,7 +2419,8 @@ make_lineage <- function(data_universal_achilles_long = universal_achilles_long,
     if(nrow(data_full) == 0){return(NULL)}
 
     if(highlight) {
-      stats_data <- data_full %>%
+      stats_data <-
+        data_full %>%
         dplyr::group_by(lineage) %>%
         dplyr::filter(dplyr::n() > 1) %>%
         dplyr::ungroup() %>%
@@ -2482,7 +2489,7 @@ make_lineage <- function(data_universal_achilles_long = universal_achilles_long,
       ) +
       {if(highlight)gghighlight::gghighlight(lineage %in% stats_data$group2, use_direct_label = FALSE)} + # toggle
       ## theme changes
-      theme_ddh(grid = "none") +
+      ddh::theme_ddh(grid = "none") +
       ggplot2::theme(
         legend.position = "top",
         axis.line.y = ggplot2::element_blank(),
@@ -2530,12 +2537,19 @@ make_lineage <- function(data_universal_achilles_long = universal_achilles_long,
 #' \dontrun{
 #' make_sublineage(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_sublineage <- function(data_universal_achilles_long = universal_achilles_long,
-                            data_universal_prism_long = universal_prism_long,
-                            data_cell_expression_names = cell_expression_names,
-                            input = list(),
+make_sublineage <- function(input = list(),
                             card = FALSE,
                             highlight = FALSE) {
+  # get cell_expression_names from s3
+  cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
+
+  #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
+  data_universal_achilles_long <-
+    get_data_object(object_names = input$content,
+                    dataset_name = "universal_achilles_long",
+                    pivotwider = TRUE) %>%
+    dplyr::mutate(across(contains(c("score")), as.numeric))
+
   make_sublineage_raw <- function() {
     if(input$type == "gene") {
       xlab <- "Dependency Score"
@@ -2543,9 +2557,8 @@ make_sublineage <- function(data_universal_achilles_long = universal_achilles_lo
 
       data_full <-
         data_universal_achilles_long %>% #plot setup
-        dplyr::filter(gene %in% input$content) %>%
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(-X1) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
         dplyr::mutate_at("lineage_subtype", function(str) {
           str <- stringr::str_replace_all(str, "\\_", " ")
           str <- dplyr::if_else(stringr::str_detect(str, "^[:lower:]"), stringr::str_to_title(str), str)
@@ -2568,9 +2581,8 @@ make_sublineage <- function(data_universal_achilles_long = universal_achilles_lo
 
       data_full <-
         data_universal_prism_long %>% #plot setup
-        dplyr::filter(name %in% input$content) %>%
-        dplyr::left_join(data_cell_expression_names, by = c("x1" = "X1")) %>%
-        dplyr::select(-1) %>%
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(-depmap_id) %>%
         dplyr::mutate_at("lineage_subtype", function(str) {
           str <- stringr::str_replace_all(str, "\\_", " ")
           str <- dplyr::if_else(stringr::str_detect(str, "^[:lower:]"), stringr::str_to_title(str), str)
@@ -2663,7 +2675,7 @@ make_sublineage <- function(data_universal_achilles_long = universal_achilles_lo
       ) +
       {if(highlight)gghighlight::gghighlight(lineage_subtype %in% stats_data$group2, use_direct_label = FALSE)} + # toggle
       ## theme changes
-      theme_ddh(grid = "none") +
+      ddh::theme_ddh(grid = "none") +
       ggplot2::theme(
         legend.position = "top",
         axis.line.y = ggplot2::element_blank(),
@@ -2707,54 +2719,52 @@ make_sublineage <- function(data_universal_achilles_long = universal_achilles_lo
 #' @export
 #' @examples
 #' make_correlation(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_correlation(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' make_correlation(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' \dontrun{
 #' make_correlation(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_correlation <- function(data_gene_achilles_cor_nest = gene_achilles_cor_nest,
-                             #data_achilles_cell_line_cor_nest = achilles_cell_line_cor_nest,
-                             data_prism_cor_nest = prism_cor_nest,
-                             data_universal_stats_summary = universal_stats_summary,
-                             input = list(),
+make_correlation <- function(input = list(),
                              card = FALSE,
                              scale = NULL) { #no card option, but need this to prevent error
+  # get universal_stats_summary from s3
+  universal_stats_summary <- get_content("universal_stats_summary", dataset = TRUE)
+
+  #wrap data_gene_achilles_cor_nest in an if/else for type, and fetch data_prism_cor_nest instead?
+  data_gene_achilles_cor_nest <-
+    get_data_object(object_names = input$content,
+                    dataset_name = "gene_achilles_cor_nest",
+                    pivotwider = TRUE) %>%
+    dplyr::mutate(across(contains(c("r2")), as.numeric))
   make_correlation_raw <- function() {
     if(input$type == "gene") {
       mean <- get_stats(data_set = "achilles", var = "mean")
       upper_limit <- get_stats(data_set = "achilles", var = "upper")
       lower_limit <- get_stats(data_set = "achilles", var = "lower")
-      var <- rlang::sym("fav_gene") #from https://rlang.r-lib.org/reference/quasiquotation.html
       label_var <- "Gene Rank"
       text_var <- "Gene"
       content_var <- glue::glue_collapse(input$content, sep = ", ")
 
       plot_data <-
         data_gene_achilles_cor_nest %>%
-        dplyr::filter(fav_gene %in% input$content) %>%
-        tidyr::unnest(data) %>%
-        dplyr::group_by(fav_gene) %>%
+        dplyr::group_by(id) %>%
         dplyr::arrange(dplyr::desc(r2)) %>%
         dplyr::mutate(
           rank = 1:dplyr::n(),
           med = median(r2, na.rm= TRUE)
         ) %>%
-        dplyr::ungroup() %>%
-        dplyr::rename(name = gene) #for plot name
-
+        dplyr::ungroup()
     } else if(input$type == "compound") {
       mean <- get_stats(data_set = "prism", var = "mean")
       upper_limit <- get_stats(data_set = "prism", var = "upper")
       lower_limit <- get_stats(data_set = "prism", var = "lower")
-      var <- rlang::sym("fav_drug") #from https://rlang.r-lib.org/reference/quasiquotation.html
       label_var <- "Drug Rank"
       text_var <- "Compound"
       content_var <- glue::glue_collapse(input$content, sep = ", ")
 
       plot_data <-
         data_prism_cor_nest %>%
-        dplyr::filter(fav_drug %in% input$content) %>%
-        tidyr::unnest(data) %>%
-        dplyr::group_by(fav_drug) %>%
+        dplyr::group_by(fav_drug) %>% #CHECK THIS VAR
         dplyr::arrange(dplyr::desc(r2)) %>%
         dplyr::mutate(
           rank = 1:dplyr::n(),
@@ -2773,8 +2783,9 @@ make_correlation <- function(data_gene_achilles_cor_nest = gene_achilles_cor_nes
       if(is.null(scale)) {
         scale <- 0.3
       }
-      plot_data <- plot_data %>%
-        dplyr::group_by(name) %>%
+      plot_data <-
+        plot_data %>%
+        dplyr::group_by(id) %>%
         dplyr::sample_n(scale*dplyr::n()) %>% # scale is also used here
         dplyr::ungroup()
     }
@@ -2790,9 +2801,9 @@ make_correlation <- function(data_gene_achilles_cor_nest = gene_achilles_cor_nes
       ## dot plot
       ggplot2::geom_point(ggplot2::aes(x = rank,
                                        y = r2,
-                                       text = glue::glue('{text_var}: {name}'),
-                                       color = forcats::fct_reorder(!!var, med), #from https://rlang.r-lib.org/reference/quasiquotation.html
-                                       fill = forcats::fct_reorder(!!var, med) #from https://rlang.r-lib.org/reference/quasiquotation.html
+                                       text = glue::glue('{text_var}: {gene}'), #CHECK THIS VAR FOR CELL LINE
+                                       color = forcats::fct_reorder(id, med),
+                                       fill = forcats::fct_reorder(id, med)
       ),
       size = 1.1, stroke = .1, alpha = 0.4) +
       ## scales + legends
@@ -2811,7 +2822,7 @@ make_correlation <- function(data_gene_achilles_cor_nest = gene_achilles_cor_nes
         fill = glue::glue("Query {text_var}")
       ) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
@@ -2838,77 +2849,6 @@ make_correlation <- function(data_gene_achilles_cor_nest = gene_achilles_cor_nes
              make_bomb_plot()})
 }
 
-## NETWORK PLOT FOR GENE-PATHWAYS --------------------------------------------------------
-#' Gene-Pathway Co-essentiality Network
-#'
-#' Each node in the network is a gene or a pathway. The connection between nodes means an association (co-essentiality) and the intensity of the edges between nodes shows the strength of the association (being the darkest most co-essential). Click on the rows in the table to highlight nodes in the network.
-#'
-#' @param input Expecting a list containing content variable.
-#' @return If no error, then returns a network plot. If an error is thrown, then will return a bomb plot.
-#'
-#' @importFrom magrittr %>%
-#'
-#' @export
-#' @examples
-#' make_gene_pathways_components_network(input = list(content = 'ROCK1'))
-#' \dontrun{
-#' make_gene_pathways_components_network(input = list(content = 'ROCK1'))
-#' }
-make_gene_pathways_components_network <- function(data_universal_achilles_long = universal_achilles_long,
-                                                  input = list(),
-                                                  cutoff = NULL,
-                                                  highlight = NULL,
-                                                  show_labels = FALSE,
-                                                  fontsize = 3) {
-
-  make_gene_pathways_components_network_raw <- function() {
-    plot_data <- make_gene_pathways_components(input = input, cutoff = cutoff) %>%
-      dplyr::select(feature1, feature2, pearson_corr)
-
-    ## Name nodes
-    graph_table <- plot_data %>%
-      tidygraph::as_tbl_graph() %>%
-      dplyr::mutate(type = dplyr::case_when(name %in% input$content ~ "Query",
-                                            name %in% data_universal_achilles_long$gene ~ "Gene",
-                                            !(name %in% data_universal_achilles_long$gene) ~ "Pathway")
-      )
-
-    ## Plot network
-    plot_complete <- ggraph::ggraph(graph_table, layout = "fr") +
-      ggraph::geom_edge_link(ggplot2::aes(edge_alpha = abs(pearson_corr)),
-                             edge_width = 0.5, show.legend = FALSE) +
-      ggraph::geom_node_point(ggplot2::aes(fill = type), color = "black",
-                              pch = 21, size = 4, alpha = 0.85) +
-      {if(!is.null(highlight))ggraph::geom_node_point(ggplot2::aes(filter = name %in% highlight),
-                                                      fill = "red",
-                                                      pch = 21,
-                                                      size = 4,
-                                                      alpha = 0.85)} +
-      {if(!is.null(highlight) & show_labels)ggraph::geom_node_label(ggplot2::aes(label = name, filter = name %in% highlight),
-                                                                    repel = TRUE,
-                                                                    size = fontsize,
-                                                                    fill = ggplot2::alpha(c("white"), 0.6),
-                                                                    label.size = NA,
-                                                                    fontface = "bold",
-                                                                    family = "Roboto Slab")} +
-      ggraph::theme_graph(foreground = "white", fg_text_colour = "white") +
-      ggplot2::theme(legend.position = "top",
-                     legend.title = ggplot2::element_blank(),
-                     text = ggplot2::element_text(family = "Roboto Slab", size = 16)) +
-      scale_fill_ddh_d() +
-      ggraph::scale_edge_color_continuous(low = "black", high = "black")
-
-    return(plot_complete)
-  }
-
-  #error handling
-  tryCatch(make_gene_pathways_components_network_raw(),
-           error = function(e){
-             message(e)
-             make_bomb_plot()})
-
-}
-
 ## EXPvDEP PLOT --------------------------------------------------------
 #' Gene Dependency versus Expression
 #'
@@ -2923,57 +2863,72 @@ make_gene_pathways_components_network <- function(data_universal_achilles_long =
 #' @export
 #' @examples
 #' make_expdep(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_expdep(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' make_expdep(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' \dontrun{
 #' make_expdep(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_expdep <- function(data_universal_expression_long = universal_expression_long,
-                        data_universal_achilles_long = universal_achilles_long,
-                        data_cell_expression_names = cell_expression_names,
-                        plot_se = TRUE,
+make_expdep <- function(plot_se = TRUE,
                         input = list(),
                         card = FALSE) {
+  # get cell_expression_names from s3
+  cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
+
+  #wrap data_gene_achilles_cor_nest in an if/else for type, and fetch data_prism_cor_nest instead?
+  data_universal_expression_long <-
+    get_data_object(object_names = input$content,
+                    dataset_name = "universal_expression_long",
+                    pivotwider = TRUE) %>%
+    dplyr::mutate(across(contains(c("expression")), as.numeric))
+
+  data_universal_achilles_long <-
+    get_data_object(object_names = input$content,
+                    dataset_name = "universal_achilles_long",
+                    pivotwider = TRUE) %>%
+    dplyr::mutate(across(contains(c("score")), as.numeric))
+
   make_expdep_raw <- function() {
-
     if (input$type == "gene") {
-      exp_data <-
-        data_universal_expression_long %>% #plot setup
-        dplyr::select(X1, gene, gene_expression) %>%
-        dplyr::filter(gene %in% input$content)
-
-      dep_data <-
-        data_universal_achilles_long %>% #plot setup
-        dplyr::filter(gene %in% input$content)
+      # LEAVING HERE TO SHOW WHAT I CAN REMOVE WHEN I REVISIT CELL BELOW
+      # exp_data <-
+      #   data_universal_expression_long %>% #plot setup
+      #   dplyr::select(X1, gene, gene_expression) %>%
+      #   dplyr::filter(gene %in% input$content)
+      #
+      # dep_data <-
+      #   data_universal_achilles_long %>% #plot setup
+      #   dplyr::filter(gene %in% input$content)
 
       combined_data <-
-        exp_data %>%
-        dplyr::inner_join(dep_data, by = c("X1", "gene")) %>%
+        data_universal_expression_long %>%
+        dplyr::inner_join(data_universal_achilles_long, by = c("depmap_id", "id")) %>%
         dplyr::filter(!is.na(dep_score),
                       !is.na(gene_expression)) %>%
         dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
         dplyr::mutate(med = median(dep_score, na.rm = TRUE)) %>%
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(gene, gene_expression, dep_score, med, cell_line, lineage)
+        dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::select(id, gene_expression, dep_score, med, cell_line, lineage)
     } else if (input$type == "cell") {
-      exp_data <-
-        data_universal_expression_long %>% #plot setup
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::select(gene, cell_line, gene_expression) %>%
-        dplyr::filter(cell_line %in% input$content)
-
-      dep_data <-
-        data_universal_achilles_long %>% #plot setup
-        dplyr::left_join(data_cell_expression_names, by = "X1") %>%
-        dplyr::filter(cell_line %in% input$content)
-
-      combined_data <-
-        exp_data %>%
-        dplyr::inner_join(dep_data, by = c("cell_line", "gene")) %>%
-        dplyr::filter(!is.na(dep_score),
-                      !is.na(gene_expression)) %>%
-        dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
-        dplyr::mutate(med = median(dep_score, na.rm = TRUE)) %>%
-        dplyr::select(gene, gene_expression, dep_score, med, cell_line, lineage)
+      # REVISIT WITH CELL DATA
+      # exp_data <-
+      #   data_universal_expression_long %>% #plot setup
+      #   dplyr::left_join(data_cell_expression_names, by = "X1") %>%
+      #   dplyr::select(gene, cell_line, gene_expression) %>%
+      #   dplyr::filter(cell_line %in% input$content)
+      #
+      # dep_data <-
+      #   data_universal_achilles_long %>% #plot setup
+      #   dplyr::left_join(data_cell_expression_names, by = "X1") %>%
+      #   dplyr::filter(cell_line %in% input$content)
+      #
+      # combined_data <-
+      #   exp_data %>%
+      #   dplyr::inner_join(dep_data, by = c("cell_line", "gene")) %>%
+      #   dplyr::filter(!is.na(dep_score),
+      #                 !is.na(gene_expression)) %>%
+      #   dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
+      #   dplyr::mutate(med = median(dep_score, na.rm = TRUE)) %>%
+      #   dplyr::select(gene, gene_expression, dep_score, med, cell_line, lineage)
     }
 
     plot_complete <-
@@ -2981,15 +2936,15 @@ make_expdep <- function(data_universal_expression_long = universal_expression_lo
       ggplot2::ggplot(ggplot2::aes(dep_score, gene_expression)) +
       ## gray background
       ## dot plot
-      {if(input$type == "gene")ggplot2::geom_point(ggplot2::aes(color = forcats::fct_reorder(gene, med),
-                                                                fill = forcats::fct_reorder(gene, med)),
+      {if(input$type == "gene")ggplot2::geom_point(ggplot2::aes(color = forcats::fct_reorder(id, med),
+                                                                fill = forcats::fct_reorder(id, med)),
                                                    size = 2, stroke = .1, alpha = 0.4)} +
       {if(input$type == "cell")ggplot2::geom_point(ggplot2::aes(color = forcats::fct_reorder(cell_line, med),
                                                                 fill = forcats::fct_reorder(cell_line, med)),
                                                    size = 2, stroke = .1, alpha = 0.4)} +
       # smooth line
-      {if(input$type == "gene")ggplot2::geom_smooth(ggplot2::aes(color = forcats::fct_reorder(gene, med),
-                                                                 fill = forcats::fct_reorder(gene, med)),
+      {if(input$type == "gene")ggplot2::geom_smooth(ggplot2::aes(color = forcats::fct_reorder(id, med),
+                                                                 fill = forcats::fct_reorder(id, med)),
                                                     method = "lm",
                                                     se = plot_se)} +
       {if(input$type == "cell")ggplot2::geom_smooth(ggplot2::aes(color = forcats::fct_reorder(cell_line, med),
@@ -2997,7 +2952,7 @@ make_expdep <- function(data_universal_expression_long = universal_expression_lo
                                                     method = "lm",
                                                     se = plot_se)} +
       # R coefs
-      {if(card == FALSE & input$type == "gene")ggpubr::stat_cor(ggplot2::aes(color = forcats::fct_reorder(gene, med)),
+      {if(card == FALSE & input$type == "gene")ggpubr::stat_cor(ggplot2::aes(color = forcats::fct_reorder(id, med)),
                                                                 digits = 3)} +
       {if(card == FALSE & input$type == "cell")ggpubr::stat_cor(ggplot2::aes(color = forcats::fct_reorder(cell_line, med)),
                                                                 digits = 3)} +
@@ -3016,7 +2971,7 @@ make_expdep <- function(data_universal_expression_long = universal_expression_lo
         fill = ifelse(input$type == "gene", "Query Gene", "Query Cell Line")
       ) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab")
@@ -3190,7 +3145,7 @@ make_cell_similarity <- function(data_cell_dependency_sim = cell_dependency_sim,
         fill = "Query Cell"
       ) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
@@ -3348,7 +3303,7 @@ make_functional_cell <- function(data_gene_pathways = gene_pathways,
         color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 5))
       ) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
@@ -3492,7 +3447,7 @@ make_metadata_cell <- function(data_cell_dependency_sim = cell_dependency_sim,
         color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 5))
       ) +
       ## theme changes
-      theme_ddh() +
+      ddh::theme_ddh() +
       ggplot2::theme(
         text = ggplot2::element_text(family = "Nunito Sans"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
@@ -3571,10 +3526,10 @@ make_molecule_structure <- function(input = list(),
     #                               filename = file_name)
     #   return(message(glue::glue('{input$content} saved to {file_name}')))
     # } else {
-      molecule %>%
-        raymolecule::render_model(width=model_width,
-                                  height=model_height,
-                                  background="white")
+    molecule %>%
+      raymolecule::render_model(width=model_width,
+                                height=model_height,
+                                background="white")
     # }
   }
   #error handling

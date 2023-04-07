@@ -1,3 +1,303 @@
+#' ## SETUP GRAPH ----------------------------------------------------------------------
+#' #' Setup graph parameters
+#' #'
+#' #' @importFrom magrittr %>%
+#' #'
+#' #' @export
+#' setup_graph <- function(setup_input = list(), #changed name here to prevent var naming overlap for nested funs()
+#'                         data_master_top_table = gene_master_top_table,
+#'                         data_master_bottom_table = gene_master_bottom_table,
+#'                         data_prism_cor_nest = compound_prism_cor_nest,
+#'                         data_cell_line_dep_sim = cell_dependency_sim,
+#'                         data_cell_line_exp_sim = cell_expression_sim,
+#'                         setup_threshold,
+#'                         setup_corrType,
+#'                         setup_cell_line_var = "dependency",
+#'                         setup_bonferroni_cutoff = 0.05) {
+#'
+#'   # this is the equivalent of master top/bottom table
+#'   if(setup_cell_line_var == "dependency") {
+#'     cell_top_data <- data_cell_line_dep_sim %>%
+#'       dplyr::filter(bonferroni < setup_bonferroni_cutoff)
+#'   } else if (setup_cell_line_var == "expression") {
+#'     cell_top_data <- data_cell_line_exp_sim %>%
+#'       dplyr::filter(bonferroni < setup_bonferroni_cutoff)
+#'   }
+#'
+#'   ####
+#'
+#'   if(setup_input$type == "gene") {
+#'     #generate data
+#'     #either find top/bottom correlated genes if given single gene, or take list to fill gene_list
+#'     if(length(setup_input$content) == 1){
+#'       #find top and bottom correlations for fav_gene
+#'       query <-
+#'         setup_input$content
+#'       if(setup_corrType == "Positive" | setup_corrType == "Positive and Negative") {
+#'         top <-
+#'           data_master_top_table %>%
+#'           dplyr::filter(fav_gene %in% setup_input$content) %>%
+#'           tidyr::unnest(data) %>%
+#'           dplyr::arrange(dplyr::desc(r2)) %>%
+#'           dplyr::slice(1:setup_threshold) %>%
+#'           dplyr::pull("gene")
+#'       }
+#'       if(setup_corrType == "Negative" | setup_corrType == "Positive and Negative") {
+#'         bottom <-
+#'           data_master_bottom_table %>%
+#'           dplyr::filter(fav_gene %in% setup_input$content) %>%
+#'           tidyr::unnest(data) %>%
+#'           dplyr::arrange(r2) %>%
+#'           dplyr::slice(1:setup_threshold)%>%
+#'           dplyr::pull("gene")
+#'       }
+#'     } else {
+#'       query <- setup_input$content
+#'       top <- setup_input$content #set to query here, to pull top correlated genes, reset below
+#'       bottom <- setup_input$content  #set to query here, to pull bottom correlated genes, reset below
+#'     }
+#'   } else if(setup_input$type == "cell") {
+#'     #generate data
+#'     if(length(setup_input$content) == 1){
+#'       #find top and bottom correlations for fav_gene
+#'       query <- setup_input$content
+#'       if(setup_corrType == "Positive" | setup_corrType == "Positive and Negative") {
+#'         top <-
+#'           cell_top_data %>%
+#'           dplyr::filter(cell1_name %in% setup_input$content | cell2_name %in% setup_input$content) %>%
+#'           dplyr::arrange(dplyr::desc(coef)) %>%
+#'           dplyr::slice(1:setup_threshold) %>%
+#'           dplyr::rowwise() %>%
+#'           dplyr::mutate(cells = list(c(cell1_name, cell2_name))) %>%
+#'           dplyr::pull(cells) %>%
+#'           unlist()
+#'         top <- top[!top %in% setup_input$content]
+#'       }
+#'       if(setup_corrType == "Negative" | setup_corrType == "Positive and Negative") {
+#'         bottom <-
+#'           cell_top_data %>%
+#'           dplyr::filter(cell1_name %in% setup_input$content | cell2_name %in% setup_input$content) %>%
+#'           dplyr::arrange(coef) %>%
+#'           dplyr::slice(1:setup_threshold) %>%
+#'           dplyr::rowwise() %>%
+#'           dplyr::mutate(cells = list(c(cell1_name, cell2_name))) %>%
+#'           dplyr::pull(cells) %>%
+#'           unlist()
+#'         bottom <- bottom[!bottom %in% setup_input$content]
+#'       }
+#'     } else {
+#'       query <- setup_input$content
+#'       top <- setup_input$content #set to query here, to pull top correlated genes, reset below
+#'       bottom <- setup_input$content  #set to query here, to pull bottom correlated genes, reset below
+#'     }
+#'   } else if(setup_input$type == "compound") {
+#'     #do this
+#'     if(length(setup_input$content) == 1){
+#'       #find top and bottom correlations for fav_drug
+#'       query <- input$content
+#'       if(setup_corrType == "Positive" | setup_corrType == "Positive and Negative") {
+#'         top <-
+#'           data_prism_cor_nest %>%
+#'           dplyr::filter(fav_drug %in% setup_input$content) %>%
+#'           tidyr::unnest("data") %>%
+#'           dplyr::ungroup() %>%
+#'           dplyr::filter(r2 > prism_cor_upper) %>% #filter(., r2 < prism_cor_lower)
+#'           dplyr::arrange(desc(r2)) %>%
+#'           dplyr::slice(1:setup_threshold) %>%
+#'           dplyr::pull("name")
+#'       }
+#'       if(setup_corrType == "Negative" | setup_corrType == "Positive and Negative") {
+#'         bottom <-
+#'           data_prism_cor_nest %>%
+#'           dplyr::filter(fav_drug %in% setup_input$content) %>%
+#'           tidyr::unnest("data") %>%
+#'           dplyr::ungroup() %>%
+#'           dplyr::filter(r2 < prism_cor_lower) %>%
+#'           dplyr::arrange(r2) %>%
+#'           dplyr::slice(1:setup_threshold) %>%
+#'           dplyr::pull("name")
+#'       }
+#'     } else {
+#'       query <- setup_input$content
+#'       top <- setup_input$content
+#'       bottom <- setup_input$content
+#'     }
+#'   } else {
+#'     stop("declare your type")
+#'   }
+#'
+#'   #table maker function
+#'   make_graph_table <- function(fun_setup_input = list(),
+#'                                content,
+#'                                setup_threshold,
+#'                                top = TRUE) {
+#'     if(fun_setup_input$type == "gene") {
+#'       filter_var <- rlang::sym("fav_gene")
+#'       rename_var <- rlang::sym("gene")
+#'       if(top == TRUE) {
+#'         message_var <- "top"
+#'         table_var <- data_master_top_table
+#'         origin_var <- "pos"
+#'       } else {
+#'         message_var <- "bottom"
+#'         table_var <- data_master_bottom_table
+#'         origin_var <- "neg"
+#'       }
+#'     } else if(fun_setup_input$type == "cell") {
+#'       # filter_var <- rlang::sym("cell2_name") # this is different to genes because the top table is different
+#'       rename_var <- rlang::sym("cell2_name") # this is different to genes because the top table is different
+#'       if(top == TRUE) {
+#'         message_var <- "top"
+#'         table_var <- cell_top_data
+#'         origin_var <- "pos"
+#'       } else {
+#'         message_var <- "bottom"
+#'         table_var <- cell_top_data
+#'         origin_var <- "neg"
+#'       }
+#'     } else if(fun_setup_input$type == "compound") {
+#'       filter_var <- rlang::sym("fav_drug")
+#'       rename_var <- rlang::sym("name")
+#'       if(top == TRUE) {
+#'         message_var <- "top"
+#'         table_var <- data_prism_cor_nest
+#'         origin_var <- "pos"
+#'       } else {
+#'         message_var <- "bottom"
+#'         table_var <- data_prism_cor_nest
+#'         origin_var <- "neg"
+#'       }
+#'     } else {
+#'       stop("declare your type")
+#'     }
+#'
+#'     message(glue::glue('Getting {message_var} correlations from {content}'))
+#'
+#'     if(fun_setup_input$type != "cell" & content %in% table_var[[1]]) {  #check to see if gene query is in table (either fav_gene or fav_drug)
+#'       related_table <-
+#'         table_var %>%
+#'         dplyr::filter(!!filter_var == content) %>%
+#'         tidyr::unnest(data) %>%
+#'         dplyr::ungroup(.) %>%
+#'         {if (top == TRUE) dplyr::arrange(., desc(r2)) else dplyr::arrange(., r2)} %>%
+#'         dplyr::slice(1:setup_threshold) %>%
+#'         dplyr::mutate(x = content,
+#'                       origin = origin_var) %>%
+#'         dplyr::rename(y = !!rename_var) %>%
+#'         dplyr::select(x, y, r2, origin)
+#'
+#'       return(related_table)
+#'
+#'     } else if (fun_setup_input$type == "cell") {
+#'       related_table <-
+#'         table_var %>%
+#'         # dplyr::filter(!!filter_var == content) %>%
+#'         dplyr::filter(cell1_name == content | cell2_name == content)
+#'
+#'       # Swap cols (based on query)
+#'       for(i in 1:nrow(related_table)) {
+#'         if(related_table$cell2_name[i] %in% content & !(related_table$cell1_name[i] %in% content)) {
+#'           cell1 <- related_table$cell1_name[i]
+#'           cell2 <- related_table$cell2_name[i]
+#'
+#'           related_table$cell2_name[i] <- cell1
+#'           related_table$cell1_name[i] <- cell2
+#'         }
+#'       }
+#'
+#'       related_table <- related_table %>%
+#'         {if (top == TRUE) dplyr::arrange(., desc(coef)) else dplyr::arrange(., coef)} %>%
+#'         dplyr::slice(1:setup_threshold) %>%
+#'         dplyr::mutate(x = content,
+#'                       origin = origin_var) %>%
+#'         dplyr::rename(y = !!rename_var) %>%
+#'         dplyr::select(x, y, coef, origin)
+#'
+#'       return(related_table)
+#'     }
+#'   }
+#'
+#'   #make empty tibble
+#'   dep_network <- dplyr::tibble()
+#'
+#'   # make the correct graph including only correlations of the designated type
+#'   if(setup_corrType == "Positive"){
+#'     network_list <- unique(top)
+#'     bottom <- NULL #reset unused var to NULL so factors and labels work
+#'     #this takes the genes from the top, and pulls them to feed them into a for loop
+#'     for (i in network_list){
+#'       dep_top_related <- make_graph_table(fun_setup_input = setup_input,
+#'                                           content = i,
+#'                                           setup_threshold,
+#'                                           top = TRUE)
+#'       #each temp object is bound together
+#'       dep_network <-
+#'         dep_network %>%
+#'         dplyr::bind_rows(dep_top_related)
+#'     }
+#'   } else if(setup_corrType == "Positive and Negative"){
+#'     network_list <- unique(c(top, bottom))
+#'     for (i in network_list){
+#'       dep_top_related <- make_graph_table(fun_setup_input = setup_input,
+#'                                           content = i,
+#'                                           setup_threshold,
+#'                                           top = TRUE)
+#'       dep_bottom_related <- make_graph_table(fun_setup_input = setup_input,
+#'                                              content = i,
+#'                                              setup_threshold,
+#'                                              top = FALSE)
+#'
+#'       #each temp object is bound together, and then bound to the final df for graphing
+#'       dep_related <-
+#'         dep_top_related %>%
+#'         dplyr::bind_rows(dep_bottom_related)
+#'
+#'       dep_network <-
+#'         dep_network %>%
+#'         dplyr::bind_rows(dep_related)
+#'     }
+#'   } else if(setup_corrType == "Negative"){
+#'     network_list <- unique(bottom)
+#'     top <- NULL #reset unused var to NULL so factors and labels work
+#'     for (i in network_list){
+#'       dep_bottom_related <- make_graph_table(fun_setup_input = setup_input,
+#'                                              content = i,
+#'                                              setup_threshold,
+#'                                              top = FALSE)
+#'
+#'       #each temp object is bound together
+#'       dep_network <-
+#'         dep_network %>%
+#'         dplyr::bind_rows(dep_bottom_related)
+#'     }
+#'   } else {
+#'     stop("delcare your corrType")
+#'   }
+#'   if(length(setup_input$content) > 1) { #this reassigns top and bottom ids from multi-gene queries
+#'     query <- setup_input$content
+#'     top <- dep_network %>%
+#'       dplyr::filter(origin == "pos") %>%
+#'       dplyr::pull(y)
+#'     bottom <- dep_network %>%
+#'       dplyr::filter(origin == "neg") %>%
+#'       dplyr::pull(y)
+#'   }
+#'   #fun now returns a list, to preserve some info that gets passed on to rest make_graph()
+#'   return(list(type = setup_corrType,
+#'               query_id = query,
+#'               top_id = top,
+#'               bottom_id = bottom,
+#'               network_l = network_list,
+#'               df = dep_network))
+#' }
+#'
+#' #tests
+#' #tmp <- setup_graph(setup_input = list(type = "gene", content = "ROCK1"), setup_corrType = "Positive", setup_threshold = 10)
+#' #tmp1 <- setup_graph(setup_input = list(type = "gene", content = "ROCK1"), setup_corrType = "Positive and Negative", setup_threshold = 10)
+#' #tmp2 <- setup_graph(setup_input = list(type = "gene", content = c("ROCK1", "ROCK2")), setup_corrType = "Positive", setup_threshold = 10)
+#' #tmp4 <- setup_graph(setup_input = list(type = "compound", content = "ADP"), setup_corrType = "Positive and Negative", setup_threshold = 10)
+#' #tmp5 <- setup_graph(setup_input = list(type = "cell", content = "HEL"), setup_corrType = "Positive and Negative", setup_threshold = 10)
+
 ## SETUP GRAPH ----------------------------------------------------------------------
 #' Setup graph parameters
 #'
@@ -5,298 +305,68 @@
 #'
 #' @export
 setup_graph <- function(setup_input = list(), #changed name here to prevent var naming overlap for nested funs()
-                        data_master_top_table = gene_master_top_table,
-                        data_master_bottom_table = gene_master_bottom_table,
-                        data_prism_cor_nest = compound_prism_cor_nest,
-                        data_cell_line_dep_sim = cell_dependency_sim,
-                        data_cell_line_exp_sim = cell_expression_sim,
                         setup_threshold,
-                        setup_corrType,
-                        setup_cell_line_var = "dependency",
-                        setup_bonferroni_cutoff = 0.05) {
+                        setup_corr_type) {
+  #set corr_filter from corr_type
+  if(setup_corr_type == "both"){corr_filter = c("positive", "negative")} else {corr_filter = setup_corr_type}
 
-  # this is the equivalent of master top/bottom table
-  if(setup_cell_line_var == "dependency") {
-    cell_top_data <- data_cell_line_dep_sim %>%
-      dplyr::filter(bonferroni < setup_bonferroni_cutoff)
-  } else if (setup_cell_line_var == "expression") {
-    cell_top_data <- data_cell_line_exp_sim %>%
-      dplyr::filter(bonferroni < setup_bonferroni_cutoff)
+  #get master data object, which has all genes + related
+  #some redundancy b/c if i'm in your top 10, and you're in mine, I fetch you twice when two feather objects come together
+  dep_network_master <-
+    get_data_object(object_name = setup_input$content,
+                    dataset_name = "setup_graph") %>%
+    dplyr::filter(stringr::str_detect(.$key, "negative") | stringr::str_detect(.$key, "positive")) %>% #need this so approved_name doesn't get separated in next step
+    tidyr::separate(col = "key", into = c("type", "rank"), sep = "_") %>%
+    dplyr::mutate(rank = as.numeric(rank)) %>%
+    dplyr::distinct(id, name, type, rank, value) #remove redundancy
+
+  #this is the master threshold gene vec to use for filtering and factor grouping
+  threshold_genes_pos <- NULL
+  threshold_genes_neg <- NULL
+
+  #set positive and/or negative thresholds
+  if("positive" %in% corr_filter){
+    threshold_genes_pos <-
+      dep_network_master %>%
+      dplyr::filter(id %in% setup_input$content,
+                    type == "positive",
+                    rank <= setup_threshold) %>%
+      dplyr::pull(., value) %>%
+      unique()
+  }
+  #need to also do for negative, in case we need them
+  if("negative" %in% corr_filter){
+    threshold_genes_neg <-
+      dep_network_master %>%
+      dplyr::filter(id %in% setup_input$content,
+                    type == "negative",
+                    rank <= setup_threshold) %>%
+      dplyr::pull(., value) %>%
+      unique()
   }
 
-  ####
-
-  if(setup_input$type == "gene") {
-    #generate data
-    #either find top/bottom correlated genes if given single gene, or take list to fill gene_list
-    if(length(setup_input$content) == 1){
-      #find top and bottom correlations for fav_gene
-      query <-
-        setup_input$content
-      if(setup_corrType == "Positive" | setup_corrType == "Positive and Negative") {
-        top <-
-          data_master_top_table %>%
-          dplyr::filter(fav_gene %in% setup_input$content) %>%
-          tidyr::unnest(data) %>%
-          dplyr::arrange(dplyr::desc(r2)) %>%
-          dplyr::slice(1:setup_threshold) %>%
-          dplyr::pull("gene")
-      }
-      if(setup_corrType == "Negative" | setup_corrType == "Positive and Negative") {
-        bottom <-
-          data_master_bottom_table %>%
-          dplyr::filter(fav_gene %in% setup_input$content) %>%
-          tidyr::unnest(data) %>%
-          dplyr::arrange(r2) %>%
-          dplyr::slice(1:setup_threshold)%>%
-          dplyr::pull("gene")
-      }
-    } else {
-      query <- setup_input$content
-      top <- setup_input$content #set to query here, to pull top correlated genes, reset below
-      bottom <- setup_input$content  #set to query here, to pull bottom correlated genes, reset below
-    }
-  } else if(setup_input$type == "cell") {
-    #generate data
-    if(length(setup_input$content) == 1){
-      #find top and bottom correlations for fav_gene
-      query <- setup_input$content
-      if(setup_corrType == "Positive" | setup_corrType == "Positive and Negative") {
-        top <-
-          cell_top_data %>%
-          dplyr::filter(cell1_name %in% setup_input$content | cell2_name %in% setup_input$content) %>%
-          dplyr::arrange(dplyr::desc(coef)) %>%
-          dplyr::slice(1:setup_threshold) %>%
-          dplyr::rowwise() %>%
-          dplyr::mutate(cells = list(c(cell1_name, cell2_name))) %>%
-          dplyr::pull(cells) %>%
-          unlist()
-        top <- top[!top %in% setup_input$content]
-      }
-      if(setup_corrType == "Negative" | setup_corrType == "Positive and Negative") {
-        bottom <-
-          cell_top_data %>%
-          dplyr::filter(cell1_name %in% setup_input$content | cell2_name %in% setup_input$content) %>%
-          dplyr::arrange(coef) %>%
-          dplyr::slice(1:setup_threshold) %>%
-          dplyr::rowwise() %>%
-          dplyr::mutate(cells = list(c(cell1_name, cell2_name))) %>%
-          dplyr::pull(cells) %>%
-          unlist()
-        bottom <- bottom[!bottom %in% setup_input$content]
-      }
-    } else {
-      query <- setup_input$content
-      top <- setup_input$content #set to query here, to pull top correlated genes, reset below
-      bottom <- setup_input$content  #set to query here, to pull bottom correlated genes, reset below
-    }
-  } else if(setup_input$type == "compound") {
-    #do this
-    if(length(setup_input$content) == 1){
-      #find top and bottom correlations for fav_drug
-      query <- input$content
-      if(setup_corrType == "Positive" | setup_corrType == "Positive and Negative") {
-        top <-
-          data_prism_cor_nest %>%
-          dplyr::filter(fav_drug %in% setup_input$content) %>%
-          tidyr::unnest("data") %>%
-          dplyr::ungroup() %>%
-          dplyr::filter(r2 > prism_cor_upper) %>% #filter(., r2 < prism_cor_lower)
-          dplyr::arrange(desc(r2)) %>%
-          dplyr::slice(1:setup_threshold) %>%
-          dplyr::pull("name")
-      }
-      if(setup_corrType == "Negative" | setup_corrType == "Positive and Negative") {
-        bottom <-
-          data_prism_cor_nest %>%
-          dplyr::filter(fav_drug %in% setup_input$content) %>%
-          tidyr::unnest("data") %>%
-          dplyr::ungroup() %>%
-          dplyr::filter(r2 < prism_cor_lower) %>%
-          dplyr::arrange(r2) %>%
-          dplyr::slice(1:setup_threshold) %>%
-          dplyr::pull("name")
-      }
-    } else {
-      query <- setup_input$content
-      top <- setup_input$content
-      bottom <- setup_input$content
-    }
+  #this next step is key: either pull top n genes for single query, or pull query genes from multi-gene query
+  if(length(setup_input$content) == 1){
+    #get single gene threshold vec, so I can use this to filter my id col for the dep_network_table
+    threshold_genes <- c(threshold_genes_pos, threshold_genes_neg)
   } else {
-    stop("declare your type")
+    #this only keeps input$content in id, and drops related
+    threshold_genes <- setup_input$content
   }
 
-  #table maker function
-  make_graph_table <- function(fun_setup_input = list(),
-                               content,
-                               setup_threshold,
-                               top = TRUE) {
-    if(fun_setup_input$type == "gene") {
-      filter_var <- rlang::sym("fav_gene")
-      rename_var <- rlang::sym("gene")
-      if(top == TRUE) {
-        message_var <- "top"
-        table_var <- data_master_top_table
-        origin_var <- "pos"
-      } else {
-        message_var <- "bottom"
-        table_var <- data_master_bottom_table
-        origin_var <- "neg"
-      }
-    } else if(fun_setup_input$type == "cell") {
-      # filter_var <- rlang::sym("cell2_name") # this is different to genes because the top table is different
-      rename_var <- rlang::sym("cell2_name") # this is different to genes because the top table is different
-      if(top == TRUE) {
-        message_var <- "top"
-        table_var <- cell_top_data
-        origin_var <- "pos"
-      } else {
-        message_var <- "bottom"
-        table_var <- cell_top_data
-        origin_var <- "neg"
-      }
-    } else if(fun_setup_input$type == "compound") {
-      filter_var <- rlang::sym("fav_drug")
-      rename_var <- rlang::sym("name")
-      if(top == TRUE) {
-        message_var <- "top"
-        table_var <- data_prism_cor_nest
-        origin_var <- "pos"
-      } else {
-        message_var <- "bottom"
-        table_var <- data_prism_cor_nest
-        origin_var <- "neg"
-      }
-    } else {
-      stop("declare your type")
-    }
+  #this makes dep_network_table tibble to generate the network graph
+  dep_network_table <-
+    dep_network_master %>%
+    dplyr::filter(id %in% threshold_genes,
+                  type %in% corr_filter,
+                  rank <= threshold)
 
-    message(glue::glue('Getting {message_var} correlations from {content}'))
-
-    if(fun_setup_input$type != "cell" & content %in% table_var[[1]]) {  #check to see if gene query is in table (either fav_gene or fav_drug)
-      related_table <-
-        table_var %>%
-        dplyr::filter(!!filter_var == content) %>%
-        tidyr::unnest(data) %>%
-        dplyr::ungroup(.) %>%
-        {if (top == TRUE) dplyr::arrange(., desc(r2)) else dplyr::arrange(., r2)} %>%
-        dplyr::slice(1:setup_threshold) %>%
-        dplyr::mutate(x = content,
-                      origin = origin_var) %>%
-        dplyr::rename(y = !!rename_var) %>%
-        dplyr::select(x, y, r2, origin)
-
-      return(related_table)
-
-    } else if (fun_setup_input$type == "cell") {
-      related_table <-
-        table_var %>%
-        # dplyr::filter(!!filter_var == content) %>%
-        dplyr::filter(cell1_name == content | cell2_name == content)
-
-      # Swap cols (based on query)
-      for(i in 1:nrow(related_table)) {
-        if(related_table$cell2_name[i] %in% content & !(related_table$cell1_name[i] %in% content)) {
-          cell1 <- related_table$cell1_name[i]
-          cell2 <- related_table$cell2_name[i]
-
-          related_table$cell2_name[i] <- cell1
-          related_table$cell1_name[i] <- cell2
-        }
-      }
-
-      related_table <- related_table %>%
-        {if (top == TRUE) dplyr::arrange(., desc(coef)) else dplyr::arrange(., coef)} %>%
-        dplyr::slice(1:setup_threshold) %>%
-        dplyr::mutate(x = content,
-                      origin = origin_var) %>%
-        dplyr::rename(y = !!rename_var) %>%
-        dplyr::select(x, y, coef, origin)
-
-      return(related_table)
-    }
-  }
-
-  #make empty tibble
-  dep_network <- dplyr::tibble()
-
-  # make the correct graph including only correlations of the designated type
-  if(setup_corrType == "Positive"){
-    network_list <- unique(top)
-    bottom <- NULL #reset unused var to NULL so factors and labels work
-    #this takes the genes from the top, and pulls them to feed them into a for loop
-    for (i in network_list){
-      dep_top_related <- make_graph_table(fun_setup_input = setup_input,
-                                          content = i,
-                                          setup_threshold,
-                                          top = TRUE)
-      #each temp object is bound together
-      dep_network <-
-        dep_network %>%
-        dplyr::bind_rows(dep_top_related)
-    }
-  } else if(setup_corrType == "Positive and Negative"){
-    network_list <- unique(c(top, bottom))
-    for (i in network_list){
-      dep_top_related <- make_graph_table(fun_setup_input = setup_input,
-                                          content = i,
-                                          setup_threshold,
-                                          top = TRUE)
-      dep_bottom_related <- make_graph_table(fun_setup_input = setup_input,
-                                             content = i,
-                                             setup_threshold,
-                                             top = FALSE)
-
-      #each temp object is bound together, and then bound to the final df for graphing
-      dep_related <-
-        dep_top_related %>%
-        dplyr::bind_rows(dep_bottom_related)
-
-      dep_network <-
-        dep_network %>%
-        dplyr::bind_rows(dep_related)
-    }
-  } else if(setup_corrType == "Negative"){
-    network_list <- unique(bottom)
-    top <- NULL #reset unused var to NULL so factors and labels work
-    for (i in network_list){
-      dep_bottom_related <- make_graph_table(fun_setup_input = setup_input,
-                                             content = i,
-                                             setup_threshold,
-                                             top = FALSE)
-
-      #each temp object is bound together
-      dep_network <-
-        dep_network %>%
-        dplyr::bind_rows(dep_bottom_related)
-    }
-  } else {
-    stop("delcare your corrType")
-  }
-  if(length(setup_input$content) > 1) { #this reassigns top and bottom ids from multi-gene queries
-    query <- setup_input$content
-    top <- dep_network %>%
-      dplyr::filter(origin == "pos") %>%
-      dplyr::pull(y)
-    bottom <- dep_network %>%
-      dplyr::filter(origin == "neg") %>%
-      dplyr::pull(y)
-  }
-  #fun now returns a list, to preserve some info that gets passed on to rest make_graph()
-  return(list(type = setup_corrType,
-              query_id = query,
-              top_id = top,
-              bottom_id = bottom,
-              network_l = network_list,
-              df = dep_network))
+  setup_object = list(dep_network_table = dep_network_table,
+                      threshold_genes_pos = threshold_genes_pos,
+                      threshold_genes_neg = threshold_genes_neg,
+                      threshold_genes = threshold_genes)
+  return(setup_object)
 }
-
-#tests
-#tmp <- setup_graph(setup_input = list(type = "gene", content = "ROCK1"), setup_corrType = "Positive", setup_threshold = 10)
-#tmp1 <- setup_graph(setup_input = list(type = "gene", content = "ROCK1"), setup_corrType = "Positive and Negative", setup_threshold = 10)
-#tmp2 <- setup_graph(setup_input = list(type = "gene", content = c("ROCK1", "ROCK2")), setup_corrType = "Positive", setup_threshold = 10)
-#tmp4 <- setup_graph(setup_input = list(type = "compound", content = "ADP"), setup_corrType = "Positive and Negative", setup_threshold = 10)
-#tmp5 <- setup_graph(setup_input = list(type = "cell", content = "HEL"), setup_corrType = "Positive and Negative", setup_threshold = 10)
 
 ## MAKE GRAPH ----------------------------------------------------------------------
 #' Create network graph visualization using visNetwork
@@ -310,7 +380,7 @@ setup_graph <- function(setup_input = list(), #changed name here to prevent var 
 #' @param input A list containing character vector of gene_symbols used to create network graph
 #' @param threshold A numerical representing the number of genes to pull from top and bottom tables
 #' @param deg A numerical representing the minimum number of connections for a gene to be connected to the network
-#' @param corrType A string that describes what type of correlations to include, options are: "Positive and Negative", "Positive", or "Negative"
+#' @param corr_type A string that describes what type of correlations to include, options are: "positive", "negative", or "both"
 #' @param displayHeight Default to "90vh". The height of the network in pixels("500px"), as a percentage("100%"), or as a percentage of the viewport("70vh", where 70 represents 70% of the viewport)
 #' @param displayWidth Default to "100%". The width of the network in pixels("500px"), as a percentage("100%"), or as a percentage of the viewport("70vh", where 70 represents 70% of the viewport)
 #' @param tooltipLink Boolean to denote whether or not to include a link in the tooltip for a gene. Default to false.
@@ -323,105 +393,93 @@ setup_graph <- function(setup_input = list(), #changed name here to prevent var 
 #' @export
 #' @examples
 #' make_graph(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-#' make_graph(input = list(type = "gene", content = "ROCK1"))
+#' make_graph(input = list(type = "gene", content = "ROCK2"))
+#' make_graph(input = list(type = "gene", content = "ROCK2"), threshold = 15)
 #' make_graph(input = list(type = "gene", content = "ROCK1"), card = TRUE)
-#' make_graph(input = list(type = "gene", content = "ROCK1"), corrType = "Positive")
-#' make_graph(input = list(type = "pathway", query = "1902965", content = c("RDX", "ROCK2", "DTX3L", "MSN", "SORL1", "EZR")), corrType = "Positive")
+#' make_graph(input = list(type = "gene", content = "ROCK1"), corr_type = "negative")
+#' make_graph(input = list(type = "gene", content = "ROCK1"), corr_type = "both")
 #' make_graph(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
-#' make_graph(input = list(type = "gene", content = "DTX3L"), corrType = "Negative") # disconnected query gene
-#' make_graph(input = list(type = "compound", content = "aspirin"), corrType = "Negative")
+#' make_graph(input = list(type = "pathway", query = "1902965", content = c("RDX", "ROCK2", "DTX3L", "MSN", "SORL1", "EZR")), corrType = "positive")
+#' make_graph(input = list(type = "gene", content = "DTX3L"), corr_type = "negative") # disconnected query gene
+#' make_graph(input = list(type = "compound", content = "aspirin"), corr_type = "negative")
 
 #' \dontrun{
 #' make_graph(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_graph <- function(data_master_top_table = gene_master_top_table,
-                       data_master_bottom_table = gene_master_bottom_table,
-                       data_prism_cor_nest = compound_prism_cor_nest,
-                       data_gene_summary = universal_gene_summary,
-                       input = list(),
+make_graph <- function(input = list(),
+                       #data_prism_cor_nest = compound_prism_cor_nest,
+                       #data_gene_summary = universal_gene_summary,
                        threshold = 10,
                        deg = 2,
                        cell_line_var = "dependency",
                        data_cell_line_dep_sim = cell_dependency_sim,
                        data_cell_line_exp_sim = cell_expression_sim,
                        bonferroni_cutoff = 0.05,
-                       corrType = "Positive",
+                       corr_type = "positive",
                        displayHeight = '90vh',
                        displayWidth = '100%',
                        tooltipLink = FALSE,
                        card = FALSE) {
   make_graph_raw <- function() {
+    #set color schemes
     if(input$type == "gene") {
       queryColor <- color_set_gene_alpha[2]
     }  else if (input$type == "cell"){
       queryColor <- color_set_cell_alpha[2]
-
-      # this is the equivalent of master top/bottom table
-      if(cell_line_var == "dependency") {
-        cell_top_data <-
-          data_cell_line_dep_sim %>%
-          dplyr::filter(bonferroni < bonferroni_cutoff)
-      } else if (cell_line_var == "expression") {
-        cell_top_data <-
-          data_cell_line_exp_sim %>%
-          dplyr::filter(bonferroni < bonferroni_cutoff)
-      }
-
+      #
+      #       # this is the equivalent of master top/bottom table
+      #       if(cell_line_var == "dependency") {
+      #         cell_top_data <-
+      #           data_cell_line_dep_sim %>%
+      #           dplyr::filter(bonferroni < bonferroni_cutoff)
+      #       } else if (cell_line_var == "expression") {
+      #         cell_top_data <-
+      #           data_cell_line_exp_sim %>%
+      #           dplyr::filter(bonferroni < bonferroni_cutoff)
+      #       }
     } else if(input$type == "compound") {
       queryColor <- color_set_compound_alpha[2]
     } else {
       stop("declare your type")
     }
 
-    #get dep_network object
-    dep_network_list <- setup_graph(setup_input = input,
-                                    setup_corrType = corrType,
+    #build graph using setup
+    setup_graph_list <- setup_graph(setup_input = input, #changed name here to prevent var naming overlap for nested funs()
                                     setup_threshold = threshold,
-                                    setup_cell_line_var = cell_line_var,
-                                    setup_bonferroni_cutoff = bonferroni_cutoff)
-    #dep_network_list <<- dep_network_list #for testing, to see what I'm getting back out
-
-    #add check for no genes list
-    #if(nrow(dep_network_list$df) == 0) {return("Graph cannot be built")}
-    #comment out so throws error with tryCatch()
-
-    if(length(input$content) == 1){
-      if(corrType == "Positive") {
-        group_var <- c("Query", "Positive", "Connected")
-      } else if(corrType == "Positive and Negative") {
-        group_var <- c("Query", "Positive", "Negative", "Connected")
-      } else if(corrType == "Negative") {
-        group_var <- c("Query", "Negative", "Connected")
-      } else {
-        stop("declare your corrType")}
-    } else {
-      if(corrType == "Positive") {
-        group_var <- c("Query", "Positive")
-      } else if(corrType == "Positive and Negative") {
-        group_var <- c("Query", "Positive", "Negative")
-      } else if(corrType == "Negative") {
-        group_var <- c("Query", "Negative")
-      } else {
-        stop("declare your corrType")}
-    }
+                                    setup_corr_type = corr_type)
 
     #make graph
     graph_network <-
-      tidygraph::as_tbl_graph(dep_network_list$df)
+      setup_graph_list$dep_network_table %>%
+      dplyr::rename(from = id, to = value) %>%
+      tidygraph::as_tbl_graph()
 
-    nodes <- graph_network %>%
+    #make groups for fct_relevel below
+    corr_var <- switch (corr_type,
+                        positive = "Positive",
+                        negative = "Negative",
+                        both = c("Positive", "Negative")
+    )
+    if(length(input$content) == 1){connected_var <- "Connected"} else {connected_var <- NULL}
+    group_var <- c("Query", corr_var, connected_var)
+
+    #add data to nodes
+    nodes <- #active by default
+      graph_network %>%
       tidygraph::as_tibble() %>%
       tibble::rowid_to_column("id") %>%
       dplyr::mutate(degree = igraph::degree(graph_network),
-                    group = dplyr::case_when(name %in% dep_network_list$query_id == TRUE ~ "Query", #could use input$content or input$content
-                                             name %in% dep_network_list$top_id == TRUE ~ "Positive",
-                                             name %in% dep_network_list$bottom_id == TRUE ~ "Negative",
+                    #name is the list of nodes
+                    group = dplyr::case_when(name %in% input$content == TRUE ~ "Query",
+                                             name %in% setup_graph_list$threshold_genes_pos == TRUE ~ "Positive",
+                                             name %in% setup_graph_list$threshold_genes_neg == TRUE ~ "Negative",
                                              TRUE ~ "Connected"),
                     group = forcats::as_factor(group),
                     group = forcats::fct_relevel(group, group_var)) %>%
       dplyr::arrange(group)
 
-    links <- graph_network %>%
+    links <-
+      graph_network %>%
       tidygraph::activate(edges) %>% # %E>%
       tidygraph::as_tibble()
 
@@ -498,68 +556,63 @@ make_graph <- function(data_master_top_table = gene_master_top_table,
     #   stop("declare your type")
     # }
 
-    # get the approved_name of each gene from the gene_summary table - will be added to nodes tibble for tooltip
-    nameTable <- dplyr::tibble(name=character())
+    # if(input$type == "cell") {
+    #   for(cell in nodes_filtered$name){
+    #     newVal <-
+    #       cell_top_data %>%
+    #       dplyr::filter(cell1_name == cell | cell2_name == cell)
+    #
+    #     # Swap cols (based on query)
+    #     for(i in 1:nrow(newVal)) {
+    #       if(newVal$cell2_name[i] %in% cell & !(newVal$cell1_name[i] %in% cell)) {
+    #         cell1 <- newVal$cell1_name[i]
+    #         cell2 <- newVal$cell2_name[i]
+    #
+    #         newVal$cell2_name[i] <- cell1
+    #         newVal$cell1_name[i] <- cell2
+    #       }
+    #     }
+    #
+    #     newVal <-
+    #       newVal %>%
+    #       dplyr::pull(cell2_name)
+    #
+    #     if(length(newVal) == 0){
+    #       nameTable <- tibble::add_row(nameTable, name = "No cell line available")# handles cases where the gene is not in the gene data_gene_summary table
+    #     } else{
+    #       nameTable <- tibble::add_row(nameTable, name=newVal)
+    #     }
+    #   }
+    # } else if(input$type == "compound") {
+    #   for(drug in nodes_filtered$name){
+    #     newVal <- prism_meta %>%
+    #       dplyr::filter(name==drug) %>%
+    #       dplyr::pull(moa)
+    #     if(length(newVal)==0){
+    #       nameTable <- tibble::add_row(nameTable, name = "No drug MOA available")# handles cases where the gene is not in the gene data_gene_summary table
+    #     } else{
+    #       nameTable <- tibble::add_row(nameTable, name=newVal)
+    #     }
+    #   }
+    # } else {
+    #   stop("declare your type")
+    # }
 
-    if(input$type == "gene") {
-      for(gene in nodes_filtered$name){
-        newVal <-
-          data_gene_summary %>%
-          dplyr::filter(approved_symbol==gene) %>%
-          dplyr::pull(approved_name)
-        if(length(newVal)==0){
-          nameTable <- tibble::add_row(nameTable, name = "No gene data_gene_summary available")# handles cases where the gene is not in the gene data_gene_summary table
-        } else{
-          nameTable <- tibble::add_row(nameTable, name=newVal)
-        }
-      }
-    } else if(input$type == "cell") {
-      for(cell in nodes_filtered$name){
-        newVal <-
-          cell_top_data %>%
-          dplyr::filter(cell1_name == cell | cell2_name == cell)
-
-        # Swap cols (based on query)
-        for(i in 1:nrow(newVal)) {
-          if(newVal$cell2_name[i] %in% cell & !(newVal$cell1_name[i] %in% cell)) {
-            cell1 <- newVal$cell1_name[i]
-            cell2 <- newVal$cell2_name[i]
-
-            newVal$cell2_name[i] <- cell1
-            newVal$cell1_name[i] <- cell2
-          }
-        }
-
-        newVal <-
-          newVal %>%
-          dplyr::pull(cell2_name)
-
-        if(length(newVal) == 0){
-          nameTable <- tibble::add_row(nameTable, name = "No cell line available")# handles cases where the gene is not in the gene data_gene_summary table
-        } else{
-          nameTable <- tibble::add_row(nameTable, name=newVal)
-        }
-      }
-    } else if(input$type == "compound") {
-      for(drug in nodes_filtered$name){
-        newVal <- prism_meta %>%
-          dplyr::filter(name==drug) %>%
-          dplyr::pull(moa)
-        if(length(newVal)==0){
-          nameTable <- tibble::add_row(nameTable, name = "No drug MOA available")# handles cases where the gene is not in the gene data_gene_summary table
-        } else{
-          nameTable <- tibble::add_row(nameTable, name=newVal)
-        }
-      }
-    } else {
-      stop("declare your type")
-    }
+    #make df for approved_name & description of each gene nodes tibble tooltips
+    gene_names <-
+      get_data_object(object_name = input$content,
+                      dataset_name = "setup_graph",
+      ) %>%
+      dplyr::filter(key == "approved_name") %>%
+      dplyr::select(name = id, description = value) %>%
+      dplyr::distinct(name, .keep_all = TRUE)
 
     # add title information (tooltip that appears on hover)
     if(!tooltipLink){ # Do not form a url when just making the standalone graph while testing or making reports
       nodes_filtered <-
         nodes_filtered %>%
-        dplyr::mutate(title=paste0("<center><p>", name,"<br>",name, '</p>'),
+        dplyr::left_join(gene_names) %>%
+        dplyr::mutate(title=paste0("<center><p>", name,"<br>", description, '</p>'),
                       label = name )
     } else {
       if(input$type == "gene") {
@@ -606,34 +659,34 @@ make_graph <- function(data_master_top_table = gene_master_top_table,
       displayWidth = "200px"
     }
     # build the network visualization
-    if(corrType == "Positive and Negative"){
+    if(corr_type == "both"){
       visNetwork(nodes = nodes_filtered, edges = links_filtered, width = displayWidth, height = displayHeight) %>%
         visOptions(highlightNearest = list(enabled = T)) %>%
-        visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_similarity == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visGroups(groupname = "Positive", color = list(background = positiveColor, border = borderColor, highlight = positiveColor, hover = positiveColor), shape=ifelse(cell_line_similarity == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visGroups(groupname = "Negative", color = list(background = negativeColor, border = borderColor, highlight = negativeColor, hover = negativeColor), shape=ifelse(cell_line_similarity == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_similarity == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visGroups(groupname = "Positive", color = list(background = positiveColor, border = borderColor, highlight = positiveColor, hover = positiveColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visGroups(groupname = "Negative", color = list(background = negativeColor, border = borderColor, highlight = negativeColor, hover = negativeColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
         visEdges(color = edgeColor, smooth = F) %>%
         visNodes(scaling = list(min = 10, max =20)) %>%
         visPhysics(barnesHut = list(damping = damping, centralGravity = gravity), timestep = timestep, stabilization = list(iterations = iter)) %>%
         visEvents(stabilizationIterationsDone = stabilizationZoomFn)
       # visConfigure(enabled=TRUE) # use to test out new features to add from visNetwork
-    }  else if(corrType == "Positive"){
+    }  else if(corr_type == "positive"){
       visNetwork(nodes = nodes_filtered, edges = links_filtered, width = displayWidth, height = displayHeight) %>%
         visOptions(highlightNearest = list(enabled = T)) %>%
-        visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_similarity == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visGroups(groupname = "Positive", color = list(background = positiveColor, border = borderColor, highlight = positiveColor, hover = positiveColor), shape=ifelse(cell_line_similarity == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_similarity == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visGroups(groupname = "Positive", color = list(background = positiveColor, border = borderColor, highlight = positiveColor, hover = positiveColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
         visEdges(color = edgeColor, smooth = F) %>%
         visNodes(scaling = list(min = 10, max =20)) %>%
         visPhysics(barnesHut = list(damping = damping, centralGravity = gravity), timestep = timestep, stabilization = list(iterations = iter)) %>%
         visEvents(stabilizationIterationsDone = stabilizationZoomFn)
-    }  else if(corrType == "Negative"){
+    }  else if(corr_type == "negative"){
       visNetwork(nodes = nodes_filtered, edges = links_filtered, width = displayWidth, height = displayHeight) %>%
         visOptions(highlightNearest = list(enabled = T)) %>%
-        visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_similarity == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visGroups(groupname = "Negative", color = list(background = negativeColor, border = borderColor, highlight = negativeColor, hover = negativeColor), shape=ifelse(cell_line_similarity == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_similarity == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visGroups(groupname = "Negative", color = list(background = negativeColor, border = borderColor, highlight = negativeColor, hover = negativeColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
         visEdges(color = edgeColor, smooth = F) %>%
         visNodes(scaling = list(min = 10, max = 20)) %>%
         visPhysics(barnesHut = list(damping = damping, centralGravity = gravity), timestep = timestep, stabilization = list(iterations = iter)) %>%
@@ -668,63 +721,49 @@ graph_legend_list <- "Each point represents one of the queried genes, and then t
 #' @export
 #' @examples
 #' make_bipartite_graph(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-#' make_bipartite_graph(input = list(type = "gene", content = "ROCK1"), collapsed = TRUE, threshold = 10, corrType = "Positive")
-#' make_bipartite_graph(input = list(type = "gene", content = c("ROCK1", "ROCK2")), collapsed = TRUE, threshold = 10, corrType = "Positive", censor = c("ADP", "Adenosine triphosphate"))
+#' make_bipartite_graph(input = list(type = "gene", content = "ROCK1"), collapsed = TRUE, threshold = 10, corr_type = "positive")
+#' make_bipartite_graph(input = list(type = "gene", content = c("ROCK1", "ROCK2")), collapsed = TRUE, threshold = 10, corr_type = "positive", censor = c("ADP", "Adenosine triphosphate"))
 #' make_bipartite_graph(input = list(type = "compound", content = "adp"))
 #' \dontrun{
 #' make_bipartite_graph(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_bipartite_graph <- function(data_master_top_table = gene_master_top_table,
-                                 data_master_bottom_table = gene_master_bottom_table,
-                                 data_hmdb_proteins = compound_hmdb_proteins,
-                                 data_hmdb_metabolites = compound_hmdb_metabolites,
-                                 data_gene_summary = universal_gene_summary,
-                                 input = list(),
+make_bipartite_graph <- function(input = list(),
+                                 # data_master_top_table = gene_master_top_table,
+                                 # data_master_bottom_table = gene_master_bottom_table,
+                                 # data_hmdb_proteins = compound_hmdb_proteins,
+                                 # data_hmdb_metabolites = compound_hmdb_metabolites,
+                                 # data_gene_summary = universal_gene_summary,
                                  censor = character(), #removes most common metabolites
                                  collapsed = TRUE,
                                  threshold = 10,
-                                 corrType = "Positive") {
+                                 corr_type = "positive") {
   make_bipartite_graph_raw <- function() {
     if(input$type == "gene") {
-      #get dep_network object
-      dep_network_list <- ddh::setup_graph(setup_input = input,
-                                           setup_corrType = corrType,
-                                           setup_threshold = threshold)
+      #build graph using setup
+      setup_graph_list <- setup_graph(setup_input = input, #changed name here to prevent var naming overlap for nested funs()
+                                      setup_threshold = threshold,
+                                      setup_corr_type = corr_type)
       #get gene_names
-      if(length(input$content) == 1){
-        if(corrType == "Positive") {
-          genes <- c(dep_network_list$query_id, dep_network_list$top_id)
-        } else if(corrType == "Positive and Negative") {
-          genes <- c(dep_network_list$query_id, dep_network_list$top_id, dep_network_list$bottom_id)
-        } else if(corrType == "Negative") {
-          genes <- c(dep_network_list$query_id, dep_network_list$bottom_id)
-        } else {
-          stop("declare your corrType")}
-      } else {
-        genes <- c(dep_network_list$query_id)
-      }
+      genes <- setup_graph_list$threshold_genes
 
       #collapsed var
-      if(collapsed == TRUE) {collapsed_var <- rlang::sym("data_collapsed")
-      } else {collapsed_var <- rlang::sym("data_original")}
+      if(collapsed == TRUE) {collapsed_var <- "metabolite_collapsed"
+      } else {collapsed_var <- "metabolite"}
 
       #first two cols to generate graph
       hmdb_network <-
-        data_hmdb_proteins %>%
-        dplyr::filter(fav_gene %in% genes)
+        get_data_object(object_name = input$content,
+                        dataset_name = "setup_graph") %>%
+        dplyr::filter(id %in% genes,
+                      key == collapsed_var) %>%
+        dplyr::distinct(gene_name = id, metabolite_name = value) #does a select/rename here also
 
       #check for nrow
       if(nrow(hmdb_network) == 0) {
         return("No associated metabolites")
-      } else {
-        hmdb_network <-
-          hmdb_network %>%
-          tidyr::unnest(cols = c(!!collapsed_var)) %>%
-          dplyr::ungroup() %>%
-          dplyr::select(gene_name, metabolite_name)
       }
 
-      #get genes that have >1 connection for filtering
+      #get genes that have >1 connection for filtering (so we don't have a bunch of singletons???)
       connected_genes <-
         hmdb_network %>%
         dplyr::count(gene_name, sort = TRUE) %>%
@@ -738,11 +777,11 @@ make_bipartite_graph <- function(data_master_top_table = gene_master_top_table,
       #hackish way to reorder legend, which appears based on first instance of  gene in group assignment
       hmdb_query <- #get query genes
         hmdb_filtered %>%
-        dplyr::filter(gene_name == dep_network_list$query_id)
+        dplyr::filter(gene_name %in% input$content)
 
       hmdb_notquery <- #get all others
         hmdb_filtered %>%
-        dplyr::filter(gene_name != dep_network_list$query_id)
+        dplyr::filter(!gene_name %in% input$content)
 
       hmdb_filtered <- #bind rows with query first
         hmdb_query %>%
@@ -754,26 +793,27 @@ make_bipartite_graph <- function(data_master_top_table = gene_master_top_table,
           hmdb_filtered %>%
           dplyr::filter(!metabolite_name %in% censor)
       }
-    } else if (input$type == "compound") {
-      #first two cols to generate graph
-      hmdb_network <-
-        data_hmdb_metabolites %>%
-        dplyr::filter(fav_metabolite %in% input$content)
-
-      #check for nrow
-      if(nrow(hmdb_network) == 0) {
-        return("No associated proteins")
-      } else {
-        hmdb_filtered <-
-          hmdb_network %>%
-          tidyr::unnest(cols = c(data)) %>%
-          dplyr::ungroup() %>%
-          dplyr::select(gene_name, metabolite_name) %>%
-          dplyr::arrange(gene_name)
-      }
-    } else {
-      stop("delcare your type")
-    }
+    } #extra curly due to commenting
+    # } else if (input$type == "compound") {
+    #   #first two cols to generate graph
+    #   hmdb_network <-
+    #     data_hmdb_metabolites %>%
+    #     dplyr::filter(fav_metabolite %in% input$content)
+    #
+    #   #check for nrow
+    #   if(nrow(hmdb_network) == 0) {
+    #     return("No associated proteins")
+    #   } else {
+    #     hmdb_filtered <-
+    #       hmdb_network %>%
+    #       tidyr::unnest(cols = c(data)) %>%
+    #       dplyr::ungroup() %>%
+    #       dplyr::select(gene_name, metabolite_name) %>%
+    #       dplyr::arrange(gene_name)
+    #   }
+    # } else {
+    #   stop("delcare your type")
+    # }
     #make bipartite graph
     metabolic_network <-
       igraph::graph_from_data_frame(d=hmdb_filtered,
@@ -787,15 +827,23 @@ make_bipartite_graph <- function(data_master_top_table = gene_master_top_table,
       igraph::V(metabolic_network)$name %in% hmdb_filtered$gene_name ~ "Protein",
       TRUE ~ "Metabolite") #accession
 
+    gene_names <-
+      get_data_object(object_name = input$content,
+                      dataset_name = "setup_graph",
+      ) %>%
+      dplyr::filter(key == "approved_name") %>%
+      dplyr::select(name = id, description = value) %>%
+      dplyr::distinct(name, .keep_all = TRUE)
+
     # add title information (tooltip that appears on hover)
     igraph::V(metabolic_network)$title <- igraph::V(metabolic_network)$name %>%
       purrr::map_chr(~ glue::glue('<center>
                                 <p>
                                 {.x}
                                 <br>
-                                {if(length(data_gene_summary %>% dplyr::filter(approved_symbol == .x) %>% dplyr::pull(approved_name)) != 0) {
-                                data_gene_summary %>% dplyr::filter(approved_symbol == .x) %>% dplyr::pull(approved_name)} else {
-                                "No data_gene_summary"}
+                                {if(length(gene_names %>% dplyr::filter(name == .x) %>% dplyr::pull(description)) != 0) {
+                                gene_names %>% dplyr::filter(name == .x) %>% dplyr::pull(description)} else {
+                                "No summary"}
                                 }
                                 <br>
                                 <a target="_blank" href="?show=gene&query={.x}">Link</a>
@@ -856,4 +904,75 @@ make_bipartite_graph <- function(data_master_top_table = gene_master_top_table,
              message(e)
              make_empty_graph()
            })
+}
+
+## NETWORK PLOT FOR GENE-PATHWAYS --------------------------------------------------------
+#' Gene-Pathway Co-essentiality Network
+#'
+#' Each node in the network is a gene or a pathway. The connection between nodes means an association (co-essentiality) and the intensity of the edges between nodes shows the strength of the association (being the darkest most co-essential). Click on the rows in the table to highlight nodes in the network.
+#'
+#' @param input Expecting a list containing content variable.
+#' @return If no error, then returns a network plot. If an error is thrown, then will return a bomb plot.
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' make_gene_pathways_components_network(input = list(content = 'ROCK1'))
+#' \dontrun{
+#' make_gene_pathways_components_network(input = list(content = 'ROCK1'))
+#' }
+make_gene_pathways_components_network <- function(data_universal_achilles_long = universal_achilles_long,
+                                                  input = list(),
+                                                  cutoff = NULL,
+                                                  highlight = NULL,
+                                                  show_labels = FALSE,
+                                                  fontsize = 3) {
+
+  make_gene_pathways_components_network_raw <- function() {
+    plot_data <- make_gene_pathways_components(input = input, cutoff = cutoff) %>%
+      dplyr::select(feature1, feature2, pearson_corr)
+
+    ## Name nodes
+    graph_table <- plot_data %>%
+      tidygraph::as_tbl_graph() %>%
+      dplyr::mutate(type = dplyr::case_when(name %in% input$content ~ "Query",
+                                            name %in% data_universal_achilles_long$gene ~ "Gene",
+                                            !(name %in% data_universal_achilles_long$gene) ~ "Pathway")
+      )
+
+    ## Plot network
+    plot_complete <- ggraph::ggraph(graph_table, layout = "fr") +
+      ggraph::geom_edge_link(ggplot2::aes(edge_alpha = abs(pearson_corr)),
+                             edge_width = 0.5, show.legend = FALSE) +
+      ggraph::geom_node_point(ggplot2::aes(fill = type), color = "black",
+                              pch = 21, size = 4, alpha = 0.85) +
+      {if(!is.null(highlight))ggraph::geom_node_point(ggplot2::aes(filter = name %in% highlight),
+                                                      fill = "red",
+                                                      pch = 21,
+                                                      size = 4,
+                                                      alpha = 0.85)} +
+      {if(!is.null(highlight) & show_labels)ggraph::geom_node_label(ggplot2::aes(label = name, filter = name %in% highlight),
+                                                                    repel = TRUE,
+                                                                    size = fontsize,
+                                                                    fill = ggplot2::alpha(c("white"), 0.6),
+                                                                    label.size = NA,
+                                                                    fontface = "bold",
+                                                                    family = "Roboto Slab")} +
+      ggraph::theme_graph(foreground = "white", fg_text_colour = "white") +
+      ggplot2::theme(legend.position = "top",
+                     legend.title = ggplot2::element_blank(),
+                     text = ggplot2::element_text(family = "Roboto Slab", size = 16)) +
+      scale_fill_ddh_d() +
+      ggraph::scale_edge_color_continuous(low = "black", high = "black")
+
+    return(plot_complete)
+  }
+
+  #error handling
+  tryCatch(make_gene_pathways_components_network_raw(),
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
+
 }
