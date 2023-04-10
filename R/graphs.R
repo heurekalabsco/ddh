@@ -11,7 +11,7 @@
 #'                         data_cell_line_dep_sim = cell_dependency_sim,
 #'                         data_cell_line_exp_sim = cell_expression_sim,
 #'                         setup_threshold,
-#'                         setup_corrType,
+#'                         setup_corr_type,
 #'                         setup_cell_line_var = "dependency",
 #'                         setup_bonferroni_cutoff = 0.05) {
 #'
@@ -33,7 +33,7 @@
 #'       #find top and bottom correlations for fav_gene
 #'       query <-
 #'         setup_input$content
-#'       if(setup_corrType == "Positive" | setup_corrType == "Positive and Negative") {
+#'       if(setup_corr_type == "Positive" | setup_corr_type == "Positive and Negative") {
 #'         top <-
 #'           data_master_top_table %>%
 #'           dplyr::filter(fav_gene %in% setup_input$content) %>%
@@ -42,7 +42,7 @@
 #'           dplyr::slice(1:setup_threshold) %>%
 #'           dplyr::pull("gene")
 #'       }
-#'       if(setup_corrType == "Negative" | setup_corrType == "Positive and Negative") {
+#'       if(setup_corr_type == "Negative" | setup_corr_type == "Positive and Negative") {
 #'         bottom <-
 #'           data_master_bottom_table %>%
 #'           dplyr::filter(fav_gene %in% setup_input$content) %>%
@@ -61,7 +61,7 @@
 #'     if(length(setup_input$content) == 1){
 #'       #find top and bottom correlations for fav_gene
 #'       query <- setup_input$content
-#'       if(setup_corrType == "Positive" | setup_corrType == "Positive and Negative") {
+#'       if(setup_corr_type == "Positive" | setup_corr_type == "Positive and Negative") {
 #'         top <-
 #'           cell_top_data %>%
 #'           dplyr::filter(cell1_name %in% setup_input$content | cell2_name %in% setup_input$content) %>%
@@ -73,7 +73,7 @@
 #'           unlist()
 #'         top <- top[!top %in% setup_input$content]
 #'       }
-#'       if(setup_corrType == "Negative" | setup_corrType == "Positive and Negative") {
+#'       if(setup_corr_type == "Negative" | setup_corr_type == "Positive and Negative") {
 #'         bottom <-
 #'           cell_top_data %>%
 #'           dplyr::filter(cell1_name %in% setup_input$content | cell2_name %in% setup_input$content) %>%
@@ -95,7 +95,7 @@
 #'     if(length(setup_input$content) == 1){
 #'       #find top and bottom correlations for fav_drug
 #'       query <- input$content
-#'       if(setup_corrType == "Positive" | setup_corrType == "Positive and Negative") {
+#'       if(setup_corr_type == "Positive" | setup_corr_type == "Positive and Negative") {
 #'         top <-
 #'           data_prism_cor_nest %>%
 #'           dplyr::filter(fav_drug %in% setup_input$content) %>%
@@ -106,7 +106,7 @@
 #'           dplyr::slice(1:setup_threshold) %>%
 #'           dplyr::pull("name")
 #'       }
-#'       if(setup_corrType == "Negative" | setup_corrType == "Positive and Negative") {
+#'       if(setup_corr_type == "Negative" | setup_corr_type == "Positive and Negative") {
 #'         bottom <-
 #'           data_prism_cor_nest %>%
 #'           dplyr::filter(fav_drug %in% setup_input$content) %>%
@@ -221,7 +221,7 @@
 #'   dep_network <- dplyr::tibble()
 #'
 #'   # make the correct graph including only correlations of the designated type
-#'   if(setup_corrType == "Positive"){
+#'   if(setup_corr_type == "Positive"){
 #'     network_list <- unique(top)
 #'     bottom <- NULL #reset unused var to NULL so factors and labels work
 #'     #this takes the genes from the top, and pulls them to feed them into a for loop
@@ -235,7 +235,7 @@
 #'         dep_network %>%
 #'         dplyr::bind_rows(dep_top_related)
 #'     }
-#'   } else if(setup_corrType == "Positive and Negative"){
+#'   } else if(setup_corr_type == "Positive and Negative"){
 #'     network_list <- unique(c(top, bottom))
 #'     for (i in network_list){
 #'       dep_top_related <- make_graph_table(fun_setup_input = setup_input,
@@ -256,7 +256,7 @@
 #'         dep_network %>%
 #'         dplyr::bind_rows(dep_related)
 #'     }
-#'   } else if(setup_corrType == "Negative"){
+#'   } else if(setup_corr_type == "Negative"){
 #'     network_list <- unique(bottom)
 #'     top <- NULL #reset unused var to NULL so factors and labels work
 #'     for (i in network_list){
@@ -271,7 +271,7 @@
 #'         dplyr::bind_rows(dep_bottom_related)
 #'     }
 #'   } else {
-#'     stop("delcare your corrType")
+#'     stop("delcare your corr_type")
 #'   }
 #'   if(length(setup_input$content) > 1) { #this reassigns top and bottom ids from multi-gene queries
 #'     query <- setup_input$content
@@ -283,7 +283,7 @@
 #'       dplyr::pull(y)
 #'   }
 #'   #fun now returns a list, to preserve some info that gets passed on to rest make_graph()
-#'   return(list(type = setup_corrType,
+#'   return(list(type = setup_corr_type,
 #'               query_id = query,
 #'               top_id = top,
 #'               bottom_id = bottom,
@@ -292,11 +292,11 @@
 #' }
 #'
 #' #tests
-#' #tmp <- setup_graph(setup_input = list(type = "gene", content = "ROCK1"), setup_corrType = "Positive", setup_threshold = 10)
-#' #tmp1 <- setup_graph(setup_input = list(type = "gene", content = "ROCK1"), setup_corrType = "Positive and Negative", setup_threshold = 10)
-#' #tmp2 <- setup_graph(setup_input = list(type = "gene", content = c("ROCK1", "ROCK2")), setup_corrType = "Positive", setup_threshold = 10)
-#' #tmp4 <- setup_graph(setup_input = list(type = "compound", content = "ADP"), setup_corrType = "Positive and Negative", setup_threshold = 10)
-#' #tmp5 <- setup_graph(setup_input = list(type = "cell", content = "HEL"), setup_corrType = "Positive and Negative", setup_threshold = 10)
+#' #tmp <- setup_graph(setup_input = list(type = "gene", content = "ROCK1"), setup_corr_type = "Positive", setup_threshold = 10)
+#' #tmp1 <- setup_graph(setup_input = list(type = "gene", content = "ROCK1"), setup_corr_type = "Positive and Negative", setup_threshold = 10)
+#' #tmp2 <- setup_graph(setup_input = list(type = "gene", content = c("ROCK1", "ROCK2")), setup_corr_type = "Positive", setup_threshold = 10)
+#' #tmp4 <- setup_graph(setup_input = list(type = "compound", content = "ADP"), setup_corr_type = "Positive and Negative", setup_threshold = 10)
+#' #tmp5 <- setup_graph(setup_input = list(type = "cell", content = "HEL"), setup_corr_type = "Positive and Negative", setup_threshold = 10)
 
 ## SETUP GRAPH ----------------------------------------------------------------------
 #' Setup graph parameters
@@ -318,7 +318,7 @@ setup_graph <- function(setup_input = list(), #changed name here to prevent var 
     dplyr::filter(stringr::str_detect(.$key, "negative") | stringr::str_detect(.$key, "positive")) %>% #need this so approved_name doesn't get separated in next step
     tidyr::separate(col = "key", into = c("type", "rank"), sep = "_") %>%
     dplyr::mutate(rank = as.numeric(rank)) %>%
-    dplyr::distinct(id, name, type, rank, value) #remove redundancy
+    dplyr::distinct(id, data_set, type, rank, value) #remove redundancy
 
   #this is the master threshold gene vec to use for filtering and factor grouping
   threshold_genes_pos <- NULL
@@ -348,7 +348,7 @@ setup_graph <- function(setup_input = list(), #changed name here to prevent var 
   #this next step is key: either pull top n genes for single query, or pull query genes from multi-gene query
   if(length(setup_input$content) == 1){
     #get single gene threshold vec, so I can use this to filter my id col for the dep_network_table
-    threshold_genes <- c(threshold_genes_pos, threshold_genes_neg)
+    threshold_genes <- c(setup_input$content, threshold_genes_pos, threshold_genes_neg)
   } else {
     #this only keeps input$content in id, and drops related
     threshold_genes <- setup_input$content
@@ -375,8 +375,6 @@ setup_graph <- function(setup_input = list(), #changed name here to prevent var 
 #' visualization containing the top/bottom threshold for each of the top/bottom threshold of the gene query list
 #' using visNetwork.
 #'
-#' @param data_master_top_table A tibble of genes and their associated top correlated genes
-#' @param data_master_bottom_table A tibble of genes and their associated bottom correlated genes
 #' @param input A list containing character vector of gene_symbols used to create network graph
 #' @param threshold A numerical representing the number of genes to pull from top and bottom tables
 #' @param deg A numerical representing the minimum number of connections for a gene to be connected to the network
@@ -399,7 +397,7 @@ setup_graph <- function(setup_input = list(), #changed name here to prevent var 
 #' make_graph(input = list(type = "gene", content = "ROCK1"), corr_type = "negative")
 #' make_graph(input = list(type = "gene", content = "ROCK1"), corr_type = "both")
 #' make_graph(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
-#' make_graph(input = list(type = "pathway", query = "1902965", content = c("RDX", "ROCK2", "DTX3L", "MSN", "SORL1", "EZR")), corrType = "positive")
+#' make_graph(input = list(type = "pathway", query = "1902965", content = c("RDX", "ROCK2", "DTX3L", "MSN", "SORL1", "EZR")), corr_type = "positive")
 #' make_graph(input = list(type = "gene", content = "DTX3L"), corr_type = "negative") # disconnected query gene
 #' make_graph(input = list(type = "compound", content = "aspirin"), corr_type = "negative")
 
@@ -412,8 +410,8 @@ make_graph <- function(input = list(),
                        threshold = 10,
                        deg = 2,
                        cell_line_var = "dependency",
-                       data_cell_line_dep_sim = cell_dependency_sim,
-                       data_cell_line_exp_sim = cell_expression_sim,
+                       # data_cell_line_dep_sim = cell_dependency_sim,
+                       # data_cell_line_exp_sim = cell_expression_sim,
                        bonferroni_cutoff = 0.05,
                        corr_type = "positive",
                        displayHeight = '90vh',
@@ -422,6 +420,7 @@ make_graph <- function(input = list(),
                        card = FALSE) {
   make_graph_raw <- function() {
     #set color schemes
+    ddh::load_ddh_colors()
     if(input$type == "gene") {
       queryColor <- color_set_gene_alpha[2]
     }  else if (input$type == "cell"){
@@ -501,7 +500,7 @@ make_graph <- function(input = list(),
 
     #check to see if setting degree removed all links; if so, then throws error, so this fills a dummy links_filtered df to plot only nodes
     if(nrow(links_filtered) == 0) {
-      if(corrType == "Negative"){
+      if(corr_type == "Negative"){
         links_filtered <- dplyr::tibble("from" = -1, "to" = -1, "r2" = 1, "origin" = "neg")
       }    else{
         links_filtered <- dplyr::tibble("from" = -1, "to" = -1, "r2" = 1, "origin" = "pos")}

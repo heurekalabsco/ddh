@@ -22,7 +22,8 @@ make_summary_gene <- function(input = list(),
     get_data_object(object_name = input$content,
                     dataset_name = "universal_gene_summary",
                     pivotwider = TRUE) %>%
-    dplyr::mutate(across(contains(c("count", "rank")), as.numeric)) %>%
+    dplyr::mutate(across(contains(c("count", "rank")), as.numeric),
+                  "approved_symbol" = id) %>%
     dplyr::pull(var) #any column name
   return(gene_summary_var)
 }
@@ -86,7 +87,9 @@ make_summary_list <- function(data_universal_gene_summary = universal_gene_summa
       get_data_object(object_name = input$content,
                       dataset_name = "universal_gene_summary",
                       pivotwider = TRUE) %>%
-      dplyr::left_join(data_gene_location, by = "id")
+      dplyr::left_join(data_gene_location, by = "id") %>%
+      dplyr::mutate(across(contains(c("count", "rank")), as.numeric),
+                    "approved_symbol" = id)
 
     custom_list[custom_list == "NA"] <- NA
     custom_list[custom_list == ""] <- NA
