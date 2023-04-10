@@ -301,6 +301,8 @@
 ## SETUP GRAPH ----------------------------------------------------------------------
 #' Setup graph parameters
 #'
+#' The overall purpose of this function is to create an object that can be used to generate a network graph by filtering the query object. A list is returned that has four elements.
+#'
 #' @importFrom magrittr %>%
 #'
 #' @export
@@ -359,12 +361,12 @@ setup_graph <- function(setup_input = list(), #changed name here to prevent var 
     dep_network_master %>%
     dplyr::filter(id %in% threshold_genes,
                   type %in% corr_filter,
-                  rank <= threshold)
+                  rank <= setup_threshold)
 
-  setup_object = list(dep_network_table = dep_network_table,
-                      threshold_genes_pos = threshold_genes_pos,
-                      threshold_genes_neg = threshold_genes_neg,
-                      threshold_genes = threshold_genes)
+  setup_object = list(dep_network_table = dep_network_table, #full dataset
+                      threshold_genes_pos = threshold_genes_pos, #req'd for graph factors/labels
+                      threshold_genes_neg = threshold_genes_neg, #req'd for graph factors/labels
+                      threshold_genes = threshold_genes) #genes used to create graph
   return(setup_object)
 }
 
@@ -405,8 +407,6 @@ setup_graph <- function(setup_input = list(), #changed name here to prevent var 
 #' make_graph(input = list(type = 'gene', content = 'ROCK1'))
 #' }
 make_graph <- function(input = list(),
-                       #data_prism_cor_nest = compound_prism_cor_nest,
-                       #data_gene_summary = universal_gene_summary,
                        threshold = 10,
                        deg = 2,
                        cell_line_var = "dependency",
@@ -659,37 +659,37 @@ make_graph <- function(input = list(),
     }
     # build the network visualization
     if(corr_type == "both"){
-      visNetwork(nodes = nodes_filtered, edges = links_filtered, width = displayWidth, height = displayHeight) %>%
-        visOptions(highlightNearest = list(enabled = T)) %>%
-        visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visGroups(groupname = "Positive", color = list(background = positiveColor, border = borderColor, highlight = positiveColor, hover = positiveColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visGroups(groupname = "Negative", color = list(background = negativeColor, border = borderColor, highlight = negativeColor, hover = negativeColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visEdges(color = edgeColor, smooth = F) %>%
-        visNodes(scaling = list(min = 10, max =20)) %>%
-        visPhysics(barnesHut = list(damping = damping, centralGravity = gravity), timestep = timestep, stabilization = list(iterations = iter)) %>%
-        visEvents(stabilizationIterationsDone = stabilizationZoomFn)
+      visNetwork::visNetwork(nodes = nodes_filtered, edges = links_filtered, width = displayWidth, height = displayHeight) %>%
+        visNetwork::visOptions(highlightNearest = list(enabled = T)) %>%
+        visNetwork::visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visNetwork::visGroups(groupname = "Positive", color = list(background = positiveColor, border = borderColor, highlight = positiveColor, hover = positiveColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visNetwork::visGroups(groupname = "Negative", color = list(background = negativeColor, border = borderColor, highlight = negativeColor, hover = negativeColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visNetwork::visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visNetwork::visEdges(color = edgeColor, smooth = F) %>%
+        visNetwork::visNodes(scaling = list(min = 10, max =20)) %>%
+        visNetwork::visPhysics(barnesHut = list(damping = damping, centralGravity = gravity), timestep = timestep, stabilization = list(iterations = iter)) %>%
+        visNetwork::visEvents(stabilizationIterationsDone = stabilizationZoomFn)
       # visConfigure(enabled=TRUE) # use to test out new features to add from visNetwork
     }  else if(corr_type == "positive"){
-      visNetwork(nodes = nodes_filtered, edges = links_filtered, width = displayWidth, height = displayHeight) %>%
-        visOptions(highlightNearest = list(enabled = T)) %>%
-        visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visGroups(groupname = "Positive", color = list(background = positiveColor, border = borderColor, highlight = positiveColor, hover = positiveColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visEdges(color = edgeColor, smooth = F) %>%
-        visNodes(scaling = list(min = 10, max =20)) %>%
-        visPhysics(barnesHut = list(damping = damping, centralGravity = gravity), timestep = timestep, stabilization = list(iterations = iter)) %>%
-        visEvents(stabilizationIterationsDone = stabilizationZoomFn)
+      visNetwork::visNetwork(nodes = nodes_filtered, edges = links_filtered, width = displayWidth, height = displayHeight) %>%
+        visNetwork::visOptions(highlightNearest = list(enabled = T)) %>%
+        visNetwork::visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visNetwork::visGroups(groupname = "Positive", color = list(background = positiveColor, border = borderColor, highlight = positiveColor, hover = positiveColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visNetwork::visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visNetwork::visEdges(color = edgeColor, smooth = F) %>%
+        visNetwork::visNodes(scaling = list(min = 10, max =20)) %>%
+        visNetwork::visPhysics(barnesHut = list(damping = damping, centralGravity = gravity), timestep = timestep, stabilization = list(iterations = iter)) %>%
+        visNetwork::visEvents(stabilizationIterationsDone = stabilizationZoomFn)
     }  else if(corr_type == "negative"){
-      visNetwork(nodes = nodes_filtered, edges = links_filtered, width = displayWidth, height = displayHeight) %>%
-        visOptions(highlightNearest = list(enabled = T)) %>%
-        visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visGroups(groupname = "Negative", color = list(background = negativeColor, border = borderColor, highlight = negativeColor, hover = negativeColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visEdges(color = edgeColor, smooth = F) %>%
-        visNodes(scaling = list(min = 10, max = 20)) %>%
-        visPhysics(barnesHut = list(damping = damping, centralGravity = gravity), timestep = timestep, stabilization = list(iterations = iter)) %>%
-        visEvents(stabilizationIterationsDone = stabilizationZoomFn)
+      visNetwork::visNetwork(nodes = nodes_filtered, edges = links_filtered, width = displayWidth, height = displayHeight) %>%
+        visNetwork::visOptions(highlightNearest = list(enabled = T)) %>%
+        visNetwork::visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visNetwork::visGroups(groupname = "Negative", color = list(background = negativeColor, border = borderColor, highlight = negativeColor, hover = negativeColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visNetwork::visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+        visNetwork::visEdges(color = edgeColor, smooth = F) %>%
+        visNetwork::visNodes(scaling = list(min = 10, max = 20)) %>%
+        visNetwork::visPhysics(barnesHut = list(damping = damping, centralGravity = gravity), timestep = timestep, stabilization = list(iterations = iter)) %>%
+        visNetwork::visEvents(stabilizationIterationsDone = stabilizationZoomFn)
     }
   }
   #error handling
