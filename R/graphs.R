@@ -393,8 +393,8 @@ setup_graph <- function(setup_input = list(), #changed name here to prevent var 
 #' @export
 #' @examples
 #' make_graph(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-#' make_graph(input = list(type = "gene", content = "ROCK2"))
-#' make_graph(input = list(type = "gene", content = "ROCK2"), threshold = 15)
+#' make_graph(input = list(type = "gene", content = "ROCK1"))
+#' make_graph(input = list(type = "gene", content = "ROCK1"), threshold = 15)
 #' make_graph(input = list(type = "gene", content = "ROCK1"), card = TRUE)
 #' make_graph(input = list(type = "gene", content = "ROCK1"), corr_type = "negative")
 #' make_graph(input = list(type = "gene", content = "ROCK1"), corr_type = "both")
@@ -509,7 +509,7 @@ make_graph <- function(input = list(),
     # shift id values properly to work with visNetwork
     nodes_filtered <-
       nodes_filtered %>%
-      dplyr::mutate(id=0:(dim(nodes_filtered)[1]-1))
+      dplyr::mutate(id=0:(nrow(nodes_filtered)-1))
 
     # recreate the network using filtered edges to use degree function
     graph_network_filtered <-
@@ -519,14 +519,16 @@ make_graph <- function(input = list(),
 
     # make node size a function of their degree in the current network
     if(names(degVec)[1] == "-1"){ # if there are no links remaining then assign degree of each node to 0
-      nodes_filtered <- nodes_filtered %>%
+      nodes_filtered <-
+        nodes_filtered %>%
         dplyr::mutate(value = 0)
     } else if(length(input$content > 1) & length(degVec) != dim(nodes_filtered)[1]){ # handle cases where some query genes are disconnected
       genesWithConnections <-
         degVec %>%
         names() %>%
         as.numeric()
-      nodes_filtered <- nodes_filtered %>%
+      nodes_filtered <-
+        nodes_filtered %>%
         tibble::add_column(value = 0)
       for(gene in 1:dim(nodes_filtered)[1]){
         if(nodes_filtered[gene,"id"] %in% genesWithConnections){
