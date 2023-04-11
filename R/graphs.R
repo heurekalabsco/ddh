@@ -454,10 +454,10 @@ make_graph <- function(input = list(),
       tidygraph::as_tbl_graph()
 
     #make groups for fct_relevel below
-    corr_var <- switch (corr_type,
-                        positive = "Positive",
-                        negative = "Negative",
-                        both = c("Positive", "Negative")
+    corr_var <- switch(corr_type,
+                       positive = "Positive",
+                       negative = "Negative",
+                       both = c("Positive", "Negative")
     )
     if(length(input$content) == 1){connected_var <- "Connected"} else {connected_var <- NULL}
     group_var <- c("Query", corr_var, connected_var)
@@ -535,7 +535,7 @@ make_graph <- function(input = list(),
           nodes_filtered[gene,"value"] <- degVec[nodes_filtered[gene,"id"] %>% toString()]
         }
       }
-    }else{
+    } else {
       nodes_filtered <-
         nodes_filtered[degVec %>% names() %>% as.numeric() +1,] %>%
         dplyr::mutate(value = degVec)
@@ -602,8 +602,7 @@ make_graph <- function(input = list(),
     #make df for approved_name & description of each gene nodes tibble tooltips
     gene_names <-
       get_data_object(object_name = input$content,
-                      dataset_name = "setup_graph",
-      ) %>%
+                      dataset_name = "setup_graph") %>%
       dplyr::filter(key == "approved_name") %>%
       dplyr::select(name = id, description = value) %>%
       dplyr::distinct(name, .keep_all = TRUE)

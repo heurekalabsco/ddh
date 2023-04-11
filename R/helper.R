@@ -78,8 +78,9 @@ get_data_object <- function(object_names,
   data_object <-
     object_names %>%
     purrr::map(get_single_object, dataset_filter = dataset_name) %>%
-    purrr::list_rbind() %>% #requires purrr1.0
-    dplyr::distinct(id, data_set, key, value) #remove redundancies introduced by rbind()
+    purrr::list_rbind() #requires purrr1.0
+    #dplyr::distinct(id, data_set, key, value) #remove redundancies introduced by rbind()
+    #breaks my pivoting, so commenting out
 
   #pivot wider is last, so it can handle if any objects filter to length zero
   if(pivotwider == TRUE){ #&& nrow(data_object) > 0
