@@ -49,7 +49,7 @@ get_content <- function(object_name,
 #'
 #' @export
 #' @examples
-#' tmp <- get_data_object(object_names = c("ROCK1"))
+#' ROCK1 <- get_data_object(object_names = c("ROCK1"))
 #' get_data_object(object_names = c("ROCK1"), dataset_name = "gene_female_tissue")
 #' get_data_object(object_names = c("ROCK1", "ROCK2"), dataset_name = "gene_female_tissue")
 #' get_data_object(object_names = c("ROCK1", "ROCK2"), dataset_name = "gene_female_tissue", pivotwider = TRUE)

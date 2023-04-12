@@ -398,9 +398,7 @@ make_clustering_table <- function(input = list(),
 
     #vec of clusters in query
     query_clust <-
-      data_gene_signature_clusters %>%
-      dplyr::pull(clust) %>%
-      unique()
+      ddh::get_cluster(input)
 
     if(show_signature == TRUE){cluster <- TRUE} #make sure you preserve clusters
     #table of all proteins in cluster containing: uniprot_id, gene_name, protein_name, clust, cluster_name
