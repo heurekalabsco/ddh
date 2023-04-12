@@ -4,14 +4,15 @@
 \alias{make_summary_cell}
 \title{Make Cell Summary}
 \usage{
-make_summary_cell(
-  data_cell_expression_names = cell_expression_names,
-  input = list(),
-  var = "cell_line"
-)
+make_summary_cell(input = list(), var = "cell_line")
+}
+\arguments{
+\item{input}{A list containing a content variable.}
+
+\item{var}{Variable that determines which text is returned}
 }
 \description{
-Make Cell Summary
+The make_summary_cell function takes a cell as an input and returns summary text about it.
 }
 \examples{
 make_summary_cell(input = list(content = "HEPG2"), var = "cell_line")

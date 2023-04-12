@@ -4,14 +4,7 @@
 \alias{make_lineage}
 \title{Dependency Lineage Plot}
 \usage{
-make_lineage(
-  data_universal_achilles_long = universal_achilles_long,
-  data_universal_prism_long = universal_prism_long,
-  data_cell_expression_names = cell_expression_names,
-  input = list(),
-  card = FALSE,
-  highlight = FALSE
-)
+make_lineage(input = list(), card = FALSE, highlight = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}

@@ -4,19 +4,8 @@
 \alias{setup_graph}
 \title{Setup graph parameters}
 \usage{
-setup_graph(
-  setup_input = list(),
-  data_master_top_table = gene_master_top_table,
-  data_master_bottom_table = gene_master_bottom_table,
-  data_prism_cor_nest = compound_prism_cor_nest,
-  data_cell_line_dep_sim = cell_dependency_sim,
-  data_cell_line_exp_sim = cell_expression_sim,
-  setup_threshold,
-  setup_corrType,
-  setup_cell_line_var = "dependency",
-  setup_bonferroni_cutoff = 0.05
-)
+setup_graph(setup_input = list(), setup_threshold, setup_corr_type)
 }
 \description{
-Setup graph parameters
+The overall purpose of this function is to create an object that can be used to generate a network graph by filtering the query object. A list is returned that has four elements.
 }

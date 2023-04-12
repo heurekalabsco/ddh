@@ -4,14 +4,15 @@
 \alias{make_summary_protein}
 \title{Make Protein Summary}
 \usage{
-make_summary_protein(
-  data_universal_proteins = universal_proteins,
-  input = list(),
-  var = "gene_name"
-)
+make_summary_protein(input = list(), var = "gene_name")
+}
+\arguments{
+\item{input}{A list containing a content variable.}
+
+\item{var}{Variable that determines which text is returned}
 }
 \description{
-Make Protein Summary
+The make_summary_protein function takes a gene as an input and returns summary text about its protein.
 }
 \examples{
 make_summary_protein(input = list(content = "ROCK1"), var = "gene_name")

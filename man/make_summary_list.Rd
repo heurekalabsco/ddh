@@ -13,8 +13,13 @@ make_summary_list(
   input = list()
 )
 }
+\arguments{
+\item{input}{A list containing a content variable.}
+
+\item{var}{Variable that determines which text is returned}
+}
 \description{
-Make List Summary
+The make_summary_list function takes one or many genes as inputs and returns summary list key summary information. This is a solution for make_summary_gene to make summaries of more than one gene.
 }
 \examples{
 make_summary_list(input = list(type = "gene", content = c("ROCK1", "ROCK2")))

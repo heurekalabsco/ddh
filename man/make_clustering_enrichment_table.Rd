@@ -5,8 +5,6 @@
 \title{Clustering Enrichment Table}
 \usage{
 make_clustering_enrichment_table(
-  data_gene_signature_clusters = gene_signature_clusters,
-  data_gene_signature_cluster_enrichment = gene_signature_cluster_enrichment,
   input = list(),
   ontology = "BP",
   filter_noise = FALSE
@@ -26,6 +24,8 @@ This is a table function that takes a gene name and returns a clustering enrichm
 }
 \examples{
 make_clustering_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
+make_clustering_enrichment_table(input = list(type = 'gene', content = 'ROCK1'), ontology = "MF")
+make_clustering_enrichment_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 \dontrun{
 make_clustering_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
 }

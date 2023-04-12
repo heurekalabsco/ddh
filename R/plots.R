@@ -3362,20 +3362,20 @@ make_functional_cell <- function(data_gene_pathways = gene_pathways,
 #' \dontrun{
 #' make_metadata_cell(input = list(type = "cell", content = c("HEPG2")))
 #' }
-make_metadata_cell <- function(data_cell_dependency_sim = cell_dependency_sim,
-                               data_cell_expression_sim = cell_expression_sim,
-                               input = list(),
+make_metadata_cell <- function(input = list(),
+                               #data_cell_dependency_sim = cell_dependency_sim,
+                               #data_cell_expression_sim = cell_expression_sim,
                                cell_line_similarity = "dependency",
                                metadata = "lineage",
                                bonferroni_cutoff = 0.05,
                                card = FALSE) {
   make_metadata_cell_raw <- function() {
 
-    plot_data <- make_cell_sim_table(data_cell_dependency_sim,
-                                     data_cell_expression_sim,
-                                     similarity = cell_line_similarity,
+    plot_data <- make_cell_sim_table(input = input,
+                                     #data_cell_dependency_sim,
+                                     #data_cell_expression_sim,
                                      bonferroni_cutoff = 1.1, # to include bonf == 1
-                                     input = input) %>%
+                                     similarity = cell_line_similarity) %>%
       dplyr::bind_rows() %>%
       dplyr::mutate(group = dplyr::case_when(bonferroni > bonferroni_cutoff ~ "None",
                                              bonferroni < bonferroni_cutoff & coef > 0 ~ "Similar",

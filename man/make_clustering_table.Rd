@@ -4,14 +4,7 @@
 \alias{make_clustering_table}
 \title{Clustering Table}
 \usage{
-make_clustering_table(
-  data_gene_signature_clusters = gene_signature_clusters,
-  data_gene_signatures = gene_signatures,
-  data_gene_signature_cluster_names = gene_signature_cluster_names,
-  input = list(),
-  cluster = FALSE,
-  show_signature = FALSE
-)
+make_clustering_table(input = list(), cluster = FALSE, show_signature = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -27,6 +20,8 @@ This is a table function that takes a gene name and returns a clustering Table
 }
 \examples{
 make_clustering_table(input = list(type = 'gene', content = 'ROCK1'))
+make_clustering_table(input = list(type = 'gene', content = 'ROCK1'), cluster = TRUE)
+make_clustering_table(input = list(type = 'gene', content = 'ROCK1'), show_signature = TRUE)
 \dontrun{
 make_clustering_table(input = list(type = 'gene', content = 'ROCK1'))
 }

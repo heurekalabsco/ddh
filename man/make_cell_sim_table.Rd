@@ -5,11 +5,9 @@
 \title{Cell Similarity Table}
 \usage{
 make_cell_sim_table(
-  data_cell_dependency_sim = cell_dependency_sim,
-  data_cell_expression_sim = cell_expression_sim,
+  input = list(),
   similarity = "dependency",
-  bonferroni_cutoff = 0.05,
-  input = list()
+  bonferroni_cutoff = 0.05
 )
 }
 \arguments{

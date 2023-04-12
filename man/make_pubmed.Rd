@@ -4,11 +4,7 @@
 \alias{make_pubmed}
 \title{Pubmed Plot}
 \usage{
-make_pubmed(
-  data_universal_pubmed = universal_pubmed,
-  input = list(),
-  card = FALSE
-)
+make_pubmed(input = list(), card = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -26,6 +22,7 @@ This is a plot function that takes a gene name and returns a pubmed plot
 }
 \examples{
 make_pubmed(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_pubmed(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 make_pubmed(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 make_pubmed(input = list(type = 'compound', content = 'aspirin'))
 \dontrun{

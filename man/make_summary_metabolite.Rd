@@ -4,11 +4,7 @@
 \alias{make_summary_metabolite}
 \title{Make Metabolite Summary}
 \usage{
-make_summary_metabolite(
-  data_compound_hmdb_names = compound_hmdb_names,
-  input = list(),
-  var = "name"
-)
+make_summary_metabolite(input = list(), var = "name")
 }
 \description{
 Make Metabolite Summary

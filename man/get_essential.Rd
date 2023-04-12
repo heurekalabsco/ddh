@@ -4,12 +4,7 @@
 \alias{get_essential}
 \title{Get Essential}
 \usage{
-get_essential(
-  data_universal_achilles_long = universal_achilles_long,
-  data_universal_prism_long = universal_prism_long,
-  data_cell_expression_names = cell_expression_names,
-  input = list()
-)
+get_essential(input = list())
 }
 \description{
 Gets number of cells lines a gene is essential within

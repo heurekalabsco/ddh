@@ -4,13 +4,7 @@
 \alias{make_cluster_enrich}
 \title{Cluster Enrichment Plot}
 \usage{
-make_cluster_enrich(
-  data_gene_signature_clusters = gene_signature_clusters,
-  data_gene_signature_cluster_enrichment = gene_signature_cluster_enrichment,
-  input = list(),
-  ontology = "BP",
-  num_terms = 20
-)
+make_cluster_enrich(input = list(), ontology = "BP")
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -25,7 +19,7 @@ Enriched GO terms (BP, MF, and CC) by all genes in the selected amino acid signa
 }
 \examples{
 make_cluster_enrich(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-make_cluster_enrich(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+make_cluster_enrich(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 \dontrun{
 make_cluster_enrich(input = list(type = 'gene', content = 'ROCK1'))
 }

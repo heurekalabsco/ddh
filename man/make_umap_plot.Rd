@@ -4,12 +4,7 @@
 \alias{make_umap_plot}
 \title{UMAP Plot}
 \usage{
-make_umap_plot(
-  data_gene_signature_clusters = gene_signature_clusters,
-  input = list(),
-  show_subset = FALSE,
-  labels = FALSE
-)
+make_umap_plot(input = list(), show_subset = FALSE, labels = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -23,8 +18,8 @@ If no error, then returns a umap plot plot. If an error is thrown, then will ret
 Amino acid signature (percentage of each amino acid in a protein) UMAP embeddings (2D) colored by the cluster to which they belong (N = 20375).
 }
 \examples{
-make_umap_plot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-make_umap_plot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+make_umap_plot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), show_subset = TRUE)
+make_umap_plot(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')), labels = TRUE)
 \dontrun{
 make_umap_plot(input = list(type = 'gene', content = 'ROCK1'))
 }

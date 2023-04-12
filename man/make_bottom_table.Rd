@@ -4,12 +4,7 @@
 \alias{make_bottom_table}
 \title{Bottom Table}
 \usage{
-make_bottom_table(
-  data_gene_master_bottom_table = gene_master_bottom_table,
-  data_universal_stats_summary = universal_stats_summary,
-  gls = FALSE,
-  input = list()
-)
+make_bottom_table(input = list(), gls = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -25,6 +20,7 @@ This is a table function that takes a gene name and returns a bottom Table
 }
 \examples{
 make_bottom_table(input = list(type = 'gene', content = 'ROCK1'))
+make_bottom_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 \dontrun{
 make_bottom_table(input = list(type = 'gene', content = 'ROCK1'))
 }

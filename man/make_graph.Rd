@@ -5,18 +5,12 @@
 \title{Create network graph visualization using visNetwork}
 \usage{
 make_graph(
-  data_master_top_table = gene_master_top_table,
-  data_master_bottom_table = gene_master_bottom_table,
-  data_prism_cor_nest = compound_prism_cor_nest,
-  data_gene_summary = universal_gene_summary,
   input = list(),
   threshold = 10,
   deg = 2,
   cell_line_var = "dependency",
-  data_cell_line_dep_sim = cell_dependency_sim,
-  data_cell_line_exp_sim = cell_expression_sim,
   bonferroni_cutoff = 0.05,
-  corrType = "Positive",
+  corr_type = "positive",
   displayHeight = "90vh",
   displayWidth = "100\%",
   tooltipLink = FALSE,
@@ -24,17 +18,13 @@ make_graph(
 )
 }
 \arguments{
-\item{data_master_top_table}{A tibble of genes and their associated top correlated genes}
-
-\item{data_master_bottom_table}{A tibble of genes and their associated bottom correlated genes}
-
 \item{input}{A list containing character vector of gene_symbols used to create network graph}
 
 \item{threshold}{A numerical representing the number of genes to pull from top and bottom tables}
 
 \item{deg}{A numerical representing the minimum number of connections for a gene to be connected to the network}
 
-\item{corrType}{A string that describes what type of correlations to include, options are: "Positive and Negative", "Positive", or "Negative"}
+\item{corr_type}{A string that describes what type of correlations to include, options are: "positive", "negative", or "both"}
 
 \item{displayHeight}{Default to "90vh". The height of the network in pixels("500px"), as a percentage("100%"), or as a percentage of the viewport("70vh", where 70 represents 70% of the viewport)}
 
@@ -53,12 +43,14 @@ using visNetwork.
 \examples{
 make_graph(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 make_graph(input = list(type = "gene", content = "ROCK1"))
+make_graph(input = list(type = "gene", content = "ROCK1"), threshold = 15)
 make_graph(input = list(type = "gene", content = "ROCK1"), card = TRUE)
-make_graph(input = list(type = "gene", content = "ROCK1"), corrType = "Positive")
-make_graph(input = list(type = "pathway", query = "1902965", content = c("RDX", "ROCK2", "DTX3L", "MSN", "SORL1", "EZR")), corrType = "Positive")
+make_graph(input = list(type = "gene", content = "ROCK1"), corr_type = "negative")
+make_graph(input = list(type = "gene", content = "ROCK1"), corr_type = "both")
 make_graph(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
-make_graph(input = list(type = "gene", content = "DTX3L"), corrType = "Negative") # disconnected query gene
-make_graph(input = list(type = "compound", content = "aspirin"), corrType = "Negative")
+make_graph(input = list(type = "pathway", query = "1902965", content = c("RDX", "ROCK2", "DTX3L", "MSN", "SORL1", "EZR")), corr_type = "positive")
+make_graph(input = list(type = "gene", content = "DTX3L"), corr_type = "negative") # disconnected query gene
+make_graph(input = list(type = "compound", content = "aspirin"), corr_type = "negative")
 \dontrun{
 make_graph(input = list(type = 'gene', content = 'ROCK1'))
 }

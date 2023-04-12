@@ -4,12 +4,7 @@
 \alias{make_ideogram}
 \title{Ideogram Plot}
 \usage{
-make_ideogram(
-  data_gene_location = gene_location,
-  data_gene_chromosome = gene_chromosome,
-  input = list(),
-  card = FALSE
-)
+make_ideogram(input = list(), card = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -26,6 +21,6 @@ Each point shows the location of the query gene(s) on human chromosomes.
 make_ideogram(input = list(type = "gene", query = "ROCK1", content = "ROCK1"))
 make_ideogram(input = list(type = "gene", query = "ROCK1", content = "ROCK1"), card = TRUE)
 \dontrun{
-make_ideogram(input = list(type = "gene", content = "ROCK1"))
+make_ideogram(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 }
 }

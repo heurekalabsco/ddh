@@ -5,8 +5,6 @@
 \title{Amino Acid Radial Plot}
 \usage{
 make_radial(
-  data_gene_signatures = gene_signatures,
-  data_gene_signature_clusters = gene_signature_clusters,
   input = list(),
   relative = TRUE,
   cluster = FALSE,

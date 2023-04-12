@@ -4,12 +4,7 @@
 \alias{make_protein_domain}
 \title{Protein Domain Plot}
 \usage{
-make_protein_domain(
-  input = list(),
-  data_gene_protein_domains = gene_protein_domains,
-  dom_var = NULL,
-  ptm_var = NULL
-)
+make_protein_domain(input = list(), dom_var = NULL, ptm_var = NULL)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -26,6 +21,6 @@ Rectangles represent the locations and size of named protein domains, while blac
 make_protein_domain(input = list(content = "ROCK2"), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
 make_protein_domain(input = list(content = c("ROCK1", "ROCK2")), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
 \dontrun{
-make_protein_domain(input = list(content = "ROCK2"), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
+make_protein_domain(input = list(content = "ROCK1"), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
 }
 }

@@ -4,13 +4,16 @@
 \alias{censor}
 \title{Censor}
 \usage{
-censor(
-  data_gene_master_top_table = gene_master_top_table,
-  data_gene_censor = gene_censor,
-  choice = FALSE,
-  greater_than
-)
+censor(input = list(), choice = FALSE, greater_than = 300)
 }
 \description{
-Censor is used to remove genes from similarity table that are garbage (too many associations)
+Censor is used to remove genes from similarity table that are garbage (too many associations). It does this by filtering out genes above (greater_than) a provided threshold.
+}
+\examples{
+censor(input = list(type = 'gene', content = 'ROCK1'))
+censor(input = list(type = 'gene', content = 'ROCK1'), choice = TRUE)
+censor(input = list(type = 'gene', content = 'ROCK1'), choice = TRUE, greater_than = 100)
+\dontrun{
+censor(input = list(type = 'gene', content = 'ROCK1'))
+}
 }

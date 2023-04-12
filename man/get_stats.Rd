@@ -4,15 +4,9 @@
 \alias{get_stats}
 \title{Get Stats}
 \usage{
-get_stats(
-  data_universal_stats_summary = universal_stats_summary,
-  data_set,
-  var
-)
+get_stats(data_set, var)
 }
 \arguments{
-\item{data_universal_stats_summary}{Dataframe of stats summary generated in ddh_data.}
-
 \item{data_set}{A character indicating data set from which the stats were generated, typically one of achilles, expression_gene, expression_protein, or prism name.}
 
 \item{var}{A character indicating the variable to extract from the stats summary dataframe, typically one of threshold, sd, mean, upper, pr lower.}

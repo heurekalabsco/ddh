@@ -4,13 +4,7 @@
 \alias{make_cellbins}
 \title{Cell Dependencies Density Plot}
 \usage{
-make_cellbins(
-  data_universal_achilles_long = universal_achilles_long,
-  data_universal_prism_long = universal_prism_long,
-  data_cell_expression_names = cell_expression_names,
-  input = list(),
-  card = FALSE
-)
+make_cellbins(input = list(), card = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -26,6 +20,7 @@ Kernel density estimate of dependency scores. Dependency scores across all cell 
 \examples{
 
 make_cellbins(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_cellbins(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 make_cellbins(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 \dontrun{
 make_cellbins(input = list(type = 'gene', content = 'ROCK1'))

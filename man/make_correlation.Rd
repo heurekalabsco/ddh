@@ -4,14 +4,7 @@
 \alias{make_correlation}
 \title{Co-essentiality Correlation Plot}
 \usage{
-make_correlation(
-  data_gene_achilles_cor_nest = gene_achilles_cor_nest,
-  data_prism_cor_nest = prism_cor_nest,
-  data_universal_stats_summary = universal_stats_summary,
-  input = list(),
-  card = FALSE,
-  scale = NULL
-)
+make_correlation(input = list(), card = FALSE, scale = NULL)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -26,6 +19,7 @@ Each point shows the ranked correlation value ordered from high to low for each 
 }
 \examples{
 make_correlation(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_correlation(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 make_correlation(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 \dontrun{
 make_correlation(input = list(type = 'gene', content = 'ROCK1'))

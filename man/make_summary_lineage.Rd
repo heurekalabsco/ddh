@@ -4,11 +4,7 @@
 \alias{make_summary_lineage}
 \title{Make Lineage Summary}
 \usage{
-make_summary_lineage(
-  data_cell_expression_names = cell_expression_names,
-  input = list(),
-  var = "cell_line"
-)
+make_summary_lineage(input = list(), var = "cell_line")
 }
 \description{
 Make Lineage Summary

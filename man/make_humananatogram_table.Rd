@@ -4,7 +4,7 @@
 \alias{make_humananatogram_table}
 \title{Human Anatogram Table}
 \usage{
-make_humananatogram_table(data_gene_tissue = gene_tissue, input = list())
+make_humananatogram_table(input = list())
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -20,6 +20,7 @@ This is a table function that takes a gene name and returns a humananatogram Tab
 }
 \examples{
 make_humananatogram_table(input = list(type = 'gene', content = 'ROCK1'))
+make_humananatogram_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 \dontrun{
 make_humananatogram_table(input = list(type = 'gene', content = 'ROCK1'))
 }

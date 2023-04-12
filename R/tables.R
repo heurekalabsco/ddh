@@ -998,6 +998,7 @@ make_cell_sim_table <- function(input = list(),
                                 similarity = "dependency",
                                 bonferroni_cutoff = 0.05) {
   make_cell_sim_table_raw <- function() {
+    glue::glue('{similarity} and {bonferroni_cutoff}')
     # if(similarity == "dependency") {
     #   cell_sims <- data_cell_dependency_sim
     # } else if(similarity == "expression") {

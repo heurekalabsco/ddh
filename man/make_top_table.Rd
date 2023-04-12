@@ -4,12 +4,7 @@
 \alias{make_top_table}
 \title{Top Table}
 \usage{
-make_top_table(
-  data_gene_master_top_table = gene_master_top_table,
-  data_universal_stats_summary = universal_stats_summary,
-  gls = FALSE,
-  input = list()
-)
+make_top_table(input = list(), gls = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -25,6 +20,7 @@ This is a table function that takes a gene name and returns a top Table
 }
 \examples{
 make_top_table(input = list(type = 'gene', content = 'ROCK1'))
+make_top_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 \dontrun{
 make_top_table(input = list(type = 'gene', content = 'ROCK1'))
 }

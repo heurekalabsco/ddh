@@ -4,11 +4,7 @@
 \alias{make_summary_cellosaurus}
 \title{Make cell_osaurus Summary}
 \usage{
-make_summary_cellosaurus(
-  data_cell_osaurus = cell_osaurus,
-  input = list(),
-  var = "ID"
-)
+make_summary_cellosaurus(input = list(), var = "ID")
 }
 \description{
 Make cell_osaurus Summary

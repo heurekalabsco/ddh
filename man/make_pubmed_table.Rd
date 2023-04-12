@@ -4,13 +4,13 @@
 \alias{make_pubmed_table}
 \title{Pubmed Table}
 \usage{
-make_pubmed_table(data_universal_pubmed = universal_pubmed, input = list())
+make_pubmed_table(input = list())
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
 }
 \value{
-If no error, then returns a pubmed Table. If an error is thrown, then will return an empty table.
+If no error, then returns a pubmed table..
 }
 \description{
 \code{make_pubmed_table} returns an image of ...

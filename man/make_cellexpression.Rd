@@ -4,14 +4,7 @@
 \alias{make_cellexpression}
 \title{Cell Expression Plot}
 \usage{
-make_cellexpression(
-  data_universal_expression_long = universal_expression_long,
-  data_cell_expression_names = cell_expression_names,
-  data_universal_stats_summary = universal_stats_summary,
-  input = list(),
-  var = "gene",
-  card = FALSE
-)
+make_cellexpression(input = list(), var = "gene", card = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -29,6 +22,7 @@ Each point shows the ranked expression value across CCLE cell lines.
 }
 \examples{
 make_cellexpression(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_cellexpression(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 make_cellexpression(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 \dontrun{
 make_cellexpression(input = list(type = 'gene', content = 'ROCK1'))

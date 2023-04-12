@@ -4,13 +4,7 @@
 \alias{make_compound_table}
 \title{Compound Table}
 \usage{
-make_compound_table(
-  data_compound_prism_cor_nest = compound_prism_cor_nest,
-  data_compound_prism_names = compound_prism_names,
-  input = list(),
-  data_universal_stats_summary = universal_stats_summary,
-  top = TRUE
-)
+make_compound_table(input = list(), top = TRUE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -22,7 +16,7 @@ If no error, then returns a compound Table. If an error is thrown, then will ret
 \code{make_compound_table} returns an image of ...
 }
 \details{
-This is a table function that takes a gene name and returns a compound Table
+This is a table function that takes a compound name and returns a table. It is commented out until we revisit compouter as a query feather.
 }
 \examples{
 make_compound_table(input = list(content = "aspirin"), top = TRUE)

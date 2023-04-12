@@ -4,13 +4,7 @@
 \alias{make_expression_table}
 \title{Expression Table}
 \usage{
-make_expression_table(
-  data_universal_expression_long = universal_expression_long,
-  data_cell_expression_names = cell_expression_names,
-  data_universal_gene_summary = universal_gene_summary,
-  input = list(),
-  var = "gene"
-)
+make_expression_table(input = list(), var = "gene")
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -26,6 +20,8 @@ This is a table function that takes a gene name and returns a expression Table
 }
 \examples{
 make_expression_table(input = list(type = 'gene', content = 'ROCK1'))
+make_expression_table(input = list(type = 'gene', content = 'ROCK1'), var = "protein")
+make_expression_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 \dontrun{
 make_expression_table(input = list(type = 'gene', content = 'ROCK1'))
 }

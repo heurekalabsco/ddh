@@ -4,10 +4,7 @@
 \alias{make_enrichment_bottom}
 \title{Enrichment Bottom Table}
 \usage{
-make_enrichment_bottom(
-  data_gene_master_negative = gene_master_negative,
-  input = list()
-)
+make_enrichment_bottom(input = list())
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}

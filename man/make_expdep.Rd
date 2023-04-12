@@ -4,14 +4,7 @@
 \alias{make_expdep}
 \title{Gene Dependency versus Expression}
 \usage{
-make_expdep(
-  data_universal_expression_long = universal_expression_long,
-  data_universal_achilles_long = universal_achilles_long,
-  data_cell_expression_names = cell_expression_names,
-  plot_se = TRUE,
-  input = list(),
-  card = FALSE
-)
+make_expdep(plot_se = TRUE, input = list(), card = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -26,6 +19,7 @@ Each point shows the dependency value compared to the expression value for gene 
 }
 \examples{
 make_expdep(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_expdep(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 make_expdep(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 \dontrun{
 make_expdep(input = list(type = 'gene', content = 'ROCK1'))

@@ -4,11 +4,7 @@
 \alias{make_cellanatogram}
 \title{Cellanatogram Plot}
 \usage{
-make_cellanatogram(
-  data_gene_subcell = gene_subcell,
-  input = list(),
-  card = FALSE
-)
+make_cellanatogram(input = list(), card = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -27,7 +23,7 @@ This is a plot function that takes a gene name and returns a cellanatogram plot
 \examples{
 make_cellanatogram(input = list(type = "gene", content = c("ROCK2")))
 make_cellanatogram(input = list(type = "gene", content = c("ROCK2")), card = TRUE)
-make_cellanatogram(input = list(type = "gene", query = "ROCK1", content = c("ROCK1", "ROCK2")))
+make_cellanatogram(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 \dontrun{
 make_cellanatogram(input = list(type = 'gene', content = 'ROCK2'))
 }

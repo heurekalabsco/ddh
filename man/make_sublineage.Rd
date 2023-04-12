@@ -4,14 +4,7 @@
 \alias{make_sublineage}
 \title{Cell Dependency Sublineage Plot}
 \usage{
-make_sublineage(
-  data_universal_achilles_long = universal_achilles_long,
-  data_universal_prism_long = universal_prism_long,
-  data_cell_expression_names = cell_expression_names,
-  input = list(),
-  card = FALSE,
-  highlight = FALSE
-)
+make_sublineage(input = list(), card = FALSE, highlight = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}

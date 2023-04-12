@@ -4,13 +4,7 @@
 \alias{make_metabolite_table}
 \title{Metabolite Table}
 \usage{
-make_metabolite_table(
-  data_compound_hmdb_proteins = compound_hmdb_proteins,
-  data_compound_hmdb_metabolites = compound_hmdb_metabolites,
-  data_cell_metabolites = cell_metabolites,
-  data_cell_expression_names = cell_expression_names,
-  input = list()
-)
+make_metabolite_table(input = list(), collapse = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -26,6 +20,7 @@ This is a table function that takes a gene name and returns a metabolite Table
 }
 \examples{
 make_metabolite_table(input = list(type = 'gene', content = 'ROCK1'))
+make_metabolite_table(input = list(type = 'gene', content = 'ROCK1'), collapse = TRUE)
 make_metabolite_table(input = list(type = "gene", content = "ROCK2"))
 make_metabolite_table(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 make_metabolite_table(input = list(type = "compound", content = "NAD"))

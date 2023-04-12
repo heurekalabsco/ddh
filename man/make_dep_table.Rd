@@ -4,15 +4,7 @@
 \alias{make_dep_table}
 \title{Dependency Table}
 \usage{
-make_dep_table(
-  data_universal_achilles_long = universal_achilles_long,
-  data_universal_prism_long = universal_prism_long,
-  data_compound_prism_names = compound_prism_names,
-  data_cell_expression_names = cell_expression_names,
-  data_universal_gene_summary = universal_gene_summary,
-  input = list(),
-  var = "gene"
-)
+make_dep_table(input = list())
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -28,6 +20,7 @@ This is a table function that takes a gene name and returns a dep Table
 }
 \examples{
 make_dep_table(input = list(type = 'gene', content = 'ROCK1'))
+make_dep_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 make_dep_table(input = list(type = 'compound', content = 'aspirin'))
 make_dep_table(input = list(type = 'cell', content = 'HEPG2'))
 \dontrun{

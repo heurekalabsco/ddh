@@ -4,7 +4,7 @@
 \alias{make_male_anatogram}
 \title{Male Anatogram Plot}
 \usage{
-make_male_anatogram(anatogram = "male", input = list(), card = FALSE)
+make_male_anatogram(input = list(), anatogram = "male", card = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}

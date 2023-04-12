@@ -4,11 +4,7 @@
 \alias{make_summary_compound}
 \title{Make Compound Summary}
 \usage{
-make_summary_compound(
-  data_universal_prism_meta = universal_prism_meta,
-  input = list(),
-  var = "name"
-)
+make_summary_compound(input = list(), var = "name")
 }
 \description{
 Make Compound Summary

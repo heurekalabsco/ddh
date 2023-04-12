@@ -4,11 +4,7 @@
 \alias{make_cell_drugs_table}
 \title{Cell Drugs Table}
 \usage{
-make_cell_drugs_table(
-  data_universal_prism_long = universal_prism_long,
-  data_cell_expression_meta = cell_expression_meta,
-  input = list()
-)
+make_cell_drugs_table(input = list())
 }
 \description{
 Cell Drugs Table

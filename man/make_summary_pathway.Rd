@@ -4,15 +4,17 @@
 \alias{make_summary_pathway}
 \title{Make Pathway Summary}
 \usage{
-make_summary_pathway(
-  data_gene_pathways = gene_pathways,
-  input = list(),
-  var = "pathway"
-)
+make_summary_pathway(input = list(), var = "gs_description")
+}
+\arguments{
+\item{input}{A list containing a content variable.}
+
+\item{var}{Variable that determines which text is returned}
 }
 \description{
-Make Pathway Summary
+The make_pathway_summary function takes an id as a character input and returns summary information of the pathway.
 }
 \examples{
-make_summary_pathway(input = list(query = "1902965"), var = "data")
+make_summary_pathway(input = list(query = "16769"), var = "gs_description")
+make_summary_pathway(input = list(query = "16769"), var = "pathway_size")
 }

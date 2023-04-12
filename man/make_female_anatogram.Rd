@@ -4,13 +4,7 @@
 \alias{make_female_anatogram}
 \title{Female Anatogram Plot}
 \usage{
-make_female_anatogram(
-  data_gene_female_tissue = gene_female_tissue,
-  data_gene_male_tissue = gene_male_tissue,
-  anatogram = "female",
-  input = list(),
-  card = FALSE
-)
+make_female_anatogram(input = list(), anatogram = "female", card = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -28,6 +22,7 @@ This is a plot function that takes a gene name and returns a female anatogram pl
 }
 \examples{
 make_female_anatogram(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_female_anatogram(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 make_female_anatogram(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 \dontrun{
 make_female_anatogram(input = list(type = 'gene', content = 'ROCK1'))

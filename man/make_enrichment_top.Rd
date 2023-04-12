@@ -4,10 +4,7 @@
 \alias{make_enrichment_top}
 \title{Enrichment Top Table}
 \usage{
-make_enrichment_top(
-  data_gene_master_positive = gene_master_positive,
-  input = list()
-)
+make_enrichment_top(input = list())
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}

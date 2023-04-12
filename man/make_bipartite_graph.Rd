@@ -5,16 +5,11 @@
 \title{Bipartite Graph Graph}
 \usage{
 make_bipartite_graph(
-  data_master_top_table = gene_master_top_table,
-  data_master_bottom_table = gene_master_bottom_table,
-  data_hmdb_proteins = compound_hmdb_proteins,
-  data_hmdb_metabolites = compound_hmdb_metabolites,
-  data_gene_summary = universal_gene_summary,
   input = list(),
   censor = character(),
   collapsed = TRUE,
   threshold = 10,
-  corrType = "Positive"
+  corr_type = "positive"
 )
 }
 \arguments{
@@ -31,8 +26,8 @@ This is a graph function that takes a gene name and returns a bipartite graph gr
 }
 \examples{
 make_bipartite_graph(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-make_bipartite_graph(input = list(type = "gene", content = "ROCK1"), collapsed = TRUE, threshold = 10, corrType = "Positive")
-make_bipartite_graph(input = list(type = "gene", content = c("ROCK1", "ROCK2")), collapsed = TRUE, threshold = 10, corrType = "Positive", censor = c("ADP", "Adenosine triphosphate"))
+make_bipartite_graph(input = list(type = "gene", content = "ROCK1"), collapsed = TRUE, threshold = 10, corr_type = "positive")
+make_bipartite_graph(input = list(type = "gene", content = c("ROCK1", "ROCK2")), collapsed = TRUE, threshold = 10, corr_type = "positive", censor = c("ADP", "Adenosine triphosphate"))
 make_bipartite_graph(input = list(type = "compound", content = "adp"))
 \dontrun{
 make_bipartite_graph(input = list(type = 'gene', content = 'ROCK1'))

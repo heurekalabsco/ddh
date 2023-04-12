@@ -4,11 +4,7 @@
 \alias{make_proteinsize}
 \title{Protein Size Plot}
 \usage{
-make_proteinsize(
-  data_universal_proteins = universal_proteins,
-  input = list(),
-  card = FALSE
-)
+make_proteinsize(input = list(), card = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -24,6 +20,8 @@ Mass compared to all protein masses. The colored strip visualizes the distributi
 \examples{
 make_proteinsize(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 make_proteinsize(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+make_proteinsize(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
+make_proteinsize(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')), card = TRUE)
 \dontrun{
 make_proteinsize(input = list(type = 'gene', content = 'ROCK1'))
 }

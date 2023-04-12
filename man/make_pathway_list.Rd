@@ -4,7 +4,7 @@
 \alias{make_pathway_list}
 \title{Pathway List Table}
 \usage{
-make_pathway_list(data_gene_pathways = gene_pathways, input = list())
+make_pathway_list(input = list())
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -16,10 +16,11 @@ If no error, then returns a pathway list table. If an error is thrown, then will
 \code{make_pathway_list} returns an image of ...
 }
 \details{
-This is a table function that takes a gene name and returns a pathway list table
+This is a table function that takes a gene name and returns a subtable of gene sets and pathways that contain your gene query
 }
 \examples{
 make_pathway_list(input = list(type = 'gene', content = 'ROCK1'))
+make_pathway_list(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 \dontrun{
 make_pathway_list(input = list(type = 'gene', content = 'ROCK1'))
 }

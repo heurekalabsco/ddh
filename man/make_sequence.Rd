@@ -4,11 +4,7 @@
 \alias{make_sequence}
 \title{Sequence Plot}
 \usage{
-make_sequence(
-  data_universal_proteins = universal_proteins,
-  input = list(),
-  card = FALSE
-)
+make_sequence(input = list(), card = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -27,6 +23,7 @@ This is a plot function that takes a gene name and returns a sequence plot
 \examples{
 make_sequence(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 make_sequence(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+make_sequence(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 \dontrun{
 make_sequence(input = list(type = 'gene', content = 'ROCK1'))
 }
