@@ -330,6 +330,31 @@ make_humananatogram_table <- function(input = list()) {
              message(e)
            })
 }
+## GET CLUSTER  -----------------------------------------------
+#' Clustering Table
+#'
+#' This is a helper function that takes a gene name and return a vector containing the cluster numbers for input
+#'
+#' @param input Expecting a list containing a content variable.
+#' @return Returns a vector containing the cluster number.
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' get_cluster(input = list(type = 'gene', content = 'ROCK1'))
+#' get_cluster(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
+#' \dontrun{
+#' get_cluster(input = list(type = 'gene', content = 'ROCK1'))
+#' }
+get_cluster <- function(input = list()){
+  cluster <- get_data_object(object_names = input$content,
+                             dataset_name = "gene_signature_clusters") %>%
+    dplyr::filter(key == "clust") %>%
+    dplyr::pull(value) %>%
+    unique()
+  return(cluster)
+}
 
 ## PROTEIN CLUSTER TABLE -----------------------------------------------
 #' Clustering Table
