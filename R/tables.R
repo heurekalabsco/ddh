@@ -34,6 +34,17 @@ make_pathway_list <- function(input = list()) {
            })
 }
 
+#' Pathway Genes
+#'
+#'  \code{make_pathway_genes} returns a vector of gene symbols in a queried pathway
+#'
+#' @export
+get_gene_symbols_for_pathway <- function(pathway_id) {
+  get_data_object(pathway_id, dataset_name = "universal_pathways") %>%
+    dplyr::filter(key=="gene_symbol") %>%
+    dplyr::pull("value")
+}
+
 #' Pathway Genes Table
 #'
 #' \code{make_pathway_genes} returns a table of genes in a queried pathway
