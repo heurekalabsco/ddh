@@ -1847,22 +1847,16 @@ gene_molecular_features_barplot <- function(input = list(),
                                             n_features = 20,
                                             ...) {
 
-  gene_molecular_features_hits <-
-    ddh::get_data_object(object_names = input$content,
-                         dataset_name = "gene_molecular_features_top",
-                         pivotwider = TRUE) %>%
-    dplyr::mutate(dplyr::across(dplyr::contains(c("logFC", "pval", "adjPval")), as.numeric)) %>%
-    dplyr::select(-data_set) %>%
-    dplyr::rename(`P-value` = pval)
+  gene_molecular_features_hits <- ddh::make_gene_molecular_features(input = input)
 
   gene_molecular_features_barplot_raw <- function() {
 
     plot_complete <-
       gene_molecular_features_hits %>%
-      dplyr::group_by(id) %>%
+      dplyr::group_by(Query) %>%
       dplyr::slice(1:n_features) %>%
       dplyr::ungroup() %>%
-      ggplot2::ggplot(ggplot2::aes(logFC, reorder(feature, logFC), fill = `P-value`)) +
+      ggplot2::ggplot(ggplot2::aes(logFC, reorder(Feature, logFC), fill = `P-value`)) +
       ggplot2::geom_col() +
       scale_fill_ddh_c() +
       ggplot2::labs(
@@ -1874,7 +1868,7 @@ gene_molecular_features_barplot <- function(input = list(),
     if (length(input$content) > 1) {
       plot_complete <-
         plot_complete +
-        ggplot2::facet_wrap(~ id, scales = "free")
+        ggplot2::facet_wrap(~ Query, scales = "free")
     }
 
     return(plot_complete)
@@ -1904,13 +1898,7 @@ gene_molecular_features_pathway_barplot <- function(input = list(),
                                                     n_pathways = 10,
                                                     ...) {
 
-  gene_molecular_features_hits <-
-    ddh::get_data_object(object_names = input$content,
-                         dataset_name = "gene_molecular_features_pathways_top",
-                         pivotwider = TRUE) %>%
-    dplyr::mutate(dplyr::across(dplyr::contains(c("pval", "adjPval")), as.numeric)) %>%
-    dplyr::select(-data_set) %>%
-    dplyr::rename(Query = id, `P-value` = pval)
+  gene_molecular_features_hits <- ddh::make_gene_molecular_features_pathways(input = input)
 
   gene_molecular_features_pathway_barplot_raw <- function() {
 
@@ -1919,7 +1907,7 @@ gene_molecular_features_pathway_barplot <- function(input = list(),
       dplyr::group_by(Query) %>%
       dplyr::slice(1:n_pathways) %>%
       dplyr::ungroup() %>%
-      ggplot2::ggplot(ggplot2::aes(-log10(`P-value`), reorder(GeneSet, -log10(`P-value`)), fill = Query)) +
+      ggplot2::ggplot(ggplot2::aes(-log10(`P-value`), reorder(Pathway, -log10(`P-value`)), fill = Query)) +
       ggplot2::geom_col(position = ggplot2::position_dodge()) +
       scale_fill_ddh_d() +
       ggplot2::labs(

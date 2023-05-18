@@ -1,7 +1,7 @@
 Package: ddh
 Type: Package
 Title: Utility Functions and Data Sets for datadrivenhypothesis
-Version: 0.2.20
+Version: 0.2.21
 Authors@R: c(
     person(given = "Matthew",
            family = "Hirschey",
@@ -79,6 +79,6 @@ Remotes:
 VignetteBuilder: knitr
 URL: https://github.com/matthewhirschey/ddh
 BugReports: https://github.com/matthewhirschey/ddh/issues
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Language: en-US
 Config/testthat/edition: 3

@@ -944,6 +944,84 @@ make_enrichment_bottom <- function(input = list()) {
            })
 }
 
+#' Molecular Features Table
+#'
+#' This is a table function that takes a gene name and returns a molecular features table
+#'
+#' @param input Expecting a list containing type and content variable.
+#'
+#' @return If no error, then returns a molecular features table. If an error is thrown, then will return an empty table.
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' make_gene_molecular_features(input = list(type = 'gene', content = 'ROCK1'))
+#' make_gene_molecular_features(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
+#' \dontrun{
+#' make_gene_molecular_features(input = list(type = 'gene', content = 'ROCK1'))
+#' }
+make_gene_molecular_features <- function(input = list(),
+                                         ...) {
+  make_gene_molecular_features_raw <- function() {
+    gene_molecular_features_hits <-
+      ddh::get_data_object(object_names = input$content,
+                           dataset_name = "gene_molecular_features_top",
+                           pivotwider = TRUE) %>%
+      dplyr::mutate(dplyr::across(dplyr::contains(c("logFC", "pval", "adjPval")), as.numeric)) %>%
+      dplyr::mutate_if(is.numeric, ~ signif(., digits = 3)) %>%
+      dplyr::select(-data_set) %>%
+      dplyr::rename(Query = id, Feature = feature, `P-value` = pval, FDR = adjPval)
+    return(gene_molecular_features_hits)
+  }
+  #error handling
+  tryCatch(make_gene_molecular_features_raw(),
+           error = function(e){
+             message(e)
+           })
+}
+
+#' Molecular Features Pathways Table
+#'
+#' This is a table function that takes a gene name and returns a molecular features pathways table
+#'
+#' @param input Expecting a list containing type and content variable.
+#'
+#' @return If no error, then returns a molecular features pathways table. If an error is thrown, then will return an empty table.
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' make_gene_molecular_features_pathways(input = list(type = 'gene', content = 'ROCK1'))
+#' make_gene_molecular_features_pathways(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
+#' \dontrun{
+#' make_gene_molecular_features_pathways(input = list(type = 'gene', content = 'ROCK1'))
+#' }
+make_gene_molecular_features_pathways <- function(input = list(),
+                                                  ...) {
+  make_gene_molecular_features_pathways_raw <- function() {
+    gene_molecular_features_hits <-
+      ddh::get_data_object(object_names = input$content,
+                           dataset_name = "gene_molecular_features_pathways_top",
+                           pivotwider = TRUE) %>%
+      dplyr::mutate(dplyr::across(dplyr::contains(c("pval", "adjPval")), as.numeric)) %>%
+      dplyr::mutate_if(is.numeric, ~ signif(., digits = 3)) %>%
+      dplyr::select(-data_set) %>%
+      dplyr::rename(Query = id, Pathway = GeneSet, `P-value` = pval, FDR = adjPval) %>%
+      dplyr::mutate(`Gene Set` = gsub("_.*", "", Pathway)) %>%
+      dplyr::rowwise() %>%
+      dplyr::mutate(Pathway = gsub(paste0(`Gene Set`, "_"), "", Pathway)) %>%
+      dplyr::ungroup()
+    return(gene_molecular_features_hits)
+  }
+  #error handling
+  tryCatch(make_gene_molecular_features_pathways_raw(),
+           error = function(e){
+             message(e)
+           })
+}
+
 # CELL SUMMARY TABLE ------
 #' Cell Summary Table
 #'
