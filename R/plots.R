@@ -1829,6 +1829,74 @@ make_cellgeneprotein <- function(input = list(),
              make_bomb_plot()})
 }
 
+## MOLECULAR FEATURES SEGMENTS ---------------------------------------------------
+#' Molecular Features Segments Plot
+#'
+#' @param input Expecting a list containing type and content variable.
+#'
+#' @return If no error, then returns a scatterplot. If an error is thrown, then will return a bomb plot.
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' gene_molecular_features_segments(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' gene_molecular_features_segments(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
+gene_molecular_features_segments <- function(input = list(),
+                                             ...) {
+
+  gene_molecular_features_hits <- make_gene_molecular_features_segments(input = input) %>%
+    dplyr::group_by(Query) %>%
+    dplyr::arrange(depscore) %>%
+    dplyr::mutate(
+      rank = 1:dplyr::n()) %>%
+    dplyr::ungroup()
+
+  gene_molecular_features_segments_raw <- function() {
+
+    plot_complete <-
+      gene_molecular_features_hits %>%
+      ggplot2::ggplot(ggplot2::aes(rank, depscore, color = Query)) +
+      ggplot2::geom_point(size = 2, stroke = .25, alpha = 0.6) +
+
+      ggplot2::geom_point(data = gene_molecular_features_hits[gene_molecular_features_hits$group != "neutral",],
+                          ggplot2::aes(rank, depscore),
+                          size = 2, color = "red") +
+
+      scale_color_ddh_d(palette = input$type) +
+      scale_fill_ddh_d(palette = input$type) +
+      ggplot2::guides(
+        color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 4, stroke = .8)),
+        fill = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 3.8, stroke = .8))
+      ) +
+      ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = c(0.01, 0.01))) +
+      ## titles
+      ggplot2::labs(
+        x = NULL,
+        y = "Dependency Score",
+        color = "Query",
+        fill = "Query"
+      ) +
+      ## theme changes
+      ddh::theme_ddh(grid = "y") +
+      ggplot2::theme(
+        text = ggplot2::element_text(family = "Nunito Sans"),
+        axis.text = ggplot2::element_text(family = "Roboto Slab"),
+        axis.text.x = ggplot2::element_blank(),
+        axis.ticks.x = ggplot2::element_blank(),
+        axis.line.x = ggplot2::element_blank()
+      ) +
+      NULL
+
+    return(plot_complete)
+  }
+  #error handling
+  tryCatch(gene_molecular_features_segments_raw(),
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
+}
+
 ## MOLECULAR FEATURES BAR PLOT ---------------------------------------------------
 #' Molecular Features Bar Plot
 #'

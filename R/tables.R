@@ -944,6 +944,42 @@ make_enrichment_bottom <- function(input = list()) {
            })
 }
 
+#' Molecular Features Segments Table
+#'
+#' This is a table function that takes a gene name and returns a molecular features segments table
+#'
+#' @param input Expecting a list containing type and content variable.
+#'
+#' @return If no error, then returns a molecular features segments table. If an error is thrown, then will return an empty table.
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' make_gene_molecular_features_segments(input = list(type = 'gene', content = 'ROCK1'))
+#' make_gene_molecular_features_segments(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
+#' \dontrun{
+#' make_gene_molecular_features_segments(input = list(type = 'gene', content = 'ROCK1'))
+#' }
+make_gene_molecular_features_segments <- function(input = list(),
+                                                  ...) {
+  make_gene_molecular_features_segments_raw <- function() {
+    gene_molecular_features_hits <-
+      ddh::get_data_object(object_names = input$content,
+                           dataset_name = "gene_molecular_features_segments",
+                           pivotwider = TRUE) %>%
+      dplyr::mutate(depscore = as.numeric(depscore)) %>%
+      dplyr::select(-data_set) %>%
+      dplyr::rename(Query = id)
+    return(gene_molecular_features_hits)
+  }
+  #error handling
+  tryCatch(make_gene_molecular_features_segments_raw(),
+           error = function(e){
+             message(e)
+           })
+}
+
 #' Molecular Features Table
 #'
 #' This is a table function that takes a gene name and returns a molecular features table
