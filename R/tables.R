@@ -1106,6 +1106,53 @@ make_gene_cca_pathway <- function(input = list(),
            })
 }
 
+#' Pathway Pathway Table
+#'
+#' This is a table function that takes a pathway name and returns a pathway-pathway table
+#'
+#' @param input Expecting a list containing type and content variable.
+#'
+#' @return If no error, then returns a pathway-pathway table. If an error is thrown, then will return an empty table.
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' make_pathway_cca_pathway(input = list(type = 'pathway', content = 'GOBP_FIBROBLAST_GROWTH_FACTOR_PRODUCTION'))
+#' \dontrun{
+#' make_pathway_cca_pathway(input = list(type = 'pathway', content = 'GOBP_FIBROBLAST_GROWTH_FACTOR_PRODUCTION'))
+#' }
+make_pathway_cca_pathway <- function(input = list(),
+                                     gene_set = NULL,
+                                     ...) {
+  make_pathway_cca_pathway_raw <- function() {
+    pathway_pathway_hits <-
+      ddh::get_data_object(object_names = input$content,
+                           dataset_name = "pathway_cca_pathway",
+                           pivotwider = TRUE) %>%
+      dplyr::mutate(dplyr::across(QuerySize:CCS, as.numeric)) %>%
+      dplyr::select(-data_set) %>%
+      dplyr::mutate(`Gene Set` = gsub("_.*", "", Pathway)) %>%
+      dplyr::rowwise() %>%
+      dplyr::mutate(Pathway = gsub(paste0(`Gene Set`, "_"), "", Pathway)) %>%
+      dplyr::ungroup() %>%
+      dplyr::rename(Query = id)
+
+    if(!is.null(gene_set)) {
+      if (!any(gene_set %in% pathway_pathway_hits$`Gene Set`)) stop ("Gene set not found.")
+      pathway_pathway_hits <- pathway_pathway_hits %>%
+        dplyr::filter(`Gene Set` %in% gene_set)
+    }
+
+    return(pathway_pathway_hits)
+  }
+  #error handling
+  tryCatch(make_pathway_cca_pathway_raw(),
+           error = function(e){
+             message(e)
+           })
+}
+
 # CELL SUMMARY TABLE ------
 #' Cell Summary Table
 #'
