@@ -4,7 +4,7 @@
 \alias{gene_molecular_features_barplot}
 \title{Molecular Features Bar Plot}
 \usage{
-gene_molecular_features_barplot(input = list(), n_features = 20, ...)
+gene_molecular_features_barplot(input = list(), n_features = 10, ...)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -18,5 +18,5 @@ Molecular Features Bar Plot
 \examples{
 gene_molecular_features_barplot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 gene_molecular_features_barplot(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
-gene_molecular_features_barplot(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')), n_features = 10)
+gene_molecular_features_barplot(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')), n_features = 20)
 }

@@ -1911,9 +1911,9 @@ gene_molecular_features_segments <- function(input = list(),
 #' @examples
 #' gene_molecular_features_barplot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' gene_molecular_features_barplot(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
-#' gene_molecular_features_barplot(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')), n_features = 10)
+#' gene_molecular_features_barplot(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')), n_features = 20)
 gene_molecular_features_barplot <- function(input = list(),
-                                            n_features = 20,
+                                            n_features = 10,
                                             ...) {
 
   gene_molecular_features_hits <- ddh::make_gene_molecular_features(input = input)
@@ -1937,7 +1937,7 @@ gene_molecular_features_barplot <- function(input = list(),
     if (length(input$content) > 1) {
       plot_complete <-
         plot_complete +
-        ggplot2::facet_wrap(~ Query, scales = "free")
+        ggplot2::facet_wrap(~ Query)
     }
 
     return(plot_complete)
@@ -1990,6 +1990,67 @@ gene_molecular_features_pathway_barplot <- function(input = list(),
   }
   #error handling
   tryCatch(gene_molecular_features_pathway_barplot_raw(),
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
+}
+
+## GENE PATHWAYS BAR PLOT ---------------------------------------------------
+#' Gene Pathways Bar Plot
+#'
+#' @param input Expecting a list containing type and content variable.
+#'
+#' @return If no error, then returns a barplot. If an error is thrown, then will return a bomb plot.
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' gene_pathways_barplot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' gene_pathways_barplot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), gset = "GOBP")
+#' gene_pathways_barplot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), gset = c("GOBP", "C2"))
+#' gene_pathways_barplot(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
+#' gene_pathways_barplot(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')), n_features = 20)
+gene_pathways_barplot <- function(input = list(),
+                                  n_features = 10,
+                                  gset = NULL,
+                                  ...) {
+
+  gene_pathways_hits <- ddh::make_gene_cca_pathway(input = input, gene_set = gset)
+
+  gene_pathways_barplot_raw <- function() {
+
+    plot_complete <-
+      gene_pathways_hits %>%
+      dplyr::group_by(Query) %>%
+      dplyr::slice(1:n_features) %>%
+      dplyr::ungroup() %>%
+      ggplot2::ggplot(ggplot2::aes(CC1, reorder(Pathway, CC1), fill = `Gene Set`)) +
+      ggplot2::geom_col() +
+      scale_fill_ddh_d() +
+      ggplot2::labs(
+        x = "Correlation",
+        y = NULL,
+        fill = "Gene Set") +
+      ddh::theme_ddh(grid = "none") +
+      NULL
+
+    if (length(input$content) > 1) {
+      plot_complete <-
+        plot_complete +
+        ggplot2::facet_wrap(~ Query)
+    }
+
+    if (!is.null(gset) & length(gset) == 1) {
+      plot_complete <-
+        plot_complete +
+        ggplot2::theme(legend.position = "none")
+    }
+
+    return(plot_complete)
+  }
+  #error handling
+  tryCatch(gene_pathways_barplot_raw(),
            error = function(e){
              message(e)
              make_bomb_plot()})
