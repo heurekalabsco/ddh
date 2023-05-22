@@ -1845,37 +1845,32 @@ make_cellgeneprotein <- function(input = list(),
 gene_molecular_features_segments <- function(input = list(),
                                              ...) {
 
-  gene_molecular_features_hits <- make_gene_molecular_features_segments(input = input) %>%
+  gene_molecular_features_hits <- ddh::make_gene_molecular_features_segments(input = input) %>%
     dplyr::group_by(Query) %>%
     dplyr::arrange(depscore) %>%
     dplyr::mutate(
       rank = 1:dplyr::n()) %>%
-    dplyr::ungroup()
+    dplyr::ungroup() %>%
+    dplyr::mutate(group = stringr::str_to_title(group))
 
   gene_molecular_features_segments_raw <- function() {
 
     plot_complete <-
       gene_molecular_features_hits %>%
       ggplot2::ggplot(ggplot2::aes(rank, depscore, color = Query)) +
-      ggplot2::geom_point(size = 2, stroke = .25, alpha = 0.6) +
-
-      ggplot2::geom_point(data = gene_molecular_features_hits[gene_molecular_features_hits$group != "neutral",],
-                          ggplot2::aes(rank, depscore),
-                          size = 2, color = "red") +
-
+      ggplot2::geom_point(size = 2, stroke = .25, alpha = 0.6, color = "gray90") +
+      ggplot2::geom_point(data = gene_molecular_features_hits[gene_molecular_features_hits$group != "Neutral",],
+                          ggplot2::aes(rank, depscore, color = group),
+                          size = 2, alpha = 0.6) +
       scale_color_ddh_d(palette = input$type) +
-      scale_fill_ddh_d(palette = input$type) +
       ggplot2::guides(
-        color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 4, stroke = .8)),
-        fill = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 3.8, stroke = .8))
-      ) +
+        color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 4, stroke = .8))) +
       ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = c(0.01, 0.01))) +
       ## titles
       ggplot2::labs(
         x = NULL,
         y = "Dependency Score",
-        color = "Query",
-        fill = "Query"
+        color = "Group"
       ) +
       ## theme changes
       ddh::theme_ddh(grid = "y") +
@@ -1886,6 +1881,12 @@ gene_molecular_features_segments <- function(input = list(),
         axis.ticks.x = ggplot2::element_blank(),
         axis.line.x = ggplot2::element_blank()
       ) +
+      {if(length(input$content) > 1) ggrepel::geom_label_repel(data = gene_molecular_features_hits %>%
+                                                                 dplyr::group_by(Query) %>%
+                                                                 dplyr::filter(rank == floor(max(rank)/2)) %>%
+                                                                 dplyr::ungroup(),
+                                                               ggplot2::aes(rank, depscore, label = Query),
+                                                               color = "black", show.legend = FALSE)} +
       NULL
 
     return(plot_complete)
