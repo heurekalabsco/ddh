@@ -656,29 +656,20 @@ make_dep_table <- function(input = list()#,
 #' }
 make_top_table <- function(input = list()) {
   make_top_table_raw <- function() {
-    achilles_upper <- get_stats(data_set = "achilles", var = "upper")
     if(input$type == "gene") {
       table_data <-
         get_data_object(object_names = input$content,
                         dataset_name = "gene_master_top_table",
                         pivotwider = TRUE) %>%
         dplyr::mutate(across(contains(c("score", "r2", "concept")), as.numeric)) %>%
-        dplyr::select(-data_set)
+        dplyr::select(-data_set) %>%
+        dplyr::arrange(dplyr::desc(r2))
       # } else if(input$type == "cell") {
       #   table_data <-
       #     data_master_top_table_cell %>%
       #     dplyr::filter_all(dplyr::any_vars(fav_cell %in% input$content))
     } else {
       stop("delcare your type")
-    }
-    if(nrow(table_data) != 0) { #don't filter something that is zero
-      table_complete <-
-        table_data %>%
-        dplyr::filter(r2 > achilles_upper) %>% # & !duplicated(gene)
-        dplyr::arrange(dplyr::desc(r2))
-    } else {
-      table_complete <-
-        table_data
     }
     return(table_complete)
   }
@@ -827,11 +818,11 @@ make_gene_pathways_components <- function(data_gene_pathways_components = gene_p
 #' make_censor_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
 make_censor_table <- function(input = list(),
-                              choice = FALSE,
+                              censor = FALSE,
                               greater_than = 300) {
   table_data <-
     make_top_table(input = input)
-  if(choice == TRUE){
+  if(censor == TRUE){
     gene_censor_data <-
       get_data_object(object_names = input$content,
                       dataset_name = "gene_censor",
