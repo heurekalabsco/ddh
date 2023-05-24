@@ -862,60 +862,98 @@ make_censor_table <- function(input = list(),
 #' \dontrun{
 #' make_enrichment_top(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_enrichment_top <- function(input = list()) {
-  make_enrichment_top_raw <- function() {
-    enrichment_top <-
+make_gene_dependency_enrichment <- function(input = list()) {
+  make_gene_dependency_enrichment_raw <- function() {
+    gene_dependency_enrichment <-
       get_data_object(object_names = input$content,
-                      dataset_name = "gene_master_positive",
+                      dataset_name = "gene_dependency_enrichment",
                       pivotwider = TRUE) %>%
-      dplyr::mutate(across(contains(c("value")), as.numeric)) %>%
-      dplyr::select(id, enrichr, Term, Overlap, Adjusted.P.value, Combined.Score, Genes) %>%
-      dplyr::arrange(Adjusted.P.value) %>%
-      dplyr::rename("Query" = "id", "Gene Set" = "enrichr", "Gene List" = "Term", "Adjusted p-value" = "Adjusted.P.value", "Combined Score" = "Combined.Score") #"Overlap", "Genes"
-    return(enrichment_top)
+      dplyr::mutate(across(contains(c("NGenes", "PValue", "FDR")), as.numeric)) %>%
+      dplyr::select(-data_set) %>%
+      dplyr::mutate(GeneSet = stringr::str_remove(GeneSet, "^.*?_")) %>%
+      dplyr::mutate(GeneSet = stringr::str_replace_all(GeneSet, "_", " ")) %>%
+      dplyr::mutate(GeneSet = stringr::str_to_sentence(GeneSet)) %>%
+      dplyr::rename("Query" = "id", "Gene Set" = "GeneSet", "# Genes" = "NGenes", "P-value" = "Pvalue")
+    return(gene_dependency_enrichment)
   }
   #error handling
-  tryCatch(make_enrichment_top_raw(),
+  tryCatch(make_gene_dependency_enrichment_raw(),
            error = function(e){
              message(e)
            })
 }
-
-#' Enrichment Bottom Table
 #'
-#' \code{make_enrichment_bottom} returns an image of ...
-#'
-#' This is a table function that takes a gene name and returns a enrichment bottom table
-#'
-#' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a enrichment bottom table. If an error is thrown, then will return an empty table.
-#'
-#' @importFrom magrittr %>%
-#'
-#' @export
-#' @examples
-#' make_enrichment_bottom(input = list(type = 'gene', content = 'ROCK1'))
-#' \dontrun{
-#' make_enrichment_bottom(input = list(type = 'gene', content = 'ROCK1'))
+#' #' Enrichment Top Table
+#' #'
+#' #' \code{make_enrichment_top} returns an image of ...
+#' #'
+#' #' This is a table function that takes a gene name and returns a enrichment top table
+#' #'
+#' #' @param input Expecting a list containing type and content variable.
+#' #' @return If no error, then returns a enrichment top table. If an error is thrown, then will return an empty table.
+#' #'
+#' #' @importFrom magrittr %>%
+#' #'
+#' #' @export
+#' #' @examples
+#' #' make_enrichment_top(input = list(type = 'gene', content = 'ROCK1'))
+#' #' \dontrun{
+#' #' make_enrichment_top(input = list(type = 'gene', content = 'ROCK1'))
+#' #' }
+#' make_enrichment_top <- function(input = list()) {
+#'   make_enrichment_top_raw <- function() {
+#'     enrichment_top <-
+#'       get_data_object(object_names = input$content,
+#'                       dataset_name = "gene_master_positive",
+#'                       pivotwider = TRUE) %>%
+#'       dplyr::mutate(across(contains(c("value")), as.numeric)) %>%
+#'       dplyr::select(id, enrichr, Term, Overlap, Adjusted.P.value, Combined.Score, Genes) %>%
+#'       dplyr::arrange(Adjusted.P.value) %>%
+#'       dplyr::rename("Query" = "id", "Gene Set" = "enrichr", "Gene List" = "Term", "Adjusted p-value" = "Adjusted.P.value", "Combined Score" = "Combined.Score") #"Overlap", "Genes"
+#'     return(enrichment_top)
+#'   }
+#'   #error handling
+#'   tryCatch(make_enrichment_top_raw(),
+#'            error = function(e){
+#'              message(e)
+#'            })
 #' }
-make_enrichment_bottom <- function(input = list()) {
-  make_enrichment_bottom_raw <- function() {
-    enrichment_bottom <-
-      get_data_object(object_names = input$content,
-                      dataset_name = "gene_master_negative",
-                      pivotwider = TRUE) %>%
-      dplyr::mutate(across(contains(c("value")), as.numeric)) %>%
-      dplyr::select(id, enrichr, Term, Overlap, Adjusted.P.value, Combined.Score, Genes) %>%
-      dplyr::arrange(Adjusted.P.value) %>%
-      dplyr::rename("Query" = "id", "Gene Set" = "enrichr", "Gene List" = "Term", "Adjusted p-value" = "Adjusted.P.value", "Combined Score" = "Combined.Score") #"Overlap", "Genes"
-    return(enrichment_bottom)
-  }
-  #error handling
-  tryCatch(make_enrichment_bottom_raw(),
-           error = function(e){
-             message(e)
-           })
-}
+#'
+#' #' Enrichment Bottom Table
+#' #'
+#' #' \code{make_enrichment_bottom} returns an image of ...
+#' #'
+#' #' This is a table function that takes a gene name and returns a enrichment bottom table
+#' #'
+#' #' @param input Expecting a list containing type and content variable.
+#' #' @return If no error, then returns a enrichment bottom table. If an error is thrown, then will return an empty table.
+#' #'
+#' #' @importFrom magrittr %>%
+#' #'
+#' #' @export
+#' #' @examples
+#' #' make_enrichment_bottom(input = list(type = 'gene', content = 'ROCK1'))
+#' #' \dontrun{
+#' #' make_enrichment_bottom(input = list(type = 'gene', content = 'ROCK1'))
+#' #' }
+#' make_enrichment_bottom <- function(input = list()) {
+#'   make_enrichment_bottom_raw <- function() {
+#'     enrichment_bottom <-
+#'       get_data_object(object_names = input$content,
+#'                       dataset_name = "gene_master_negative",
+#'                       pivotwider = TRUE) %>%
+#'       dplyr::mutate(across(contains(c("value")), as.numeric)) %>%
+#'       dplyr::select(id, enrichr, Term, Overlap, Adjusted.P.value, Combined.Score, Genes) %>%
+#'       dplyr::arrange(Adjusted.P.value) %>%
+#'       dplyr::rename("Query" = "id", "Gene Set" = "enrichr", "Gene List" = "Term", "Adjusted p-value" = "Adjusted.P.value", "Combined Score" = "Combined.Score") #"Overlap", "Genes"
+#'     return(enrichment_bottom)
+#'   }
+#'   #error handling
+#'   tryCatch(make_enrichment_bottom_raw(),
+#'            error = function(e){
+#'              message(e)
+#'            })
+#' }
 
 #' Molecular Features Segments Table
 #'
