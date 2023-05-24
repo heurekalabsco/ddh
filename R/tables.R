@@ -654,9 +654,7 @@ make_dep_table <- function(input = list()#,
 #' \dontrun{
 #' make_top_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_top_table <- function(input = list(),
-                           #data_master_top_table_cell = master_top_table_cell_line,
-                           gls = FALSE) {
+make_top_table <- function(input = list()) {
   make_top_table_raw <- function() {
     achilles_upper <- get_stats(data_set = "achilles", var = "upper")
     if(input$type == "gene") {
@@ -673,19 +671,11 @@ make_top_table <- function(input = list(),
     } else {
       stop("delcare your type")
     }
-    if(nrow(table_data) != 0) {
-      if(gls){
-        table_complete <-
-          table_data %>%
-          tidyr::unnest(data) %>%
-          dplyr::filter(GLSpvalue < 0.05 & !duplicated(gene)) %>%
-          dplyr::arrange(-dplyr::desc(GLSpvalue))
-      } else {
-        table_complete <-
-          table_data %>%
-          dplyr::filter(r2 > achilles_upper & !duplicated(gene)) %>%
-          dplyr::arrange(dplyr::desc(r2))
-      }
+    if(nrow(table_data) != 0) { #don't filter something that is zero
+      table_complete <-
+        table_data %>%
+        dplyr::filter(r2 > achilles_upper) %>% # & !duplicated(gene)
+        dplyr::arrange(dplyr::desc(r2))
     } else {
       table_complete <-
         table_data
@@ -830,26 +820,22 @@ make_gene_pathways_components <- function(data_gene_pathways_components = gene_p
 #'
 #' @export
 #' @examples
-#' censor(input = list(type = 'gene', content = 'ROCK1'))
-#' censor(input = list(type = 'gene', content = 'ROCK1'), choice = TRUE)
-#' censor(input = list(type = 'gene', content = 'ROCK1'), choice = TRUE, greater_than = 100)
+#' make_censor_table(input = list(type = 'gene', content = 'ROCK1'))
+#' make_censor_table(input = list(type = 'gene', content = 'ROCK1'), choice = TRUE)
+#' make_censor_table(input = list(type = 'gene', content = 'ROCK1'), choice = TRUE, greater_than = 100)
 #' \dontrun{
-#' censor(input = list(type = 'gene', content = 'ROCK1'))
+#' make_censor_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-censor <- function(input = list(),
-                   choice = FALSE,
-                   greater_than = 300) {
+make_censor_table <- function(input = list(),
+                              choice = FALSE,
+                              greater_than = 300) {
   table_data <-
-    get_data_object(object_names = input$content,
-                    dataset_name = "gene_master_top_table",
-                    pivotwider = TRUE) %>%
-    dplyr::mutate(across(contains(c("score", "r2", "concept")), as.numeric)) %>%
-    dplyr::select(-data_set)
+    make_top_table(input = input)
   if(choice == TRUE){
     gene_censor_data <-
       get_data_object(object_names = input$content,
                       dataset_name = "gene_censor",
-                      pivotwider = T) %>%
+                      pivotwider = TRUE) %>%
       dplyr::mutate(across(contains(c("num_sim")), as.numeric)) %>%
       dplyr::select(-data_set)
 
