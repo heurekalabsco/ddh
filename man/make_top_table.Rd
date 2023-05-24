@@ -4,7 +4,7 @@
 \alias{make_top_table}
 \title{Top Table}
 \usage{
-make_top_table(input = list(), gls = FALSE)
+make_top_table(input = list())
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
