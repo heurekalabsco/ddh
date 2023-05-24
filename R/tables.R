@@ -671,7 +671,7 @@ make_top_table <- function(input = list()) {
     } else {
       stop("delcare your type")
     }
-    return(table_complete)
+    return(table_data)
   }
   #error handling
   tryCatch(make_top_table_raw(),
