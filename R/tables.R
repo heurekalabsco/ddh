@@ -205,11 +205,7 @@ make_cellanatogram_table <- function(input = list()) {
                       dataset_name = "gene_subcell",
                       pivotwider = TRUE) %>%
       dplyr::mutate(value = round(as.numeric(value), 1)) %>%
-      dplyr::rename(Gene = id,
-                    Reliability = reliability,
-                    Location = main_location,
-                    Expression = value) %>%
-      dplyr::arrange(Expression)
+      dplyr::arrange(dplyr::desc(value))
     return(cellanatogram_table)
   }
   #error handling
