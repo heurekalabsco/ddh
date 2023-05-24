@@ -1293,7 +1293,7 @@ make_cellanatogram <- function(input = list(),
         plot.margin = ggplot2::margin(5, 10, 5, 5)
       ) +
       ggplot2::coord_fixed() +
-      scale_fill_ddh_c(palette = "protein") +
+      ddh::scale_fill_ddh_c(palette = "protein") +
       ggplot2::labs(fill = "Expression") +
       NULL
 
@@ -1332,13 +1332,13 @@ make_cellanatogramfacet <- function(input = list()) {
     get_data_object(object_names = input$content,
                     dataset_name = "gene_subcell",
                     pivotwider = TRUE) %>%
-    dplyr::select(organ, type, colour, value) %>%
+    dplyr::select(id, organ, type, colour, value) %>%
     mutate(value = as.numeric(value))
   make_cellanatogramfacet_raw <- function() {
     plot_data <-
       data_gene_subcell %>%
       dplyr::group_by(organ) %>%
-      dplyr::summarise(type = gene_name, value = mean(value)) %>%
+      dplyr::summarise(type = id, value = mean(value)) %>%
       dplyr::ungroup() %>%
       dplyr::arrange(dplyr::desc(value))
 
@@ -1354,7 +1354,7 @@ make_cellanatogramfacet <- function(input = list()) {
         plot.margin = ggplot2::margin(5, 10, 5, 5)
       ) +
       ggplot2::coord_fixed() +
-      scale_fill_ddh_c(palette = "protein") +
+      ddh::scale_fill_ddh_c(palette = "protein") +
       ggplot2::labs(fill = "Expression") +
       ggplot2::facet_wrap(~ type, ncol = 3, drop = FALSE) +
       ggplot2::theme(panel.spacing.y = ggplot2::unit(1.2, "lines"),
