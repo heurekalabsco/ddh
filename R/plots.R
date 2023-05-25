@@ -666,83 +666,83 @@ make_radial <- function(input = list(),
     colors_raw <- ddh::ddh_pal_d(palette = "protein")(length(unique(plot_data$id))-1)
     names(colors_raw) <- unique(plot_data$id)[unique(plot_data$id) != "Mean"]
     mean_color <- "gray48"
-      names(mean_color) <- "Mean"
-      colors_radial <- c(colors_raw, mean_color)
+    names(mean_color) <- "Mean"
+    colors_radial <- c(colors_raw, mean_color)
 
-      # barplot fill
-      mean_fill_bar <- "gray94"
-        names(mean_fill_bar) <- "Mean"
-        colors_bar <- c(colors_raw, mean_fill_bar)
+    # barplot fill
+    mean_fill_bar <- "gray94"
+    names(mean_fill_bar) <- "Mean"
+    colors_bar <- c(colors_raw, mean_fill_bar)
 
-        #relative label
-        if(relative == TRUE){
-          y_label = "Relative AA Frequency"
-        } else {
-          y_label = "AA Frequency (%)"
-        }
-        # RADIAL/BAR PLOT
-        plot_complete <-
-          ggplot2::ggplot(plot_data,
-                          ggplot2::aes(x = forcats::fct_inorder(aa),
-                                       y = plot_var,
-                                       group = id,
-                                       color = id
-                          )) +
-          {if(!barplot)ggplot2::geom_point(alpha = 0.8, show.legend = FALSE)} +
-          {if(!barplot)ggplot2::geom_polygon(fill = NA)} + #makes the radial connect
-          {if(barplot)ggplot2::geom_col(ggplot2::aes(x = forcats::fct_reorder(aa, plot_var, .desc = TRUE),
-                                                     y = plot_var,
-                                                     color = id,
-                                                     fill = id),
-                                        position = "dodge")} +
-          {if(barplot & relative)ggplot2::geom_hline(yintercept = 1, color = "gray48")} +
-          ggplot2::labs(y = y_label,
-                        x = ggplot2::element_blank()) +
-          {if(!barplot)ggplot2::coord_polar()} +
-          ggplot2::scale_color_manual(values = colors_radial) +
-          {if(barplot)ggplot2::scale_fill_manual(values = colors_bar)} +
-          ## theme changes
-          ddh::theme_ddh(base_size = 16) +
-          {if(!barplot)ggplot2::theme_minimal()} +
-          {if(!barplot)ggplot2::theme(
-            text = ggplot2::element_text(family = "Nunito Sans"),
-            legend.position = "top",
-            legend.title = ggplot2::element_blank(),
-            legend.text = ggplot2::element_text(size = 15),
-            axis.line.y = ggplot2::element_blank(),
-            axis.ticks.y = ggplot2::element_blank(),
-            axis.text = ggplot2::element_text(family = "Roboto Slab", size = 16),
-            axis.text.y = ggplot2::element_text(size = 16, color = "grey30"),
-            axis.title = ggplot2::element_text(size = 16)
-          )} +
-          {if(barplot)ggplot2::theme(
-            text = ggplot2::element_text(family = "Nunito Sans"),
-            legend.position = "top",
-            legend.title = ggplot2::element_blank(),
-            legend.text = ggplot2::element_text(size = 15),
-            axis.text = ggplot2::element_text(family = "Roboto Slab"),
-            axis.ticks.x = ggplot2::element_blank(),
-            axis.line.x = ggplot2::element_blank()
-          )} +
-          NULL
+    #relative label
+    if(relative == TRUE){
+      y_label = "Relative AA Frequency"
+    } else {
+      y_label = "AA Frequency (%)"
+    }
+    # RADIAL/BAR PLOT
+    plot_complete <-
+      ggplot2::ggplot(plot_data,
+                      ggplot2::aes(x = forcats::fct_inorder(aa),
+                                   y = plot_var,
+                                   group = id,
+                                   color = id
+                      )) +
+      {if(!barplot)ggplot2::geom_point(alpha = 0.8, show.legend = FALSE)} +
+      {if(!barplot)ggplot2::geom_polygon(fill = NA)} + #makes the radial connect
+      {if(barplot)ggplot2::geom_col(ggplot2::aes(x = forcats::fct_reorder(aa, plot_var, .desc = TRUE),
+                                                 y = plot_var,
+                                                 color = id,
+                                                 fill = id),
+                                    position = "dodge")} +
+      {if(barplot & relative)ggplot2::geom_hline(yintercept = 1, color = "gray48")} +
+      ggplot2::labs(y = y_label,
+                    x = ggplot2::element_blank()) +
+      {if(!barplot)ggplot2::coord_polar()} +
+      ggplot2::scale_color_manual(values = colors_radial) +
+      {if(barplot)ggplot2::scale_fill_manual(values = colors_bar)} +
+      ## theme changes
+      ddh::theme_ddh(base_size = 16) +
+      {if(!barplot)ggplot2::theme_minimal()} +
+      {if(!barplot)ggplot2::theme(
+        text = ggplot2::element_text(family = "Nunito Sans"),
+        legend.position = "top",
+        legend.title = ggplot2::element_blank(),
+        legend.text = ggplot2::element_text(size = 15),
+        axis.line.y = ggplot2::element_blank(),
+        axis.ticks.y = ggplot2::element_blank(),
+        axis.text = ggplot2::element_text(family = "Roboto Slab", size = 16),
+        axis.text.y = ggplot2::element_text(size = 16, color = "grey30"),
+        axis.title = ggplot2::element_text(size = 16)
+      )} +
+      {if(barplot)ggplot2::theme(
+        text = ggplot2::element_text(family = "Nunito Sans"),
+        legend.position = "top",
+        legend.title = ggplot2::element_blank(),
+        legend.text = ggplot2::element_text(size = 15),
+        axis.text = ggplot2::element_text(family = "Roboto Slab"),
+        axis.ticks.x = ggplot2::element_blank(),
+        axis.line.x = ggplot2::element_blank()
+      )} +
+      NULL
 
-        if(card == TRUE){
-          plot_complete <-
-            plot_complete +
-            ggplot2::labs(x = "", y = "") + #, title = "Signature Information", caption = "more ...") +
-            ggplot2::theme(
-              text = ggplot2::element_text(family = "Nunito Sans"),
-              legend.position = "none",
-              legend.title = ggplot2::element_blank(),
-              legend.text = ggplot2::element_blank(),
-              axis.text.x = ggplot2::element_text(family = "Roboto Slab"),
-              axis.text.y = ggplot2::element_blank(),
-              axis.ticks.x = ggplot2::element_blank(),
-              axis.line.x = ggplot2::element_blank()
-            )
-        }
+    if(card == TRUE){
+      plot_complete <-
+        plot_complete +
+        ggplot2::labs(x = "", y = "") + #, title = "Signature Information", caption = "more ...") +
+        ggplot2::theme(
+          text = ggplot2::element_text(family = "Nunito Sans"),
+          legend.position = "none",
+          legend.title = ggplot2::element_blank(),
+          legend.text = ggplot2::element_blank(),
+          axis.text.x = ggplot2::element_text(family = "Roboto Slab"),
+          axis.text.y = ggplot2::element_blank(),
+          axis.ticks.x = ggplot2::element_blank(),
+          axis.line.x = ggplot2::element_blank()
+        )
+    }
 
-        return(plot_complete)
+    return(plot_complete)
   }
 
   #error handling
@@ -1021,8 +1021,8 @@ make_structure3d <- function(gene_symbol = NULL,
                              elem = NULL
 ) {
   data_gene_pdb_table <-
-    get_data_object(object_names = input$content,
-                    dataset_name = "gene_pdb_table")
+    ddh::get_data_object(object_names = input$content,
+                         dataset_name = "gene_pdb_table")
   make_structure3d_raw <- function() {
     #because this fun doesn't take multi-gene queries
     if(is.null(gene_symbol)) {

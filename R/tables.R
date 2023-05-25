@@ -465,8 +465,8 @@ make_clustering_enrichment_table <- function(input = list(),
 
   make_clustering_enrichment_table_raw <- function() {
 
-    gene_signature_clusters <- get_content("gene_signature_clusters", dataset = TRUE) #allows all genes, coordinates, and cluster
-    gene_signature_cluster_enrichment <- get_content("gene_signature_cluster_enrichment", dataset = TRUE)
+    gene_signature_clusters <- ddh::get_content("gene_signature_clusters", dataset = TRUE) #allows all genes, coordinates, and cluster
+    gene_signature_cluster_enrichment <- ddh::get_content("gene_signature_cluster_enrichment", dataset = TRUE)
 
     if(filter_noise) {
       gene_signature_clusters <-
@@ -474,11 +474,7 @@ make_clustering_enrichment_table <- function(input = list(),
         dplyr::filter(clust != 0)
     }
 
-    query_clust <-
-      gene_signature_clusters %>%
-      dplyr::filter(id %in% input$content) %>%
-      dplyr::pull(clust) %>%
-      unique()
+    query_clust <- ddh::get_cluster(input = input)
 
     if(length(query_clust) != 1) {
       stop("Select only one cluster")
@@ -519,11 +515,10 @@ make_structure3d_table <- function(data_gene_uniprot_pdb_table = gene_uniprot_pd
                                    input = list()) {
   make_structure3d_table_raw <- function() {
     table_complete <-
-      data_universal_proteins %>%
-      dplyr::filter(gene_name %in% input$content) %>%
-      dplyr::left_join(data_gene_uniprot_pdb_table, by = c("uniprot_id" = "uniprot")) %>%
-      tidyr::unnest(data) %>%
-      dplyr::select(gene_name, uniprot_id, pdb, title, doi, organism, expression_system)
+      ddh::get_data_object(object_name = input$content,
+                           dataset_name = "gene_pdb_table",
+                           pivotwider = TRUE) %>%
+      dplyr::select(tidyselect::any_of(c("id", "pdb", "title", "doi", "organism", "expression_system")))
 
     return(table_complete)
   }
@@ -531,11 +526,7 @@ make_structure3d_table <- function(data_gene_uniprot_pdb_table = gene_uniprot_pd
   #error handling
   tryCatch(make_structure3d_table_raw(),
            error = function(e){
-             return(data_compound_hmdb_proteins %>%
-                      dplyr::left_join(data_gene_uniprot_pdb_table, by = c("uniprot_id" = "uniprot")) %>%
-                      tidyr::unnest(data) %>%
-                      dplyr::select(gene_name, uniprot_id, pdb, title, doi, organism, expression_system) %>%
-                      dplyr::slice(0))
+             return()
            })
 }
 
@@ -805,8 +796,8 @@ make_gene_dependency_enrichment <- function(input = list()) {
   make_gene_dependency_enrichment_raw <- function() {
     gene_dependency_enrichment <-
       ddh::get_data_object(object_names = input$content,
-                      dataset_name = "gene_dependency_enrichment",
-                      pivotwider = TRUE) %>%
+                           dataset_name = "gene_dependency_enrichment",
+                           pivotwider = TRUE) %>%
       dplyr::mutate(across(contains(c("NGenes", "PValue", "FDR")), as.numeric)) %>%
       dplyr::select(-data_set) %>%
 
