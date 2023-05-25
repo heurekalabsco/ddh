@@ -569,7 +569,6 @@ make_dep_table <- function(input = list()#,
 ) {
   make_dep_table_raw <- function() {
     if(input$type == "gene") {
-      #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
       data_universal_achilles_long <-
         get_data_object(object_names = input$content,
                         dataset_name = "universal_achilles_long",
@@ -581,7 +580,6 @@ make_dep_table <- function(input = list()#,
 
       table_data <-
         data_universal_achilles_long %>%
-        # dplyr::filter_all(dplyr::any_vars(gene %in% input$content)) %>%
         tidyr::pivot_wider(names_from = id, values_from = dep_score) %>%
         dplyr::left_join(data_cell_expression_names, by = "depmap_id") %>%
         dplyr::select(cell_line, lineage, contains(input$content)) %>%
