@@ -743,65 +743,6 @@ make_bottom_table <- function(input = list(),
            })
 }
 
-#' Gene-Pathway and Pathway-Pathway Co-essentiality Table
-#'
-#' This is a table function that takes a gene/s or a pathway/s and returns its co-essential pathways and genes
-#'
-#' @param input Expecting a list containing content variable.
-#' @param cutoff Absolute Pearson's correlation value to filter
-#'
-#' @return If no error, then returns a table. If an error is thrown, then will return an empty table.
-#'
-#' @importFrom magrittr %>%
-#'
-#' @export
-#' @examples
-#' make_gene_pathways_components(input = list(type = 'gene', content = 'ROCK1'))
-#' \dontrun{
-#' make_gene_pathways_components(input = list(type = 'gene', content = 'ROCK1'))
-#' }
-make_gene_pathways_components <- function(data_gene_pathways_components = gene_pathways_components,
-                                          input = list(),
-                                          cutoff = NULL) {
-  make_gene_pathways_components_raw <- function() {
-
-    # table_complete <- data_gene_pathways_components %>%
-    #   dplyr::filter(feature1 %in% input$content | feature2 %in% input$content)
-    #
-    # if(is.null(cutoff)) {
-    #   cutoff <- mean(abs(table_complete$pearson_corr)) # + sd(abs(table_complete$pearson_corr))
-    # }
-    #
-    # table_complete <- table_complete %>%
-    #   dplyr::filter(abs(pearson_corr) > cutoff) %>%
-    #   dplyr::mutate(swapped = FALSE) %>%
-    #   dplyr::as_tibble()
-    #
-    # # Swap cols (based on query)
-    # for(i in 1:nrow(table_complete)) {
-    #   if(table_complete$feature2[i] %in% input$content &
-    #      !(table_complete$feature1[i] %in% input$content)) {
-    #     ft1 <- table_complete$feature1[i]
-    #     ft2 <- table_complete$feature2[i]
-    #
-    #     table_complete$feature2[i] <- ft1
-    #     table_complete$feature1[i] <- ft2
-    #     table_complete$swapped[i] <- TRUE
-    #   }
-    # }
-    #
-    # return(table_complete)
-  }
-
-  #error handling
-  tryCatch(make_gene_pathways_components_raw(),
-           error = function(e){
-             # return(data_gene_pathways_components %>%
-             #          dplyr::slice(0)
-             # )
-           })
-}
-
 ##censor-----
 #' Censor
 #'
