@@ -870,10 +870,14 @@ make_gene_dependency_enrichment <- function(input = list()) {
                       pivotwider = TRUE) %>%
       dplyr::mutate(across(contains(c("NGenes", "PValue", "FDR")), as.numeric)) %>%
       dplyr::select(-data_set) %>%
-      dplyr::mutate(GeneSet = stringr::str_remove(GeneSet, "^.*?_")) %>%
+
+      dplyr::mutate(`Gene Set` = gsub("_.*", "", GeneSet)) %>%
+      dplyr::rowwise() %>%
+      dplyr::mutate(GeneSet = gsub(paste0(`Gene Set`, "_"), "", GeneSet)) %>%
+      dplyr::ungroup() %>%
       dplyr::mutate(GeneSet = stringr::str_replace_all(GeneSet, "_", " ")) %>%
       dplyr::mutate(GeneSet = stringr::str_to_sentence(GeneSet)) %>%
-      dplyr::rename("Query" = "id", "Gene Set" = "GeneSet", "# Genes" = "NGenes", "P-value" = "PValue")
+      dplyr::rename("Query" = "id", "Pathway" = "GeneSet", "# Genes" = "NGenes", "P-value" = "PValue")
     return(gene_dependency_enrichment)
   }
   #error handling
