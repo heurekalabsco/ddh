@@ -991,7 +991,10 @@ make_gene_molecular_features_pathways <- function(input = list(),
       dplyr::mutate(`Gene Set` = gsub("_.*", "", Pathway)) %>%
       dplyr::rowwise() %>%
       dplyr::mutate(Pathway = gsub(paste0(`Gene Set`, "_"), "", Pathway)) %>%
-      dplyr::ungroup()
+      dplyr::ungroup() %>%
+      dplyr::mutate(Pathway = stringr::str_replace_all(Pathway, "_", " ")) %>%
+      dplyr::mutate(Pathway = stringr::str_to_sentence(Pathway))
+
     return(gene_molecular_features_hits)
   }
   #error handling
