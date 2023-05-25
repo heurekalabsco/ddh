@@ -5,9 +5,8 @@
 \title{Protein 3D Structure Plot}
 \usage{
 make_structure3d(
-  gene_symbol = NULL,
-  pdb_id = NULL,
   input = list(),
+  pdb_id = NULL,
   color = FALSE,
   ribbon = FALSE,
   selection = FALSE,
