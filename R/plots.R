@@ -2559,7 +2559,7 @@ make_cellbins <- function(input = list(),
 ## LINEAGE LINERANGE PLOT ------------------------------------------------------
 #' Dependency Lineage Plot
 #'
-#' Each point shows the mean dependency score for the gene query within a given cell lineage. The intervals show the 5% quantiles centered on the median, the interquartile ranges, and the 95% quantiles. The gray background highlights weak dependency values between -1 and 1.
+#' Each point shows the mean dependency score for the gene query within a given cell lineage. The intervals show the 5 percent quantiles centered on the median, the interquartile ranges, and the 95 percent quantiles. The gray background highlights weak dependency values between -1 and 1.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -2748,7 +2748,7 @@ make_lineage <- function(input = list(),
 ## SUBLINE RANGE PLOT ---------------------------------------------------
 #' Cell Dependency Sublineage Plot
 #'
-#' Each point shows the mean dependency score for the gene query within a given cell lineage. The intervals show the 5% quantiles centered on the median, the interquartile ranges, and the 95% quantiles. The gray background highlights weak dependency values between -1 and 1.
+#' Each point shows the mean dependency score for the gene query within a given cell lineage. The intervals show the 5 percent quantiles centered on the median, the interquartile ranges, and the 95 percent quantiles. The gray background highlights weak dependency values between -1 and 1.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
