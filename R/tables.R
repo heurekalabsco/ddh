@@ -661,7 +661,7 @@ make_top_table <- function(input = list()) {
         get_data_object(object_names = input$content,
                         dataset_name = "gene_master_top_table",
                         pivotwider = TRUE) %>%
-        dplyr::mutate(across(contains(c("score", "r2", "concept")), as.numeric)) %>%
+        dplyr::mutate(dplyr::across(dplyr::contains(c("score", "r2", "concept")), as.numeric)) %>%
         dplyr::select(-data_set) %>%
         dplyr::arrange(dplyr::desc(r2))
       # } else if(input$type == "cell") {
@@ -699,8 +699,8 @@ make_top_table <- function(input = list()) {
 #' make_bottom_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
 make_bottom_table <- function(input = list(),
-                              # data_master_bottom_table_cell = master_bottom_table_cell_line,
-                              gls = FALSE) {
+                              gls = FALSE,
+                              ...) {
   make_bottom_table_raw <- function() {
     data_achilles_lower <- get_stats(data_set = "achilles", var = "lower")
     if(input$type == "gene") {
@@ -708,7 +708,7 @@ make_bottom_table <- function(input = list(),
         get_data_object(object_names = input$content,
                         dataset_name = "gene_master_bottom_table",
                         pivotwider = TRUE) %>%
-        dplyr::mutate(across(contains(c("score", "r2", "concept")), as.numeric)) %>%
+        dplyr::mutate(dplyr::across(dplyr::contains(c("score", "r2", "concept")), as.numeric)) %>%
         dplyr::select(-data_set)
       # } else if(input$type == "cell") {
       #   table_data <-

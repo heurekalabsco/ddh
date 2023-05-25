@@ -4,7 +4,7 @@
 \alias{make_bottom_table}
 \title{Bottom Table}
 \usage{
-make_bottom_table(input = list(), gls = FALSE)
+make_bottom_table(input = list(), gls = FALSE, ...)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
