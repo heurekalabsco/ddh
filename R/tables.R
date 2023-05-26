@@ -788,12 +788,12 @@ make_censor_table <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' make_gene_dependency_enrichment(input = list(type = 'gene', content = 'ROCK1'))
+#' make_gene_dependency_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
 #' \dontrun{
-#' make_gene_dependency_enrichment(input = list(type = 'gene', content = 'ROCK1'))
+#' make_gene_dependency_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_gene_dependency_enrichment <- function(input = list()) {
-  make_gene_dependency_enrichment_raw <- function() {
+make_gene_dependency_enrichment_table <- function(input = list()) {
+  make_gene_dependency_enrichment_table_raw <- function() {
     gene_dependency_enrichment <-
       ddh::get_data_object(object_names = input$content,
                            dataset_name = "gene_dependency_enrichment",
@@ -811,7 +811,7 @@ make_gene_dependency_enrichment <- function(input = list()) {
     return(gene_dependency_enrichment)
   }
   #error handling
-  tryCatch(make_gene_dependency_enrichment_raw(),
+  tryCatch(make_gene_dependency_enrichment_table_raw(),
            error = function(e){
              message(e)
            })
