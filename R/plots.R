@@ -2015,7 +2015,7 @@ make_cca_genes <- function(input = list(),
       dplyr::group_by(Query) %>%
       dplyr::slice(1:n_features) %>%
       dplyr::ungroup() %>%
-      ggplot2::ggplot(ggplot2::aes(CC1, reorder(Pathway, CC1), fill = `Gene Set`)) +
+      ggplot2::ggplot(ggplot2::aes(CC, reorder(Pathway, CC), fill = `Gene Set`)) +
       ggplot2::geom_col() +
       scale_fill_ddh_d() +
       ggplot2::labs(
