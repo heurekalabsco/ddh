@@ -934,7 +934,7 @@ make_molecular_features_pathways_table <- function(input = list(),
            })
 }
 
-#' Gene Pathways Table
+#' Gene-Pathway CCA Table
 #'
 #' This is a table function that takes a gene name and returns a gene-pathway table
 #'
@@ -965,7 +965,10 @@ make_cca_genes_table <- function(input = list(),
       dplyr::rowwise() %>%
       dplyr::mutate(Pathway = gsub(paste0(`Gene Set`, "_"), "", Pathway)) %>%
       dplyr::ungroup() %>%
-      dplyr::rename(Query = id)
+      dplyr::mutate(Pathway = stringr::str_replace_all(Pathway, "_", " ")) %>%
+      dplyr::mutate(Pathway = stringr::str_to_sentence(Pathway)) %>%
+      dplyr::select(Query = id, Pathway, "# Genes" = PathwaySize,
+                    "Explained Variance" = PathwayVarExp, CC = CC1, "Gene Set")
 
     if(!is.null(gene_set)) {
       if (!any(gene_set %in% gene_pathway_hits$`Gene Set`)) stop ("Gene set not found.")
@@ -982,7 +985,7 @@ make_cca_genes_table <- function(input = list(),
            })
 }
 
-#' Pathway Pathway Table
+#' Pathway-Pathway CCA Table
 #'
 #' This is a table function that takes a pathway name and returns a pathway-pathway table
 #'
@@ -1012,7 +1015,11 @@ make_cca_pathway_table <- function(input = list(),
       dplyr::rowwise() %>%
       dplyr::mutate(Pathway = gsub(paste0(`Gene Set`, "_"), "", Pathway)) %>%
       dplyr::ungroup() %>%
-      dplyr::rename(Query = id)
+      dplyr::rename(Query = id) %>%
+      dplyr::mutate(Query = stringr::str_replace_all(Query, "_", " "),
+                    Pathway = stringr::str_replace_all(Pathway, "_", " ")) %>%
+      dplyr::mutate(Query = stringr::str_to_sentence(Query),
+                    Pathway = stringr::str_to_sentence(Pathway))
 
     if(!is.null(gene_set)) {
       if (!any(gene_set %in% pathway_pathway_hits$`Gene Set`)) stop ("Gene set not found.")

@@ -2,7 +2,7 @@
 % Please edit documentation in R/tables.R
 \name{make_cca_genes_table}
 \alias{make_cca_genes_table}
-\title{Gene Pathways Table}
+\title{Gene-Pathway CCA Table}
 \usage{
 make_cca_genes_table(input = list(), gene_set = NULL, ...)
 }
