@@ -1830,12 +1830,12 @@ make_cellgeneprotein <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' gene_molecular_features_segments(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-#' gene_molecular_features_segments(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
-gene_molecular_features_segments <- function(input = list(),
+#' make_molecular_features_segments(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_molecular_features_segments(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
+make_molecular_features_segments <- function(input = list(),
                                              ...) {
 
-  gene_molecular_features_hits <- ddh::make_gene_molecular_features_segments(input = input) %>%
+  gene_molecular_features_hits <- ddh::make_molecular_features_segments_table(input = input) %>%
     dplyr::group_by(Query) %>%
     dplyr::arrange(depscore) %>%
     dplyr::mutate(
@@ -1843,7 +1843,7 @@ gene_molecular_features_segments <- function(input = list(),
     dplyr::ungroup() %>%
     dplyr::mutate(group = stringr::str_to_title(group))
 
-  gene_molecular_features_segments_raw <- function() {
+  make_molecular_features_segments_raw <- function() {
 
     plot_complete <-
       gene_molecular_features_hits %>%
@@ -1882,7 +1882,7 @@ gene_molecular_features_segments <- function(input = list(),
     return(plot_complete)
   }
   #error handling
-  tryCatch(gene_molecular_features_segments_raw(),
+  tryCatch(make_molecular_features_segments_raw(),
            error = function(e){
              message(e)
              make_bomb_plot()})
@@ -1899,16 +1899,16 @@ gene_molecular_features_segments <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' gene_molecular_features_barplot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-#' gene_molecular_features_barplot(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
-#' gene_molecular_features_barplot(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')), n_features = 20)
-gene_molecular_features_barplot <- function(input = list(),
-                                            n_features = 10,
-                                            ...) {
+#' make_molecular_features(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_molecular_features(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
+#' make_molecular_features(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')), n_features = 20)
+make_molecular_features <- function(input = list(),
+                                    n_features = 10,
+                                    ...) {
 
-  gene_molecular_features_hits <- ddh::make_gene_molecular_features(input = input)
+  gene_molecular_features_hits <- ddh::make_molecular_features_table(input = input)
 
-  gene_molecular_features_barplot_raw <- function() {
+  make_molecular_features_raw <- function() {
 
     plot_complete <-
       gene_molecular_features_hits %>%
@@ -1933,7 +1933,7 @@ gene_molecular_features_barplot <- function(input = list(),
     return(plot_complete)
   }
   #error handling
-  tryCatch(gene_molecular_features_barplot_raw(),
+  tryCatch(make_molecular_features_raw(),
            error = function(e){
              message(e)
              make_bomb_plot()})
@@ -1950,16 +1950,16 @@ gene_molecular_features_barplot <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' gene_molecular_features_pathway_barplot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-#' gene_molecular_features_pathway_barplot(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
-#' gene_molecular_features_pathway_barplot(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')), n_pathways = 20)
-gene_molecular_features_pathway_barplot <- function(input = list(),
-                                                    n_pathways = 10,
-                                                    ...) {
+#' make_molecular_features_pathways(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_molecular_features_pathways(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
+#' make_molecular_features_pathways(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')), n_pathways = 20)
+make_molecular_features_pathways <- function(input = list(),
+                                             n_pathways = 10,
+                                             ...) {
 
-  gene_molecular_features_hits <- ddh::make_gene_molecular_features_pathways(input = input)
+  gene_molecular_features_hits <- ddh::make_molecular_features_pathways_table(input = input)
 
-  gene_molecular_features_pathway_barplot_raw <- function() {
+  make_molecular_features_pathways_raw <- function() {
 
     plot_complete <-
       gene_molecular_features_hits %>%
@@ -1979,13 +1979,13 @@ gene_molecular_features_pathway_barplot <- function(input = list(),
     return(plot_complete)
   }
   #error handling
-  tryCatch(gene_molecular_features_pathway_barplot_raw(),
+  tryCatch(make_molecular_features_pathways_raw(),
            error = function(e){
              message(e)
              make_bomb_plot()})
 }
 
-## GENE PATHWAYS BAR PLOT ---------------------------------------------------
+## CCA GENES PLOT ---------------------------------------------------
 #' Gene Pathways Bar Plot
 #'
 #' @param input Expecting a list containing type and content variable.
@@ -1996,19 +1996,19 @@ gene_molecular_features_pathway_barplot <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' gene_pathways_barplot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-#' gene_pathways_barplot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), gset = "GOBP")
-#' gene_pathways_barplot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), gset = c("GOBP", "C2"))
-#' gene_pathways_barplot(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
-#' gene_pathways_barplot(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')), n_features = 20)
-gene_pathways_barplot <- function(input = list(),
-                                  n_features = 10,
-                                  gset = NULL,
-                                  ...) {
+#' make_cca_genes(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_cca_genes(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), gset = "GOBP")
+#' make_cca_genes(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), gset = c("GOBP", "C2"))
+#' make_cca_genes(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
+#' make_cca_genes(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')), n_features = 20)
+make_cca_genes <- function(input = list(),
+                           n_features = 10,
+                           gset = NULL,
+                           ...) {
 
-  gene_pathways_hits <- ddh::make_gene_cca_pathway(input = input, gene_set = gset)
+  gene_pathways_hits <- ddh::make_cca_genes_table(input = input, gene_set = gset)
 
-  gene_pathways_barplot_raw <- function() {
+  make_cca_genes_raw <- function() {
 
     plot_complete <-
       gene_pathways_hits %>%
@@ -2040,7 +2040,7 @@ gene_pathways_barplot <- function(input = list(),
     return(plot_complete)
   }
   #error handling
-  tryCatch(gene_pathways_barplot_raw(),
+  tryCatch(make_cca_genes_raw(),
            error = function(e){
              message(e)
              make_bomb_plot()})

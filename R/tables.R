@@ -829,14 +829,14 @@ make_gene_dependency_enrichment <- function(input = list()) {
 #'
 #' @export
 #' @examples
-#' make_gene_molecular_features_segments(input = list(type = 'gene', content = 'ROCK1'))
-#' make_gene_molecular_features_segments(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
+#' make_molecular_features_segments_table(input = list(type = 'gene', content = 'ROCK1'))
+#' make_molecular_features_segments_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
-#' make_gene_molecular_features_segments(input = list(type = 'gene', content = 'ROCK1'))
+#' make_molecular_features_segments_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_gene_molecular_features_segments <- function(input = list(),
+make_molecular_features_segments_table <- function(input = list(),
                                                   ...) {
-  make_gene_molecular_features_segments_raw <- function() {
+  make_molecular_features_segments_table_raw <- function() {
     gene_molecular_features_hits <-
       ddh::get_data_object(object_names = input$content,
                            dataset_name = "gene_molecular_features_segments",
@@ -847,7 +847,7 @@ make_gene_molecular_features_segments <- function(input = list(),
     return(gene_molecular_features_hits)
   }
   #error handling
-  tryCatch(make_gene_molecular_features_segments_raw(),
+  tryCatch(make_molecular_features_segments_table_raw(),
            error = function(e){
              message(e)
            })
@@ -865,14 +865,14 @@ make_gene_molecular_features_segments <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' make_gene_molecular_features(input = list(type = 'gene', content = 'ROCK1'))
-#' make_gene_molecular_features(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
+#' make_molecular_features_table(input = list(type = 'gene', content = 'ROCK1'))
+#' make_molecular_features_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
-#' make_gene_molecular_features(input = list(type = 'gene', content = 'ROCK1'))
+#' make_molecular_features_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_gene_molecular_features <- function(input = list(),
-                                         ...) {
-  make_gene_molecular_features_raw <- function() {
+make_molecular_features_table <- function(input = list(),
+                                          ...) {
+  make_molecular_features_table_raw <- function() {
     gene_molecular_features_hits <-
       ddh::get_data_object(object_names = input$content,
                            dataset_name = "gene_molecular_features_top",
@@ -884,7 +884,7 @@ make_gene_molecular_features <- function(input = list(),
     return(gene_molecular_features_hits)
   }
   #error handling
-  tryCatch(make_gene_molecular_features_raw(),
+  tryCatch(make_molecular_features_table_raw(),
            error = function(e){
              message(e)
            })
@@ -902,14 +902,14 @@ make_gene_molecular_features <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' make_gene_molecular_features_pathways(input = list(type = 'gene', content = 'ROCK1'))
-#' make_gene_molecular_features_pathways(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
+#' make_molecular_features_pathways_table(input = list(type = 'gene', content = 'ROCK1'))
+#' make_molecular_features_pathways_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
-#' make_gene_molecular_features_pathways(input = list(type = 'gene', content = 'ROCK1'))
+#' make_molecular_features_pathways_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_gene_molecular_features_pathways <- function(input = list(),
-                                                  ...) {
-  make_gene_molecular_features_pathways_raw <- function() {
+make_molecular_features_pathways_table <- function(input = list(),
+                                                   ...) {
+  make_molecular_features_pathways_table_raw <- function() {
     gene_molecular_features_hits <-
       ddh::get_data_object(object_names = input$content,
                            dataset_name = "gene_molecular_features_pathways_top",
@@ -928,7 +928,7 @@ make_gene_molecular_features_pathways <- function(input = list(),
     return(gene_molecular_features_hits)
   }
   #error handling
-  tryCatch(make_gene_molecular_features_pathways_raw(),
+  tryCatch(make_molecular_features_pathways_table_raw(),
            error = function(e){
              message(e)
            })
@@ -946,15 +946,15 @@ make_gene_molecular_features_pathways <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' make_gene_cca_pathway(input = list(type = 'gene', content = 'ROCK1'))
-#' make_gene_cca_pathway(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
+#' make_cca_genes_table(input = list(type = 'gene', content = 'ROCK1'))
+#' make_cca_genes_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
-#' make_gene_cca_pathway(input = list(type = 'gene', content = 'ROCK1'))
+#' make_cca_genes_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_gene_cca_pathway <- function(input = list(),
-                                  gene_set = NULL,
-                                  ...) {
-  make_gene_cca_pathway_raw <- function() {
+make_cca_genes_table <- function(input = list(),
+                                 gene_set = NULL,
+                                 ...) {
+  make_cca_genes_table_raw <- function() {
     gene_pathway_hits <-
       ddh::get_data_object(object_names = input$content,
                            dataset_name = "gene_cca_pathway",
@@ -976,7 +976,7 @@ make_gene_cca_pathway <- function(input = list(),
     return(gene_pathway_hits)
   }
   #error handling
-  tryCatch(make_gene_cca_pathway_raw(),
+  tryCatch(make_cca_genes_table_raw(),
            error = function(e){
              message(e)
            })
@@ -994,14 +994,14 @@ make_gene_cca_pathway <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' make_pathway_cca_pathway(input = list(type = 'pathway', content = 'GOBP_FIBROBLAST_GROWTH_FACTOR_PRODUCTION'))
+#' make_cca_pathway_table(input = list(type = 'pathway', content = 'GOBP_FIBROBLAST_GROWTH_FACTOR_PRODUCTION'))
 #' \dontrun{
-#' make_pathway_cca_pathway(input = list(type = 'pathway', content = 'GOBP_FIBROBLAST_GROWTH_FACTOR_PRODUCTION'))
+#' make_cca_pathway_table(input = list(type = 'pathway', content = 'GOBP_FIBROBLAST_GROWTH_FACTOR_PRODUCTION'))
 #' }
-make_pathway_cca_pathway <- function(input = list(),
-                                     gene_set = NULL,
-                                     ...) {
-  make_pathway_cca_pathway_raw <- function() {
+make_cca_pathway_table <- function(input = list(),
+                                   gene_set = NULL,
+                                   ...) {
+  make_cca_pathway_table_raw <- function() {
     pathway_pathway_hits <-
       ddh::get_data_object(object_names = input$content,
                            dataset_name = "pathway_cca_pathway",
@@ -1023,7 +1023,7 @@ make_pathway_cca_pathway <- function(input = list(),
     return(pathway_pathway_hits)
   }
   #error handling
-  tryCatch(make_pathway_cca_pathway_raw(),
+  tryCatch(make_cca_pathway_table_raw(),
            error = function(e){
              message(e)
            })
