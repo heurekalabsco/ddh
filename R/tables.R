@@ -366,8 +366,6 @@ get_cluster <- function(input = list()){
 ## PROTEIN CLUSTER TABLE -----------------------------------------------
 #' Clustering Table
 #'
-#' \code{make_clustering_table} returns an image of ...
-#'
 #' This is a table function that takes a gene name and returns a clustering Table
 #'
 #' @param input Expecting a list containing type and content variable.
@@ -377,63 +375,31 @@ get_cluster <- function(input = list()){
 #'
 #' @export
 #' @examples
-#' make_clustering_table(input = list(type = 'gene', content = 'ROCK1'))
-#' make_clustering_table(input = list(type = 'gene', content = 'ROCK1'), cluster = TRUE)
-#' make_clustering_table(input = list(type = 'gene', content = 'ROCK1'), show_signature = TRUE)
+#' make_signature_clusters_table(input = list(type = 'gene', content = 'ROCK1'))
 #' \dontrun{
-#' make_clustering_table(input = list(type = 'gene', content = 'ROCK1'))
+#' make_signature_clusters_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_clustering_table <- function(input = list(),
-                                  cluster = FALSE,
-                                  show_signature = FALSE) {
-  make_clustering_table_raw <- function() {
+make_signature_clusters_table <- function(input = list(),
+                                          ...) {
+  make_signature_clusters_table_raw <- function() {
 
-    data_gene_signature_clusters <-
-      get_data_object(object_names = input$content,
-                      dataset_name = "gene_signature_clusters",
-                      pivotwider = TRUE) %>%
-      dplyr::mutate(across(contains(c("X", "clust", "member_prob")), as.numeric))
-
-    data_gene_signatures <-
-      get_data_object(object_names = input$content,
-                      dataset_name = "gene_signatures",
-                      pivotwider = TRUE) %>%
-      dplyr::mutate(across(A:Y, as.numeric))
-
-    gene_signature_clusters <- get_content("gene_signature_clusters", dataset = TRUE) #allows all genes, coordinates, and cluster
-    gene_signatures <- get_content("gene_signatures", dataset = TRUE) #all gene signatures
+    gene_signature_clusters <- dplyr::as_tibble(get_content("gene_signature_clusters", dataset = TRUE)) # allows all genes, coordinates, and cluster
 
     #vec of clusters in query
     query_clust <-
       ddh::get_cluster(input)
 
-    if(show_signature == TRUE){cluster <- TRUE} #make sure you preserve clusters
-    #table of all proteins in cluster containing: uniprot_id, gene_name, protein_name, clust, cluster_name
     cluster_table <-
       gene_signature_clusters %>%
       dplyr::filter(clust %in% query_clust) %>%
-      dplyr::select(gene_name = id, protein_name, description) %>%
-      #if cluster is true, then all proteins; if false, then just the query
-      {if(cluster == FALSE) dplyr::filter(., gene_name %in% input$content) else .}
+      dplyr::select(Gene = id, Name = protein_name, Cluster = clust) %>%
+      dplyr::as_tibble()
 
-    # if show_sig is true, then calculate the signature of the cluster on the fly
-    if(show_signature) {
-      cluster_table <-
-        cluster_table %>%
-        dplyr::left_join(gene_signatures %>%
-                           dplyr::select(gene_name, A:U) %>%
-                           dplyr::mutate_at(dplyr::vars(A:U), ~ round(., 2)),
-                         by = "gene_name")
-    }
-
-    if(nrow(cluster_table) == 0) {
-      stop("Unable to cluster this protein by its amino acid sequence so far...")
-    }
-    return(dplyr::as_tibble(cluster_table))
+    return(cluster_table)
   }
 
   #error handling
-  tryCatch(make_clustering_table_raw(),
+  tryCatch(make_signature_clusters_table_raw(),
            error = function(e){
              message(e)
            })

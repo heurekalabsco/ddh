@@ -2602,7 +2602,8 @@ make_lineage <- function(input = list(),
       data_mean <-
         data_full %>%
         dplyr::group_by(lineage) %>%
-        dplyr::summarize(dep_score = mean(dep_score))
+        dplyr::summarize(dep_score = mean(dep_score)) %>%
+        dplyr::ungroup()
 
     } else if(input$type == "compound") {
       xlab <- "Log2FC"
@@ -2628,104 +2629,109 @@ make_lineage <- function(input = list(),
       data_mean <-
         data_full %>%
         dplyr::group_by(lineage) %>%
-        dplyr::summarize(dep_score = mean(dep_score))
+        dplyr::summarize(dep_score = mean(dep_score)) %>%
+        dplyr::ungroup()
 
     } else {
       stop("declare your type") }
 
     if(nrow(data_full) == 0){return(NULL)}
 
-    if(highlight) {
-      stats_data <-
-        data_full %>%
-        dplyr::group_by(lineage) %>%
-        dplyr::filter(dplyr::n() > 1) %>%
-        dplyr::ungroup() %>%
-        ggpubr::compare_means(dep_score ~ lineage, data = .,
-                              ref.group = ".all.", method = "t.test") %>%
-        dplyr::filter(p.adj < 0.05)
-    }
+    # if (highlight) {
+    #   stats_data <-
+    #     data_full %>%
+    #     dplyr::group_by(lineage) %>%
+    #     dplyr::filter(dplyr::n() > 1) %>%
+    #     dplyr::ungroup() %>%
+    #     ggpubr::compare_means(dep_score ~ lineage, data = .,
+    #                           ref.group = ".all.", method = "t.test") %>%
+    #     dplyr::filter(p.adj < 0.05)
+    # }
 
-    if(card) {
+    if (card) {
       most_negative <-
         data_mean %>%
         dplyr::slice_min(dep_score, n = 6) %>%
         dplyr::pull(lineage)
+
+      data_full <- data_full %>%
+        dplyr::filter(lineage %in% most_negative) #%>%
+        # dplyr::mutate(lineage = forcats::fct_reorder(lineage, mean))
+
+      data_mean <- data_mean %>%
+        dplyr::filter(lineage %in% most_negative) #%>%
+        # dplyr::mutate(lineage = forcats::fct_reorder(lineage, -dep_score))
     }
 
     plot_complete <-
       data_mean %>%
-      {if(card)dplyr::filter(., lineage %in% most_negative) else .} %>%
-      ggplot2::ggplot(ggplot2::aes(dep_score, lineage)) +
-      ## annotation range -1 to 1
-      # geom_rect(
-      #   xmin = -1, xmax = 1,
-      #   ymin = -Inf, ymax = Inf,
-      #   fill = "grey95"
-      # ) +
+      ggplot2::ggplot(ggplot2::aes(dep_score, reorder(lineage, -dep_score))) +
       ## zero line
-      ggplot2::geom_vline(
-        xintercept = 0,
-        color = "grey80",
-        linetype = "dashed"
-      ) +
+      # ggplot2::geom_vline(
+      #   xintercept = 0,
+      #   color = "grey80",
+      #   linetype = "dashed"
+      # ) +
       ## indicator lines lineages
-      ggplot2::geom_linerange(
-        ggplot2::aes(xmin = -Inf, xmax = dep_score),
-        color = "grey60",
-        linetype = "dotted"
-      ) +
+      # ggplot2::geom_linerange(
+      #   ggplot2::aes(xmin = -Inf, xmax = dep_score),
+      #   color = "grey60",
+      #   linetype = "dotted"
+      # ) +
       ## lineranges as "boxplots"
       ggdist::stat_interval(
-        data = data_full %>% {if(card)dplyr::filter(., lineage %in% most_negative) else .},
-        orientation = "horizontal",
-        .width = c(.05, .5, .95)
+        data = data_full,
+        ggplot2::aes(dep_score, reorder(lineage, -dep_score)),
+        orientation = "horizontal", .width = c(.05, .5, .95)
       ) +
       ## dot indicating mean
-      ggplot2::geom_point(
-        color = "black", fill = "white",
-        shape = 21, stroke = .5,
-        size = 1.8
-      ) +
+      # ggplot2::geom_point(
+      #   color = "black", fill = "white",
+      #   shape = 21, stroke = .5,
+      #   size = 1.8
+      # ) +
+      ## highlight
+      # {if(highlight) ggdist::stat_interval(
+      #   data = data_full %>%
+      #     dplyr::filter(!lineage %in% stats_data$group2) %>%
+      #     dplyr::mutate(lineage = forcats::fct_reorder(lineage, -mean)),
+      #   orientation = "horizontal", .width = c(.05, .5, .95), color = "gray90", alpha = 0.6
+      # )} +
       ## scales + legends
-      ggplot2::scale_x_continuous(
-        sec.axis = ggplot2::dup_axis()
-      ) +
+      ggplot2::scale_x_continuous(sec.axis = ggplot2::dup_axis()) +
       scale_color_ddh_d(
         palette = input$type,
         shuffle = TRUE, seed = 5L, ## to return "correctly" ordered, sequential colors
-        labels = c("95%", "50%", "5%"),#of the data fall in these ranges
+        labels = c("95%", "50%", "5%"), # of the data fall in these ranges
         name = ""
       ) +
       ggplot2::guides(color = ggplot2::guide_legend(reverse = TRUE)) +
       ## titles
-      ggplot2::labs(
-        x = xlab,
-        y = NULL #,
-        #title = title_var
-      ) +
-      {if(highlight)gghighlight::gghighlight(lineage %in% stats_data$group2, use_direct_label = FALSE)} + # toggle
+      # ggplot2::labs(
+      #   x = xlab,
+      #   y = NULL
+      # ) +
       ## theme changes
-      ddh::theme_ddh(grid = "none") +
-      ggplot2::theme(
-        legend.position = "top",
-        axis.line.y = ggplot2::element_blank(),
-        axis.ticks.y = ggplot2::element_blank(),
-        axis.text = ggplot2::element_text(family = "Roboto Slab"),
-        axis.text.x = ggplot2::element_text(size = 12, color = "grey30"),
-        axis.title = ggplot2::element_text(size = 15),
-        axis.title.x.bottom = ggplot2::element_blank(),
-        plot.title.position = "plot"
-      ) +
+      # ddh::theme_ddh(grid = "none") +
+      # ggplot2::theme(
+      #   legend.position = "top",
+      #   axis.line.y = ggplot2::element_blank(),
+      #   axis.ticks.y = ggplot2::element_blank(),
+      #   axis.text = ggplot2::element_text(family = "Roboto Slab"),
+      #   axis.text.x = ggplot2::element_text(size = 12, color = "grey30"),
+      #   axis.title = ggplot2::element_text(size = 15),
+      #   axis.title.x.bottom = ggplot2::element_blank(),
+      #   plot.title.position = "plot"
+      # ) +
       NULL
 
-    if(card) {
-      plot_complete <-
-        plot_complete +
-        ggplot2::scale_y_discrete(labels = scales::label_wrap(10)) + #to prevent long lines and squished plots
-        ggplot2::scale_x_continuous(breaks = scales::breaks_extended(n = 3)) +
-        ggplot2::theme(plot.title = ggplot2::element_blank())
-    }
+    # if(card) {
+    #   plot_complete <-
+    #     plot_complete +
+    #     ggplot2::scale_y_discrete(labels = scales::label_wrap(10)) + #to prevent long lines and squished plots
+    #     ggplot2::scale_x_continuous(breaks = scales::breaks_extended(n = 3)) +
+    #     ggplot2::theme(plot.title = ggplot2::element_blank())
+    # }
     return(plot_complete)
   }
   #error handling
