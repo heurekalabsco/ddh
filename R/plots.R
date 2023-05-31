@@ -28,13 +28,16 @@ make_barcode <- function(input = list(),
     if(card == TRUE){image_type = "card"} else {image_type = "plot"}
 
     #check if exists
-    url <- glue::glue("https://{Sys.getenv('AWS_BARCODE_BUCKET_ID')}.s3.amazonaws.com/{gene_symbol}_barcode_{image_type}.jpeg")
+    file_key <- glue::glue("{gene_symbol}_barcode_{image_type}.jpeg")
+    url <- get_temporary_url('AWS_BARCODE_BUCKET_ID', file_key)
+
     status <- httr::GET(url) %>% httr::status_code()
 
     if(status == 200){
       return(url)
     } else {
-      return(glue::glue("https://{Sys.getenv('AWS_BARCODE_BUCKET_ID')}.s3.amazonaws.com/error_barcode_{image_type}.jpeg"))
+      file_key <- glue::glue("error_barcode_{image_type}.jpeg")
+      return(get_temporary_url('AWS_BARCODE_BUCKET_ID', file_key))
     }
   }
   #error handling
@@ -42,7 +45,8 @@ make_barcode <- function(input = list(),
            error = function(e){
              message(e)
              if(card == TRUE){image_type = "card"} else {image_type = "plot"}
-             glue::glue("https://{Sys.getenv('AWS_BARCODE_BUCKET_ID')}.s3.amazonaws.com/error_barcode_{image_type}.jpeg")
+             file_key <- glue::glue("error_barcode_{image_type}.jpeg")
+             get_temporary_url('AWS_BARCODE_BUCKET_ID', file_key)
            })
 }
 
@@ -974,13 +978,16 @@ make_structure <- function(input = list(),
     if(card == TRUE){image_type = "card"} else {image_type = "plot"}
 
     #check if exists
-    url <- glue::glue("https://{Sys.getenv('AWS_PROTEINS_BUCKET_ID')}.s3.amazonaws.com/{gene_symbol}_structure_{image_type}.jpg")
+    file_key <- glue::glue("{gene_symbol}_structure_{image_type}.jpg")
+    url <- get_temporary_url('AWS_PROTEINS_BUCKET_ID', file_key)
     status <- httr::GET(url) %>% httr::status_code()
 
     if(status == 200){
       return(url)
     } else {
-      return(glue::glue("https://{Sys.getenv('AWS_PROTEINS_BUCKET_ID')}.s3.amazonaws.com/error_structure_{image_type}.jpg"))
+      file_key <- glue::glue("error_structure_{image_type}.jpg")
+      url <- get_temporary_url('AWS_PROTEINS_BUCKET_ID', file_key)
+      return(url)
     }
   }
   #error handling
@@ -988,7 +995,8 @@ make_structure <- function(input = list(),
            error = function(e){
              message(e)
              if(card == TRUE){image_type = "card"} else {image_type = "plot"}
-             glue::glue("https://{Sys.getenv('AWS_PROTEINS_BUCKET_ID')}.s3.amazonaws.com/error_structure_{image_type}.jpg")
+             file_key <- glue::glue("error_structure_{image_type}.jpg")
+             get_temporary_url('AWS_PROTEINS_BUCKET_ID', file_key)
            })
 }
 
@@ -3249,14 +3257,17 @@ make_cell_image <- function(input = list(),
     if(card == TRUE){image_type = "card"} else {image_type = "plot"}
 
     #check if exists
-    url <- glue::glue("https://{Sys.getenv('AWS_CELLIMAGES_BUCKET_ID')}.s3.amazonaws.com/{cell_name}_cell_image_{image_type}.jpeg")
+    file_key <- glue::glue("{cell_name}_cell_image_{image_type}.jpeg")
+    url <- get_temporary_url('AWS_CELLIMAGES_BUCKET_ID', file_key)
     status <- httr::GET(url) %>% httr::status_code()
 
     if(status == 200){
       return(url)
     } else {
       num <- sample(1:5, 1)
-      return(glue::glue("https://{Sys.getenv('AWS_CELLIMAGES_BUCKET_ID')}.s3.amazonaws.com/error_cell_image{num}.jpg"))
+      file_key <- glue::glue("error_cell_image{num}.jpg")
+      return(get_temporary_url('AWS_CELLIMAGES_BUCKET_ID', file_key))
+
     }
   }
   #error handling
@@ -3264,7 +3275,8 @@ make_cell_image <- function(input = list(),
            error = function(e){
              message(e)
              num <- sample(1:5, 1)
-             return(glue::glue("https://{Sys.getenv('AWS_CELLIMAGES_BUCKET_ID')}.s3.amazonaws.com/error_cell_image{num}.jpg"))
+             file_key <- glue::glue("error_cell_image{num}.jpg")
+             return(get_temporary_url('AWS_CELLIMAGES_BUCKET_ID', file_key))
            })
 }
 
