@@ -16,7 +16,7 @@ If no error, then returns a pathway list table. If an error is thrown, then will
 \code{make_pathway_list} returns an image of ...
 }
 \details{
-This is a table function that takes a gene name and returns a subtable of gene sets and pathways that contain your gene query
+This is a table function that takes a gene name and returns a sub-table of gene sets and pathways that contain your gene query
 }
 \examples{
 make_pathway_list(input = list(type = 'gene', content = 'ROCK1'))

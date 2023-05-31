@@ -4,16 +4,15 @@
 \alias{make_pathway_genes}
 \title{Pathway Genes Table}
 \usage{
-make_pathway_genes(input = list(), vec = FALSE)
+make_pathway_genes(input = list())
 }
 \description{
 \code{make_pathway_genes} returns a table of genes in a queried pathway
 }
 \details{
-This is a table function that takes a gene_set id in the query slot and returns a subtable of genes that your gene set contains
+This is a table function that takes a gene_set id in the query slot and returns a sub-table of genes that your gene set contains
 #'
 }
 \examples{
 make_pathway_genes(input = list(type = 'gene', subtype = 'pathway', query = '16769'))
-make_pathway_genes(input = list(type = 'gene', subtype = 'pathway', query = '16769'), vec = TRUE)
 }
