@@ -2549,7 +2549,7 @@ make_cellbins <- function(input = list(),
 ## LINEAGE LINERANGE PLOT ------------------------------------------------------
 #' Dependency Lineage Plot
 #'
-#' Each point shows the mean dependency score for the gene query within a given cell lineage. The intervals show the 5 percent quantiles centered on the median, the interquartile ranges, and the 95 percent quantiles. The gray background highlights weak dependency values between -1 and 1.
+#' Each point shows the median dependency score for the gene query within a given cell lineage. The intervals show the 5 percent quantiles centered on the median, the interquartile ranges, and the 95 percent quantiles. The gray background highlights weak dependency values between -1 and 1.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -2571,7 +2571,6 @@ make_lineage <- function(input = list(),
   # get cell_expression_names from s3
   cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
 
-  #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
   data_universal_achilles_long <-
     get_data_object(object_names = input$content,
                     dataset_name = "universal_achilles_long",
@@ -2584,7 +2583,7 @@ make_lineage <- function(input = list(),
       title_var <- glue::glue('Cell lineage dependencies for {stringr::str_c(input$content, collapse = ", ")}')
 
       data_full <-
-        data_universal_achilles_long %>% #plot setup
+        data_universal_achilles_long %>%
         dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
         dplyr::select(-depmap_id) %>%
         dplyr::mutate_at("lineage", function(str) {
@@ -2595,14 +2594,14 @@ make_lineage <- function(input = list(),
         tidyr::drop_na(lineage) %>%
         tidyr::drop_na(dep_score) %>%
         dplyr::group_by(lineage) %>%
-        dplyr::mutate(mean = mean(dep_score)) %>%
+        dplyr::mutate(median = median(dep_score)) %>%
         dplyr::ungroup() %>%
-        dplyr::mutate(lineage = forcats::fct_reorder(lineage, -mean))
+        dplyr::mutate(lineage = forcats::fct_reorder(lineage, -median))
 
       data_mean <-
         data_full %>%
         dplyr::group_by(lineage) %>%
-        dplyr::summarize(dep_score = mean(dep_score)) %>%
+        dplyr::summarize(dep_score = median(dep_score)) %>%
         dplyr::ungroup()
 
     } else if(input$type == "compound") {
@@ -2610,7 +2609,7 @@ make_lineage <- function(input = list(),
       title_var <- glue::glue('Cell lineage dependencies for {stringr::str_c(input$content, collapse = ", ")}')
 
       data_full <-
-        data_universal_prism_long %>% #plot setup
+        data_universal_prism_long %>%
         dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
         dplyr::select(-depmap_id) %>%
         dplyr::mutate_at("lineage", function(str) {
@@ -2621,15 +2620,15 @@ make_lineage <- function(input = list(),
         tidyr::drop_na(lineage) %>%
         tidyr::drop_na(log2fc) %>%
         dplyr::group_by(lineage) %>%
-        dplyr::mutate(mean = mean(log2fc)) %>%
+        dplyr::mutate(median = median(log2fc)) %>%
         dplyr::ungroup() %>%
-        dplyr::mutate(lineage = forcats::fct_reorder(lineage, -mean)) %>%
-        dplyr::rename(dep_score = log2fc) #rename for graph
+        dplyr::mutate(lineage = forcats::fct_reorder(lineage, -median)) %>%
+        dplyr::rename(dep_score = log2fc)
 
       data_mean <-
         data_full %>%
         dplyr::group_by(lineage) %>%
-        dplyr::summarize(dep_score = mean(dep_score)) %>%
+        dplyr::summarize(dep_score = median(dep_score)) %>%
         dplyr::ungroup()
 
     } else {
@@ -2637,16 +2636,16 @@ make_lineage <- function(input = list(),
 
     if(nrow(data_full) == 0){return(NULL)}
 
-    # if (highlight) {
-    #   stats_data <-
-    #     data_full %>%
-    #     dplyr::group_by(lineage) %>%
-    #     dplyr::filter(dplyr::n() > 1) %>%
-    #     dplyr::ungroup() %>%
-    #     ggpubr::compare_means(dep_score ~ lineage, data = .,
-    #                           ref.group = ".all.", method = "t.test") %>%
-    #     dplyr::filter(p.adj < 0.05)
-    # }
+    if (highlight) {
+      stats_data <-
+        data_full %>%
+        dplyr::group_by(lineage) %>%
+        dplyr::filter(dplyr::n() > 1) %>%
+        dplyr::ungroup() %>%
+        ggpubr::compare_means(dep_score ~ lineage, data = .,
+                              ref.group = ".all.", method = "t.test") %>%
+        dplyr::filter(p.adj < 0.05)
+    }
 
     if (card) {
       most_negative <-
@@ -2655,83 +2654,80 @@ make_lineage <- function(input = list(),
         dplyr::pull(lineage)
 
       data_full <- data_full %>%
-        dplyr::filter(lineage %in% most_negative) #%>%
-        # dplyr::mutate(lineage = forcats::fct_reorder(lineage, mean))
+        dplyr::filter(lineage %in% most_negative)
 
       data_mean <- data_mean %>%
-        dplyr::filter(lineage %in% most_negative) #%>%
-        # dplyr::mutate(lineage = forcats::fct_reorder(lineage, -dep_score))
+        dplyr::filter(lineage %in% most_negative)
     }
 
     plot_complete <-
       data_mean %>%
       ggplot2::ggplot(ggplot2::aes(dep_score, reorder(lineage, -dep_score))) +
       ## zero line
-      # ggplot2::geom_vline(
-      #   xintercept = 0,
-      #   color = "grey80",
-      #   linetype = "dashed"
-      # ) +
+      ggplot2::geom_vline(
+        xintercept = 0,
+        color = "grey80",
+        linetype = "dashed"
+      ) +
       ## indicator lines lineages
-      # ggplot2::geom_linerange(
-      #   ggplot2::aes(xmin = -Inf, xmax = dep_score),
-      #   color = "grey60",
-      #   linetype = "dotted"
-      # ) +
+      ggplot2::geom_linerange(
+        ggplot2::aes(xmin = -Inf, xmax = dep_score),
+        color = "grey60",
+        linetype = "dotted"
+      ) +
       ## lineranges as "boxplots"
       ggdist::stat_interval(
         data = data_full,
         ggplot2::aes(dep_score, reorder(lineage, -dep_score)),
         orientation = "horizontal", .width = c(.05, .5, .95)
       ) +
-      ## dot indicating mean
-      # ggplot2::geom_point(
-      #   color = "black", fill = "white",
-      #   shape = 21, stroke = .5,
-      #   size = 1.8
-      # ) +
       ## highlight
-      # {if(highlight) ggdist::stat_interval(
-      #   data = data_full %>%
-      #     dplyr::filter(!lineage %in% stats_data$group2) %>%
-      #     dplyr::mutate(lineage = forcats::fct_reorder(lineage, -mean)),
-      #   orientation = "horizontal", .width = c(.05, .5, .95), color = "gray90", alpha = 0.6
-      # )} +
+      {if(highlight) ggdist::stat_interval(
+        data = data_full %>%
+          dplyr::filter(!lineage %in% stats_data$group2) %>%
+          dplyr::mutate(lineage = forcats::fct_reorder(lineage, -median)),
+        orientation = "horizontal", .width = c(.05, .5, .95), color = "gray90", alpha = 0.9
+      )} +
+      ## dot indicating median
+      ggplot2::geom_point(
+        color = "black", fill = "white",
+        shape = 21, stroke = .5,
+        size = 1.8
+      ) +
       ## scales + legends
       ggplot2::scale_x_continuous(sec.axis = ggplot2::dup_axis()) +
       scale_color_ddh_d(
         palette = input$type,
-        # shuffle = TRUE, seed = 5L, ## to return "correctly" ordered, sequential colors
         labels = c("95%", "50%", "5%"), # of the data fall in these ranges
         name = ""
       ) +
       ggplot2::guides(color = ggplot2::guide_legend(reverse = TRUE)) +
       ## titles
-      # ggplot2::labs(
-      #   x = xlab,
-      #   y = NULL
-      # ) +
+      ggplot2::labs(
+        x = xlab,
+        y = NULL
+      ) +
       ## theme changes
-      # ddh::theme_ddh(grid = "none") +
-      # ggplot2::theme(
-      #   legend.position = "top",
-      #   axis.line.y = ggplot2::element_blank(),
-      #   axis.ticks.y = ggplot2::element_blank(),
-      #   axis.text = ggplot2::element_text(family = "Roboto Slab"),
-      #   axis.text.x = ggplot2::element_text(size = 12, color = "grey30"),
-      #   axis.title = ggplot2::element_text(size = 15),
-      #   axis.title.x.bottom = ggplot2::element_blank(),
-      #   plot.title.position = "plot"
-      # ) +
+      ddh::theme_ddh(grid = "none") +
+      ggplot2::theme(
+        legend.position = "top",
+        axis.line.y = ggplot2::element_blank(),
+        axis.ticks.y = ggplot2::element_blank(),
+        axis.text = ggplot2::element_text(family = "Roboto Slab"),
+        axis.text.x = ggplot2::element_text(size = 12, color = "grey30"),
+        axis.title = ggplot2::element_text(size = 15),
+        axis.title.x.bottom = ggplot2::element_blank(),
+        plot.title.position = "plot"
+      ) +
       NULL
 
-    # if(card) {
-    #   plot_complete <-
-    #     plot_complete +
-    #     ggplot2::scale_y_discrete(labels = scales::label_wrap(10)) + #to prevent long lines and squished plots
-    #     ggplot2::scale_x_continuous(breaks = scales::breaks_extended(n = 3)) +
-    #     ggplot2::theme(plot.title = ggplot2::element_blank())
-    # }
+    if(card) {
+      plot_complete <-
+        plot_complete +
+        ggplot2::scale_y_discrete(labels = scales::label_wrap(10)) + #to prevent long lines and squished plots
+        ggplot2::scale_x_continuous(breaks = scales::breaks_extended(n = 3)) +
+        ggplot2::theme(plot.title = ggplot2::element_blank())
+    }
     return(plot_complete)
   }
   #error handling
@@ -2741,14 +2737,14 @@ make_lineage <- function(input = list(),
              make_bomb_plot()})
 }
 
-## SUBLINE RANGE PLOT ---------------------------------------------------
-#' Cell Dependency Sublineage Plot
+## SUB-LINEAGE LINE RANGE PLOT ------------------------------------------------------
+#' Dependency Sub-lineage Plot
 #'
-#' Each point shows the mean dependency score for the gene query within a given cell lineage. The intervals show the 5 percent quantiles centered on the median, the interquartile ranges, and the 95 percent quantiles. The gray background highlights weak dependency values between -1 and 1.
+#' Each point shows the median dependency score for the gene query within a given cell sub-lineage. The intervals show the 5 percent quantiles centered on the median, the interquartile ranges, and the 95 percent quantiles. The gray background highlights weak dependency values between -1 and 1.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
-#' @return If no error, then returns a sublineage plot. If an error is thrown, then will return a bomb plot.
+#' @return If no error, then returns a lineage plot. If an error is thrown, then will return a bomb plot.
 #'
 #' @importFrom magrittr %>%
 #'
@@ -2766,7 +2762,6 @@ make_sublineage <- function(input = list(),
   # get cell_expression_names from s3
   cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
 
-  #wrap data_universal_achilles_long in an if/else for type, and fetch data_universal_prism_long instead?
   data_universal_achilles_long <-
     get_data_object(object_names = input$content,
                     dataset_name = "universal_achilles_long",
@@ -2774,62 +2769,67 @@ make_sublineage <- function(input = list(),
     dplyr::mutate(across(contains(c("score")), as.numeric))
 
   make_sublineage_raw <- function() {
-    if(input$type == "gene") {
+    if(input$type == "gene" ) {
       xlab <- "Dependency Score"
       title_var <- glue::glue('Cell sub-lineage dependencies for {stringr::str_c(input$content, collapse = ", ")}')
 
       data_full <-
-        data_universal_achilles_long %>% #plot setup
+        data_universal_achilles_long %>%
         dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
         dplyr::select(-depmap_id) %>%
         dplyr::mutate_at("lineage_subtype", function(str) {
           str <- stringr::str_replace_all(str, "\\_", " ")
-          str <- dplyr::if_else(stringr::str_detect(str, "^[:lower:]"), stringr::str_to_title(str), str)
+          str <- stringr::str_to_title(str)
           return(str)
-        })  %>%
+        }) %>%
         tidyr::drop_na(lineage_subtype) %>%
         tidyr::drop_na(dep_score) %>%
         dplyr::group_by(lineage_subtype) %>%
-        dplyr::mutate(mean = mean(dep_score)) %>%
+        dplyr::mutate(median = median(dep_score)) %>%
         dplyr::ungroup() %>%
-        dplyr::mutate(lineage_subtype = forcats::fct_reorder(lineage_subtype, -mean))
+        dplyr::mutate(lineage_subtype = forcats::fct_reorder(lineage_subtype, -median))
 
-      data_mean <- data_full %>%
+      data_mean <-
+        data_full %>%
         dplyr::group_by(lineage_subtype) %>%
-        dplyr::summarize(dep_score = mean(dep_score))
+        dplyr::summarize(dep_score = median(dep_score)) %>%
+        dplyr::ungroup()
 
     } else if(input$type == "compound") {
       xlab <- "Log2FC"
       title_var <- glue::glue('Cell sub-lineage dependencies for {stringr::str_c(input$content, collapse = ", ")}')
 
       data_full <-
-        data_universal_prism_long %>% #plot setup
+        data_universal_prism_long %>%
         dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
         dplyr::select(-depmap_id) %>%
         dplyr::mutate_at("lineage_subtype", function(str) {
           str <- stringr::str_replace_all(str, "\\_", " ")
-          str <- dplyr::if_else(stringr::str_detect(str, "^[:lower:]"), stringr::str_to_title(str), str)
+          str <- stringr::str_to_title(str)
           return(str)
-        })  %>%
+        }) %>%
         tidyr::drop_na(lineage_subtype) %>%
         tidyr::drop_na(log2fc) %>%
         dplyr::group_by(lineage_subtype) %>%
-        dplyr::mutate(mean = mean(log2fc)) %>%
+        dplyr::mutate(median = median(log2fc)) %>%
         dplyr::ungroup() %>%
-        dplyr::mutate(lineage_subtype = forcats::fct_reorder(lineage_subtype, -mean)) %>%
-        dplyr::rename(dep_score = log2fc) #rename for graph
+        dplyr::mutate(lineage_subtype = forcats::fct_reorder(lineage_subtype, -median)) %>%
+        dplyr::rename(dep_score = log2fc)
 
-      data_mean <- data_full %>%
+      data_mean <-
+        data_full %>%
         dplyr::group_by(lineage_subtype) %>%
-        dplyr::summarize(dep_score = mean(dep_score))
+        dplyr::summarize(dep_score = median(dep_score)) %>%
+        dplyr::ungroup()
 
     } else {
       stop("declare your type") }
 
     if(nrow(data_full) == 0){return(NULL)}
 
-    if(highlight) {
-      stats_data <- data_full %>%
+    if (highlight) {
+      stats_data <-
+        data_full %>%
         dplyr::group_by(lineage_subtype) %>%
         dplyr::filter(dplyr::n() > 1) %>%
         dplyr::ungroup() %>%
@@ -2838,30 +2838,29 @@ make_sublineage <- function(input = list(),
         dplyr::filter(p.adj < 0.05)
     }
 
-    if(card) {
+    if (card) {
       most_negative <-
         data_mean %>%
         dplyr::slice_min(dep_score, n = 6) %>%
         dplyr::pull(lineage_subtype)
+
+      data_full <- data_full %>%
+        dplyr::filter(lineage_subtype %in% most_negative)
+
+      data_mean <- data_mean %>%
+        dplyr::filter(lineage_subtype %in% most_negative)
     }
 
     plot_complete <-
       data_mean %>%
-      {if(card)dplyr::filter(., lineage_subtype %in% most_negative) else .} %>%
-      ggplot2::ggplot(ggplot2::aes(dep_score, lineage_subtype)) +
-      ## annotation range -1 to 1
-      # geom_rect(
-      #   xmin = -1, xmax = 1,
-      #   ymin = -Inf, ymax = Inf,
-      #   fill = "grey95"
-      # ) +
+      ggplot2::ggplot(ggplot2::aes(dep_score, reorder(lineage_subtype, -dep_score))) +
       ## zero line
       ggplot2::geom_vline(
         xintercept = 0,
         color = "grey80",
         linetype = "dashed"
       ) +
-      ## indicator lines sublineages
+      ## indicator lines lineages
       ggplot2::geom_linerange(
         ggplot2::aes(xmin = -Inf, xmax = dep_score),
         color = "grey60",
@@ -2869,34 +2868,36 @@ make_sublineage <- function(input = list(),
       ) +
       ## lineranges as "boxplots"
       ggdist::stat_interval(
-        data = data_full %>% {if(card)dplyr::filter(., lineage_subtype %in% most_negative) else .},
-        orientation = "horizontal",
-        .width = c(.05, .5, .95)
+        data = data_full,
+        ggplot2::aes(dep_score, reorder(lineage_subtype, -dep_score)),
+        orientation = "horizontal", .width = c(.05, .5, .95)
       ) +
-      ## dot indicating mean
+      ## highlight
+      {if(highlight) ggdist::stat_interval(
+        data = data_full %>%
+          dplyr::filter(!lineage_subtype %in% stats_data$group2) %>%
+          dplyr::mutate(lineage_subtype = forcats::fct_reorder(lineage_subtype, -median)),
+        orientation = "horizontal", .width = c(.05, .5, .95), color = "gray90", alpha = 0.9
+      )} +
+      ## dot indicating median
       ggplot2::geom_point(
         color = "black", fill = "white",
         shape = 21, stroke = .5,
         size = 1.8
       ) +
       ## scales + legends
-      ggplot2::scale_x_continuous(
-        sec.axis = ggplot2::dup_axis()
-      ) +
+      ggplot2::scale_x_continuous(sec.axis = ggplot2::dup_axis()) +
       scale_color_ddh_d(
         palette = input$type,
-        shuffle = TRUE, seed = 5L, ## to return "correctly" ordered, sequential colors
-        labels = c("95%", "50%", "5%"), #of the data fall in these ranges
+        labels = c("95%", "50%", "5%"), # of the data fall in these ranges
         name = ""
       ) +
       ggplot2::guides(color = ggplot2::guide_legend(reverse = TRUE)) +
       ## titles
       ggplot2::labs(
         x = xlab,
-        y = NULL #,
-        #title = title_var
+        y = NULL
       ) +
-      {if(highlight)gghighlight::gghighlight(lineage_subtype %in% stats_data$group2, use_direct_label = FALSE)} + # toggle
       ## theme changes
       ddh::theme_ddh(grid = "none") +
       ggplot2::theme(
@@ -2911,14 +2912,13 @@ make_sublineage <- function(input = list(),
       ) +
       NULL
 
-    if(card == TRUE) {
+    if(card) {
       plot_complete <-
         plot_complete +
         ggplot2::scale_y_discrete(labels = scales::label_wrap(10)) + #to prevent long lines and squished plots
         ggplot2::scale_x_continuous(breaks = scales::breaks_extended(n = 3)) +
         ggplot2::theme(plot.title = ggplot2::element_blank())
     }
-
     return(plot_complete)
   }
   #error handling

@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{make_sublineage}
 \alias{make_sublineage}
-\title{Cell Dependency Sublineage Plot}
+\title{Dependency Sub-lineage Plot}
 \usage{
 make_sublineage(input = list(), card = FALSE, highlight = FALSE)
 }
@@ -12,10 +12,10 @@ make_sublineage(input = list(), card = FALSE, highlight = FALSE)
 \item{card}{A boolean that sets whether the plot should be scaled down to be a card}
 }
 \value{
-If no error, then returns a sublineage plot. If an error is thrown, then will return a bomb plot.
+If no error, then returns a lineage plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Each point shows the mean dependency score for the gene query within a given cell lineage. The intervals show the 5 percent quantiles centered on the median, the interquartile ranges, and the 95 percent quantiles. The gray background highlights weak dependency values between -1 and 1.
+Each point shows the median dependency score for the gene query within a given cell sub-lineage. The intervals show the 5 percent quantiles centered on the median, the interquartile ranges, and the 95 percent quantiles. The gray background highlights weak dependency values between -1 and 1.
 }
 \examples{
 make_sublineage(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
