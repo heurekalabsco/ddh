@@ -97,6 +97,17 @@ get_data_object <- function(object_names,
   return(data_object)
 }
 
+#' Pathway Genes
+#'
+#'  \code{make_pathway_genes} returns a vector of gene symbols in a queried pathway
+#'
+#' @export
+get_gene_symbols_for_pathway <- function(pathway_id) {
+  get_data_object(pathway_id, dataset_name = "universal_pathways") %>%
+    dplyr::filter(key=="gene_symbol") %>%
+    dplyr::pull("value")
+}
+
 #' Get Stats
 #'
 #' @param data_set A character indicating data set from which the stats were generated, typically one of achilles, expression_gene, expression_protein, or prism name.
@@ -116,6 +127,16 @@ get_stats <- function(data_set,
     dplyr::filter(id == data_set) %>%
     dplyr::pull(var)
   return(stat)
+}
+
+#' Create a temporary URL to download a file from a S3 bucket
+#' @param bucket_name_env A character the name of an environment variable containing the bucket name
+#' @param key A character the file within the bucket
+#'
+get_temporary_url <- function(bucket_name_env, key) {
+  bucket <- Sys.getenv(bucket_name_env)
+  s3 <- paws::s3()
+  s3$generate_presigned_url(client_method = "get_object", params = list(Bucket = bucket, Key = key))
 }
 
 #DATA CARDS----
@@ -139,11 +160,11 @@ load_image <- function(input = list(),
     fun <- stringr::str_remove(fun_name, "make_")
     if(card == TRUE){image_type = "card"} else {image_type = "plot"}
 
-    file_name <- glue::glue('{name}/{name}_{fun}_{image_type}.jpg')
+    file_key <- glue::glue('{name}/{name}_{fun}_{image_type}.jpg')
 
     #check to see if file exists
     #check if exists
-    url <- glue::glue("https://{Sys.getenv('AWS_IMAGES_BUCKET_ID')}.s3.amazonaws.com/{file_name}")
+    url <- get_temporary_url('AWS_IMAGES_BUCKET_ID', file_key)
     status <- httr::GET(url) %>% httr::status_code()
 
     if(status == 200){
@@ -180,7 +201,8 @@ load_pdb <- function(input = list()){
     }
 
     #check if exists
-    url <- glue::glue("https://{Sys.getenv('AWS_PROTEINS_BUCKET_ID')}.s3.amazonaws.com/{gene_symbol}.pdb")
+    file_key <- glue::glue("{gene_symbol}.pdb")
+    url <- get_temporary_url('AWS_PROTEINS_BUCKET_ID', file_key)
     status <- httr::GET(url) %>% httr::status_code()
 
     if(status == 200){
