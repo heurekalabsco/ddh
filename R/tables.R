@@ -4,7 +4,7 @@
 #'
 #' \code{make_pathway_list} returns an image of ...
 #'
-#' This is a table function that takes a gene name and returns a subtable of gene sets and pathways that contain your gene query
+#' This is a table function that takes a gene name and returns a sub-table of gene sets and pathways that contain your gene query
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a pathway list table. If an error is thrown, then will return an empty table.
@@ -34,31 +34,18 @@ make_pathway_list <- function(input = list()) {
            })
 }
 
-#' Pathway Genes
-#'
-#'  \code{make_pathway_genes} returns a vector of gene symbols in a queried pathway
-#'
-#' @export
-get_gene_symbols_for_pathway <- function(pathway_id) {
-  get_data_object(pathway_id, dataset_name = "universal_pathways") %>%
-    dplyr::filter(key=="gene_symbol") %>%
-    dplyr::pull("value")
-}
-
 #' Pathway Genes Table
 #'
 #' \code{make_pathway_genes} returns a table of genes in a queried pathway
 #'
-#' This is a table function that takes a gene_set id in the query slot and returns a subtable of genes that your gene set contains
+#' This is a table function that takes a gene_set id in the query slot and returns a sub-table of genes that your gene set contains
 #'#'
 #' @importFrom magrittr %>%
 #'
 #' @export
 #' @examples
 #' make_pathway_genes(input = list(type = 'gene', subtype = 'pathway', query = '16769'))
-#' make_pathway_genes(input = list(type = 'gene', subtype = 'pathway', query = '16769'), vec = TRUE)
-make_pathway_genes <- function(input = list(),
-                               vec = FALSE){ #set to TRUE to return vector
+make_pathway_genes <- function(input = list()){
   make_pathway_genes_raw <- function() {
     gene_pathways <-
       get_data_object(object_name = input$query,
@@ -66,20 +53,12 @@ make_pathway_genes <- function(input = list(),
                       pivotwider = TRUE) %>%
       dplyr::select(gene_symbol) %>%
       tidyr::unnest(cols = "gene_symbol")
+    gene_pathway_table <-
+      gene_pathways %>%
+      # dplyr::filter(gene_symbol %in% c("ROCK1", "ROCK2")) %>% #for testing
+      dplyr::mutate(gene_description = purrr::map_chr(gene_symbol, ~ make_summary_gene(input = list(content = .), var = "approved_name")))
 
-    if(vec == TRUE){
-      gene_pathway_vec <-
-        gene_pathways %>%
-        dplyr::pull(gene_symbol)
-      return(gene_pathway_vec)
-    } else {
-      gene_pathway_table <-
-        gene_pathways %>%
-        # dplyr::filter(gene_symbol %in% c("ROCK1", "ROCK2")) %>% #for testing
-        dplyr::mutate(gene_description = purrr::map_chr(gene_symbol, ~ make_summary_gene(input = list(content = .), var = "approved_name")))
-
-      return(gene_pathway_table)
-    }
+    return(gene_pathway_table)
   }
   #error handling
   tryCatch(make_pathway_genes_raw(),
