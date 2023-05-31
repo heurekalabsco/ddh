@@ -2701,7 +2701,7 @@ make_lineage <- function(input = list(),
       ggplot2::scale_x_continuous(sec.axis = ggplot2::dup_axis()) +
       scale_color_ddh_d(
         palette = input$type,
-        shuffle = TRUE, seed = 5L, ## to return "correctly" ordered, sequential colors
+        # shuffle = TRUE, seed = 5L, ## to return "correctly" ordered, sequential colors
         labels = c("95%", "50%", "5%"), # of the data fall in these ranges
         name = ""
       ) +
