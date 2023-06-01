@@ -13,7 +13,7 @@ make_molecular_features_segments(input = list(), ...)
 If no error, then returns a scatterplot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Molecular Features Segments Plot
+Each point shows the ranked dependency score ordered from low to high scores. Colors indicate the sensitive and resistant cell lines for the queried gene/s knock-out based on a cubic splines model.
 }
 \examples{
 make_molecular_features_segments(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

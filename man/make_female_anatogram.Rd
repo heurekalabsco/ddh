@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{make_female_anatogram}
 \alias{make_female_anatogram}
-\title{Female Anatogram Plot}
+\title{Female Anatogram Expression Plot}
 \usage{
 make_female_anatogram(input = list(), anatogram = "female", card = FALSE)
 }
@@ -15,10 +15,7 @@ make_female_anatogram(input = list(), anatogram = "female", card = FALSE)
 If no error, then returns a female anatogram plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-\code{make_female_anatogram} returns an image of ...
-}
-\details{
-This is a plot function that takes a gene name and returns a female anatogram plot
+Female human body expression levels for the queried gene/s.
 }
 \examples{
 make_female_anatogram(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

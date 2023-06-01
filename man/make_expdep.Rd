@@ -15,7 +15,7 @@ make_expdep(plot_se = TRUE, input = list(), card = FALSE)
 If no error, then returns a expdep plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Each point shows the dependency value compared to the expression value for gene within a given cell line. Gray area indicates dependency values that are between -1 and 1.
+Each point shows the dependency value compared to the expression value for a gene within a given cell line. Gray area indicates dependency values that are between -1 and 1.
 }
 \examples{
 make_expdep(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

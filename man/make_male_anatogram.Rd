@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{make_male_anatogram}
 \alias{make_male_anatogram}
-\title{Male Anatogram Plot}
+\title{Male Anatogram Expression Plot}
 \usage{
 make_male_anatogram(input = list(), anatogram = "male", card = FALSE)
 }
@@ -15,7 +15,7 @@ make_male_anatogram(input = list(), anatogram = "male", card = FALSE)
 If no error, then returns a male anatogram plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-This is a plot function that takes a gene name and returns a male anatogram plot
+Male human body expression levels for the queried gene/s.
 }
 \examples{
 make_male_anatogram(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

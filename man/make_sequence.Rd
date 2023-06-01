@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{make_sequence}
 \alias{make_sequence}
-\title{Sequence Plot}
+\title{Protein Sequence Plot}
 \usage{
 make_sequence(input = list(), card = FALSE)
 }
@@ -15,9 +15,6 @@ make_sequence(input = list(), card = FALSE)
 If no error, then returns a sequence plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-\code{make_sequence} returns an image of ...
-}
-\details{
 This is a plot function that takes a gene name and returns a sequence plot
 }
 \examples{

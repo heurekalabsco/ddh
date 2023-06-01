@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{make_tissue}
 \alias{make_tissue}
-\title{Tissue Plot}
+\title{Tissue Expression Plot}
 \usage{
 make_tissue(input = list(), card = FALSE)
 }
@@ -15,10 +15,7 @@ make_tissue(input = list(), card = FALSE)
 If no error, then returns a tissue plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-\code{make_tissue} returns an image of ...
-}
-\details{
-This is a plot function that takes a gene name and returns a tissue plot
+Human body tissue expression levels for the queried gene/s. The x-axis shows the normalized expression values and the y-axis shows the human body tissue.
 }
 \examples{
 make_tissue(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

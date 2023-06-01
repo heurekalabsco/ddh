@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{make_pubmed}
 \alias{make_pubmed}
-\title{Pubmed Plot}
+\title{PubMed Plot}
 \usage{
 make_pubmed(input = list(), card = FALSE)
 }
@@ -15,10 +15,7 @@ make_pubmed(input = list(), card = FALSE)
 If no error, then returns a pubmed plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-\code{make_pubmed} returns an image of ...
-}
-\details{
-This is a plot function that takes a gene name and returns a pubmed plot
+Number of publications mentioning the queried gene over time. The x-axis shows the year of publication and the y-axis shows the cumulative publication count.
 }
 \examples{
 make_pubmed(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

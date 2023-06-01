@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{make_cca_genes}
 \alias{make_cca_genes}
-\title{Gene Pathways Bar Plot}
+\title{Co-essentiality Pathway Plot}
 \usage{
 make_cca_genes(input = list(), n_features = 10, gset = NULL, ...)
 }
@@ -13,7 +13,7 @@ make_cca_genes(input = list(), n_features = 10, gset = NULL, ...)
 If no error, then returns a barplot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Gene Pathways Bar Plot
+Top 10 pathways associated to the queried gene/s. The x-axis shows the first canonical correlation between the gene and the pathway (range 0-1).
 }
 \examples{
 make_cca_genes(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

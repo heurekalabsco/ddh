@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{make_cellexpression}
 \alias{make_cellexpression}
-\title{Cell Expression Plot}
+\title{Cell Line Expression Plot}
 \usage{
 make_cellexpression(input = list(), var = "gene", card = FALSE)
 }
@@ -15,10 +15,7 @@ make_cellexpression(input = list(), var = "gene", card = FALSE)
 If no error, then returns a cellexpression plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-\code{make_cellexpression} returns an image of ...
-}
-\details{
-Each point shows the ranked expression value across CCLE cell lines.
+Expression levels of the queried gene/s across cell lines.
 }
 \examples{
 make_cellexpression(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

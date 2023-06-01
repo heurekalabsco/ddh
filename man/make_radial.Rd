@@ -21,7 +21,7 @@ make_radial(
 If no error, then returns a radial plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Amino acid signature/s (percentage of each amino acid in a protein) of the queried gene/clusters versus the mean amino acid signature of all the other proteins in the dataset (N = 20375).
+Amino acid signature/s (percentage of each amino acid in a protein) of the queried protein/clusters versus the mean amino acid signature of all the other proteins.
 }
 \examples{
 make_radial(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

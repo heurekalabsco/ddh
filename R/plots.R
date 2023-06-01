@@ -1363,11 +1363,9 @@ make_cellanatogramfacet <- function(input = list()) {
 }
 
 ## HUMAN BODY ANATOGRAMS --------------------------------------------------------
-#' Female Anatogram Plot
+#' Female Anatogram Expression Plot
 #'
-#' \code{make_female_anatogram} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a female anatogram plot
+#' Female human body expression levels for the queried gene/s.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -1446,9 +1444,9 @@ make_female_anatogram <- function(input = list(),
              make_bomb_plot()})
 }
 
-#' Male Anatogram Plot
+#' Male Anatogram Expression Plot
 #'
-#' This is a plot function that takes a gene name and returns a male anatogram plot
+#' Male human body expression levels for the queried gene/s.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -1476,11 +1474,9 @@ make_male_anatogram <- function(input = list(),
 }
 
 ##TISSUE GEOM_COL ------------------------------------------
-#' Tissue Plot
+#' Tissue Expression Plot
 #'
-#' \code{make_tissue} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a tissue plot
+#' Human body tissue expression levels for the queried gene/s. The x-axis shows the normalized expression values and the y-axis shows the human body tissue.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -1577,11 +1573,9 @@ make_tissue <- function(input = list(),
 }
 
 ## EXPRESSION PLOT --------------------------------------------------------
-#' Cell Expression Plot
+#' Cell Line Expression Plot
 #'
-#' \code{make_cellexpression} returns an image of ...
-#'
-#' Each point shows the ranked expression value across CCLE cell lines.
+#' Expression levels of the queried gene/s across cell lines.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -1717,7 +1711,7 @@ make_cellexpression <- function(input = list(),
 # GENE V. PROTEIN EXPRESSION ----------------------------------
 #' Gene Expression versus Protein Expression
 #'
-#' Each point shows the gene expression value compared to the protein expression value for gene within a given cell line. The Pearson correlation coefficient and the p-values are provided in the top-left corner of the plot.
+#' Each point shows the gene expression value compared to the protein expression value for a gene within a given cell line. The Pearson correlation coefficient and the p-values are provided in the top-left corner of the plot.
 #'
 #' @importFrom magrittr %>%
 #'
@@ -1824,6 +1818,8 @@ make_cellgeneprotein <- function(input = list(),
 ## MOLECULAR FEATURES SEGMENTS ---------------------------------------------------
 #' Molecular Features Segments Plot
 #'
+#' Each point shows the ranked dependency score ordered from low to high scores. Colors indicate the sensitive and resistant cell lines for the queried gene/s knock-out based on a cubic splines model.
+#'
 #' @param input Expecting a list containing type and content variable.
 #'
 #' @return If no error, then returns a scatterplot. If an error is thrown, then will return a bomb plot.
@@ -1893,6 +1889,8 @@ make_molecular_features_segments <- function(input = list(),
 ## MOLECULAR FEATURES BAR PLOT ---------------------------------------------------
 #' Molecular Features Bar Plot
 #'
+#' Top molecular features associated to the queried gene/s knock-out. The x-axis shows the log2 fold change (reference group: resistant).
+#'
 #' @param input Expecting a list containing type and content variable.
 #'
 #' @return If no error, then returns a barplot. If an error is thrown, then will return a bomb plot.
@@ -1944,6 +1942,8 @@ make_molecular_features <- function(input = list(),
 ## MOLECULAR FEATURES PATHWAYS BAR PLOT ---------------------------------------------------
 #' Molecular Features Pathways Bar Plot
 #'
+#' Top pathways associated to the queried gene/s knock-out. The x-axis shows the -log10 P-value (reference group: resistant).
+#'
 #' @param input Expecting a list containing type and content variable.
 #'
 #' @return If no error, then returns a barplot. If an error is thrown, then will return a bomb plot.
@@ -1988,7 +1988,9 @@ make_molecular_features_pathways <- function(input = list(),
 }
 
 ## CCA GENES PLOT ---------------------------------------------------
-#' Gene Pathways Bar Plot
+#' Co-essentiality Pathway Plot
+#'
+#' Top 10 pathways associated to the queried gene/s. The x-axis shows the first canonical correlation between the gene and the pathway (range 0-1).
 #'
 #' @param input Expecting a list containing type and content variable.
 #'
@@ -2390,7 +2392,7 @@ make_cellbar <- function(input = list(),
 ## DENSITY PLOT ----------------------------------------------------------------
 #' Cell Dependencies Density Plot
 #'
-#' Kernel density estimate of dependency scores. Dependency scores across all cell lines for queried genes, revealing overall influence of a gene on cellular fitness. The interval indicates the 95% quantile of the data, the dot indicates the median dependency score. The gray background highlights weak dependency values between -1 and 1.
+#' Kernel density estimate of dependency scores. Dependency scores across all cell lines for queried genes, revealing overall influence of a gene on cellular fitness. The interval indicates the 95 percent quantile of the data, the dot indicates the median dependency score. The gray background highlights weak dependency values between -1 and 1.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -3077,7 +3079,7 @@ make_correlation <- function(input = list(),
 ## EXPvDEP PLOT --------------------------------------------------------
 #' Gene Dependency versus Expression
 #'
-#' Each point shows the dependency value compared to the expression value for gene within a given cell line. Gray area indicates dependency values that are between -1 and 1.
+#' Each point shows the dependency value compared to the expression value for a gene within a given cell line. Gray area indicates dependency values that are between -1 and 1.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -3275,7 +3277,7 @@ make_cell_image <- function(input = list(),
 }
 
 ## CO-ESSENTIALITY CELL LINE PLOT --------------------------------------------------------
-#' Cell Similarity Plot
+#' Cell Line Similarity Plot
 #'
 #' Each point shows the ranked linear model coefficient estimate value ordered from high to low for each query.
 #'
@@ -3708,10 +3710,6 @@ make_metadata_cell <- function(input = list(),
 #COMPOUND --------------------------------------------------------------------
 #' Molecule Structure Plot
 #'
-#' \code{make_molecule_structure} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a molecule structure plot
-#'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a molecule structure plot. If an error is thrown, then will return a bomb plot.
@@ -3767,3 +3765,4 @@ make_molecule_structure <- function(input = list(),
              message(e)
            })
 }
+

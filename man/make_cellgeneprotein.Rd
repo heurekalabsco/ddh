@@ -7,7 +7,7 @@
 make_cellgeneprotein(input = list(), card = FALSE)
 }
 \description{
-Each point shows the gene expression value compared to the protein expression value for gene within a given cell line. The Pearson correlation coefficient and the p-values are provided in the top-left corner of the plot.
+Each point shows the gene expression value compared to the protein expression value for a gene within a given cell line. The Pearson correlation coefficient and the p-values are provided in the top-left corner of the plot.
 }
 \examples{
 make_cellgeneprotein(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

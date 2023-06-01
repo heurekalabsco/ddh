@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{make_cellanatogram}
 \alias{make_cellanatogram}
-\title{Cellanatogram Plot}
+\title{Subcellular Expression Plot}
 \usage{
 make_cellanatogram(input = list(), card = FALSE)
 }
@@ -15,10 +15,7 @@ make_cellanatogram(input = list(), card = FALSE)
 If no error, then returns a cellanatogram plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-\code{make_cellanatogram} returns an image of ...
-}
-\details{
-This is a plot function that takes a gene name and returns a cellanatogram plot
+Subcellular expression levels for the queried gene/s.
 }
 \examples{
 make_cellanatogram(input = list(type = "gene", content = c("ROCK2")))

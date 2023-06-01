@@ -15,7 +15,7 @@ make_cellbins(input = list(), card = FALSE)
 If no error, then returns a cellbins plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Kernel density estimate of dependency scores. Dependency scores across all cell lines for queried genes, revealing overall influence of a gene on cellular fitness. The interval indicates the 95% quantile of the data, the dot indicates the median dependency score. The gray background highlights weak dependency values between -1 and 1.
+Kernel density estimate of dependency scores. Dependency scores across all cell lines for queried genes, revealing overall influence of a gene on cellular fitness. The interval indicates the 95 percent quantile of the data, the dot indicates the median dependency score. The gray background highlights weak dependency values between -1 and 1.
 }
 \examples{
 

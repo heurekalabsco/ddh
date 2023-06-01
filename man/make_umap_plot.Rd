@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{make_umap_plot}
 \alias{make_umap_plot}
-\title{UMAP Plot}
+\title{UMAP Embeddings Plot}
 \usage{
 make_umap_plot(input = list(), show_subset = FALSE, labels = FALSE)
 }
@@ -15,7 +15,7 @@ make_umap_plot(input = list(), show_subset = FALSE, labels = FALSE)
 If no error, then returns a umap plot plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Amino acid signature (percentage of each amino acid in a protein) UMAP embeddings (2D) colored by the cluster to which they belong (N = 20375).
+Amino acid signature UMAP embeddings colored by the cluster.
 }
 \examples{
 make_umap_plot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), show_subset = TRUE)

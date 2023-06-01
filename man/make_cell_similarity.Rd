@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{make_cell_similarity}
 \alias{make_cell_similarity}
-\title{Cell Similarity Plot}
+\title{Cell Line Similarity Plot}
 \usage{
 make_cell_similarity(
   data_cell_dependency_sim = cell_dependency_sim,

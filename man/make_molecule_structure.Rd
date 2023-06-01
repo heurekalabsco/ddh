@@ -15,10 +15,7 @@ make_molecule_structure(input = list(), card = FALSE)
 If no error, then returns a molecule structure plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-\code{make_molecule_structure} returns an image of ...
-}
-\details{
-This is a plot function that takes a gene name and returns a molecule structure plot
+Molecule Structure Plot
 }
 \examples{
 make_molecule_structure(input = list(content = "aspirin"))

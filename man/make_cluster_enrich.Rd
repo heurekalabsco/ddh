@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{make_cluster_enrich}
 \alias{make_cluster_enrich}
-\title{Cluster Enrichment Plot}
+\title{Amino Acid Signature Enrichment Plot}
 \usage{
 make_cluster_enrich(input = list(), ontology = "BP")
 }
@@ -15,7 +15,7 @@ make_cluster_enrich(input = list(), ontology = "BP")
 If no error, then returns a cluster enrich plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Enriched GO terms (BP, MF, and CC) by all genes in the selected amino acid signature cluster. The x-axis shows the number of genes in the cluster that belong to each term while the color scale represents the p-values of each enriched term.
+Enriched pathways for all proteins in the selected cluster. The x-axis shows the number of proteins in the cluster that belong to each term while the color scale represents the p-values of each enriched term.
 }
 \examples{
 make_cluster_enrich(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
