@@ -1,7 +1,7 @@
 Package: ddh
 Type: Package
 Title: Utility Functions and Data Sets for datadrivenhypothesis
-Version: 0.2.48
+Version: 0.2.49
 Authors@R: c(
     person(given = "Matthew",
            family = "Hirschey",

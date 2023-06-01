@@ -13,7 +13,7 @@ make_molecular_features(input = list(), n_features = 10, ...)
 If no error, then returns a barplot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Top molecular features associated to the queried gene/s knock-out. The x-axis shows the log2 fold change (reference group: resistant).
+Top molecular features associated to the queried gene/s knock-out sensitivity. The x-axis shows the log2 fold change (reference group: sensitive).
 }
 \examples{
 make_molecular_features(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

@@ -13,7 +13,7 @@ make_molecular_features_pathways(input = list(), n_pathways = 10, ...)
 If no error, then returns a barplot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Top pathways associated to the queried gene/s knock-out. The x-axis shows the -log10 P-value (reference group: resistant).
+Top pathways associated to the queried gene/s knock-out sensitivity. The x-axis shows the -log10 P-value (reference group: sensitive).
 }
 \examples{
 make_molecular_features_pathways(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

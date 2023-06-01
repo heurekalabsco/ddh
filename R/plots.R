@@ -1889,7 +1889,7 @@ make_molecular_features_segments <- function(input = list(),
 ## MOLECULAR FEATURES BAR PLOT ---------------------------------------------------
 #' Molecular Features Bar Plot
 #'
-#' Top molecular features associated to the queried gene/s knock-out. The x-axis shows the log2 fold change (reference group: resistant).
+#' Top molecular features associated to the queried gene/s knock-out sensitivity. The x-axis shows the log2 fold change (reference group: sensitive).
 #'
 #' @param input Expecting a list containing type and content variable.
 #'
@@ -1942,7 +1942,7 @@ make_molecular_features <- function(input = list(),
 ## MOLECULAR FEATURES PATHWAYS BAR PLOT ---------------------------------------------------
 #' Molecular Features Pathways Bar Plot
 #'
-#' Top pathways associated to the queried gene/s knock-out. The x-axis shows the -log10 P-value (reference group: resistant).
+#' Top pathways associated to the queried gene/s knock-out sensitivity. The x-axis shows the -log10 P-value (reference group: sensitive).
 #'
 #' @param input Expecting a list containing type and content variable.
 #'
