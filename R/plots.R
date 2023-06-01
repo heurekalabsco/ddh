@@ -336,9 +336,7 @@ make_proteinsize <- function(input = list(),
 }
 
 ## SEQUENCE PLOT --------------------------------------------------------------------
-#' Sequence Plot
-#'
-#' \code{make_sequence} returns an image of ...
+#' Protein Sequence Plot
 #'
 #' This is a plot function that takes a gene name and returns a sequence plot
 #'
@@ -580,7 +578,7 @@ make_protein_domain <- function(input = list(),
 ## AA RADIAL PLOT -------------------------------------------------------------
 #' Amino Acid Radial Plot
 #'
-#' Amino acid signature/s (percentage of each amino acid in a protein) of the queried gene/clusters versus the mean amino acid signature of all the other proteins in the dataset (N = 20375).
+#' Amino acid signature/s (percentage of each amino acid in a protein) of the queried protein/clusters versus the mean amino acid signature of all the other proteins.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -759,7 +757,7 @@ make_radial <- function(input = list(),
 ## AA BAR PLOT -------------------------------------------------------------
 #' Amino Acid Bar Plot
 #'
-#' Amino acid signature/s (percentage of each amino acid in a protein) of the queried gene/clusters versus the mean amino acid signature of all the other proteins in the dataset (N = 20375).
+#' Amino acid signature/s (percentage of each amino acid in a protein) of the queried protein/clusters versus the mean amino acid signature of all the other proteins.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -795,9 +793,9 @@ make_radial_bar <- function(input = list(),
 }
 
 ## UMAP PLOT --------------------------------------------------------
-#' UMAP Plot
+#' UMAP Embeddings Plot
 #'
-#' Amino acid signature (percentage of each amino acid in a protein) UMAP embeddings (2D) colored by the cluster to which they belong (N = 20375).
+#' Amino acid signature UMAP embeddings colored by the cluster.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -874,9 +872,9 @@ make_umap_plot <- function(input = list(),
 }
 
 ## CLUSTER ENRICHMENT PLOT --------------------------------------------------------
-#' Cluster Enrichment Plot
+#' Amino Acid Signature Enrichment Plot
 #'
-#' Enriched GO terms (BP, MF, and CC) by all genes in the selected amino acid signature cluster. The x-axis shows the number of genes in the cluster that belong to each term while the color scale represents the p-values of each enriched term.
+#' Enriched pathways for all proteins in the selected cluster. The x-axis shows the number of proteins in the cluster that belong to each term while the color scale represents the p-values of each enriched term.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -1091,11 +1089,9 @@ make_structure3d <- function(input = list(),
 }
 
 ## PUBMED PLOT ------------------------------------------
-#' Pubmed Plot
+#' PubMed Plot
 #'
-#' \code{make_pubmed} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a pubmed plot
+#' Number of publications mentioning the queried gene over time. The x-axis shows the year of publication and the y-axis shows the cumulative publication count.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -1242,11 +1238,9 @@ make_pubmed <- function(input = list(),
 }
 
 ## CELL ANATOGRAM -------------------------------------------------------------------
-#' Cellanatogram Plot
+#' Subcellular Expression Plot
 #'
-#' \code{make_cellanatogram} returns an image of ...
-#'
-#' This is a plot function that takes a gene name and returns a cellanatogram plot
+#' Subcellular expression levels for the queried gene/s.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
