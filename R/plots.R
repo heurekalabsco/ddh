@@ -1101,9 +1101,9 @@ make_structure3d <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' make_pubmed(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_pubmed(input = list(type = 'gene', content = 'ROCK1'))
 #' make_pubmed(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
-#' make_pubmed(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+#' make_pubmed(input = list(type = 'gene', content = 'ROCK1'), card = TRUE)
 #' make_pubmed(input = list(type = 'compound', content = 'aspirin'))
 #' \dontrun{
 #' make_pubmed(input = list(type = 'gene', content = 'ROCK1'))
@@ -1112,7 +1112,7 @@ make_pubmed <- function(input = list(),
                         card = FALSE) {
   #get data
   data_universal_pubmed <-
-    make_pubmed_table(input = input) #from tables.R
+    ddh::make_pubmed_table(input = input) #from tables.R
 
   make_pubmed_raw <- function() {
     plot_data <-
@@ -1133,14 +1133,15 @@ make_pubmed <- function(input = list(),
         ggplot2::aes(x = year,
                      y = cumsum,
                      group = id,
-                     color = forcats::fct_reorder2(id, year, cumsum)),
+                     color = forcats::fct_reorder2(id, year, cumsum, .na_rm = FALSE) #dropping NAs causes mismatch & errors
+                     ),
         linewidth = 1.2
       ) +
       ggplot2::coord_cartesian(clip = "off") + #allows points & labels to fall off plotting area
       ggplot2::scale_x_continuous(breaks = scales::breaks_pretty(4),
                                   expand = c(0, 0)) +
       ggplot2::scale_y_continuous(expand = c(.01, .01), limits = c(0, max(plot_max$cumsum))) +
-      scale_color_ddh_d(palette = input$type) +
+      ddh::scale_color_ddh_d(palette = input$type) +
       ggplot2::labs(x = "Year of Publication", y = "Cumulative Sum") +
       ddh::theme_ddh(base_size = 16,
                      margin = 20) +
