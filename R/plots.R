@@ -2956,25 +2956,25 @@ make_correlation <- function(input = list(),
                              card = FALSE,
                              scale = NULL) { #no card option, but need this to prevent error
   # get universal_stats_summary from s3
-  universal_stats_summary <- get_content("universal_stats_summary", dataset = TRUE)
+  universal_stats_summary <- ddh::get_content("universal_stats_summary", dataset = TRUE)
 
   #wrap data_gene_achilles_cor_nest in an if/else for type, and fetch data_prism_cor_nest instead?
-  data_gene_achilles_cor_nest <-
-    get_data_object(object_names = input$content,
-                    dataset_name = "gene_achilles_cor_nest",
+  data_gene_achilles_cor_long <-
+    ddh::get_data_object(object_names = input$content,
+                    dataset_name = "gene_achilles_cor_long",
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("r2")), as.numeric))
   make_correlation_raw <- function() {
     if(input$type == "gene") {
-      mean <- get_stats(data_set = "achilles", var = "mean")
-      upper_limit <- get_stats(data_set = "achilles", var = "upper")
-      lower_limit <- get_stats(data_set = "achilles", var = "lower")
+      mean <- ddh::get_stats(data_set = "achilles", var = "mean")
+      upper_limit <- ddh::get_stats(data_set = "achilles", var = "upper")
+      lower_limit <- ddh::get_stats(data_set = "achilles", var = "lower")
       label_var <- "Gene Rank"
       text_var <- "Gene"
       content_var <- glue::glue_collapse(input$content, sep = ", ")
 
       plot_data <-
-        data_gene_achilles_cor_nest %>%
+        data_gene_achilles_cor_long %>%
         dplyr::group_by(id) %>%
         dplyr::arrange(dplyr::desc(r2)) %>%
         dplyr::mutate(
@@ -2983,15 +2983,15 @@ make_correlation <- function(input = list(),
         ) %>%
         dplyr::ungroup()
     } else if(input$type == "compound") {
-      mean <- get_stats(data_set = "prism", var = "mean")
-      upper_limit <- get_stats(data_set = "prism", var = "upper")
-      lower_limit <- get_stats(data_set = "prism", var = "lower")
+      mean <- ddh::get_stats(data_set = "prism", var = "mean")
+      upper_limit <- ddh::get_stats(data_set = "prism", var = "upper")
+      lower_limit <- ddh::get_stats(data_set = "prism", var = "lower")
       label_var <- "Drug Rank"
       text_var <- "Compound"
       content_var <- glue::glue_collapse(input$content, sep = ", ")
 
       plot_data <-
-        data_prism_cor_nest %>%
+        data_prism_cor_nest %>% #CHECK THIS VAR
         dplyr::group_by(fav_drug) %>% #CHECK THIS VAR
         dplyr::arrange(dplyr::desc(r2)) %>%
         dplyr::mutate(
@@ -3036,8 +3036,8 @@ make_correlation <- function(input = list(),
       size = 1.1, stroke = .1, alpha = 0.4) +
       ## scales + legends
       ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = 0.02), na.translate = FALSE) +
-      scale_color_ddh_d(palette = input$type) +
-      scale_fill_ddh_d(palette = input$type) +
+      ddh::scale_color_ddh_d(palette = input$type) +
+      ddh::scale_fill_ddh_d(palette = input$type) +
       ggplot2::guides(
         color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 5)),
         fill = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 5))
