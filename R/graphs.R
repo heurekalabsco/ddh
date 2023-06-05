@@ -438,6 +438,8 @@ make_bipartite_graph <- function(input = list(),
                                  threshold = 10,
                                  corr_type = "positive") {
   make_bipartite_graph_raw <- function() {
+    #set color schemes
+    ddh::load_ddh_colors()
     if(input$type == "gene") {
       #build graph using setup
       setup_graph_list <- setup_graph(setup_input = input, #changed name here to prevent var naming overlap for nested funs()
@@ -447,16 +449,20 @@ make_bipartite_graph <- function(input = list(),
       genes <- setup_graph_list$threshold_genes
 
       #collapsed var
-      if(collapsed == TRUE) {collapsed_var <- "metabolite_collapsed"
-      } else {collapsed_var <- "metabolite"}
+      if(collapsed == TRUE) {
+        collapsed_var <- "metabolite_collapsed"
+      } else {
+        collapsed_var <- "metabolite"
+      }
 
       #first two cols to generate graph
       hmdb_network <-
-        get_data_object(object_name = input$content,
-                        dataset_name = "setup_graph") %>%
+        ddh::get_data_object(object_name = input$content,
+                             dataset_name = "setup_graph") %>%
         dplyr::filter(id %in% genes,
                       key == collapsed_var) %>%
-        dplyr::distinct(gene_name = id, metabolite_name = value) #does a select/rename here also
+        dplyr::distinct(gene_name = id,
+                        metabolite_name = value) #does a select/rename here also
 
       #check for nrow
       if(nrow(hmdb_network) == 0) {
