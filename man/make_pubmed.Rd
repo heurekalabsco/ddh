@@ -18,9 +18,9 @@ If no error, then returns a pubmed plot. If an error is thrown, then will return
 Number of publications mentioning the queried gene over time. The x-axis shows the year of publication and the y-axis shows the cumulative publication count.
 }
 \examples{
-make_pubmed(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_pubmed(input = list(type = 'gene', content = 'ROCK1'))
 make_pubmed(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
-make_pubmed(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+make_pubmed(input = list(type = 'gene', content = 'ROCK1'), card = TRUE)
 make_pubmed(input = list(type = 'compound', content = 'aspirin'))
 \dontrun{
 make_pubmed(input = list(type = 'gene', content = 'ROCK1'))

@@ -1922,7 +1922,7 @@ make_molecular_features <- function(input = list(),
       ggplot2::labs(
         x = "Log2 Fold Change",
         y = NULL) +
-      ddh::theme_ddh(grid = "none") +
+      ddh::theme_ddh(grid = "y") +
       NULL
 
     if (length(input$content) > 1) {
@@ -1975,7 +1975,7 @@ make_molecular_features_pathways <- function(input = list(),
       ggplot2::labs(
         x = "-log10(P-value)",
         y = NULL) +
-      ddh::theme_ddh(grid = "none") +
+      ddh::theme_ddh(grid = "y") +
       ggplot2::facet_wrap(~ Direction) +
       NULL
 
@@ -2027,7 +2027,7 @@ make_cca_genes <- function(input = list(),
         x = "Correlation",
         y = NULL,
         fill = "Gene Set") +
-      ddh::theme_ddh(grid = "none") +
+      ddh::theme_ddh(grid = "y") +
       NULL
 
     if (length(input$content) > 1) {
