@@ -1489,13 +1489,14 @@ make_male_anatogram <- function(input = list(),
 #' @examples
 #' make_tissue(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_tissue(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+#' make_tissue(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
 #' make_tissue(input = list(type = 'gene', content = 'ROCK1'))
 #' }
 make_tissue <- function(input = list(),
                         card = FALSE) {
   data_gene_tissue <-
-    get_data_object(object_names = input$content,
+    ddh::get_data_object(object_names = input$content,
                     dataset_name = "gene_tissue",
                     pivotwider = TRUE) %>%
     dplyr::select(id, organ, value) %>%
@@ -1542,14 +1543,14 @@ make_tissue <- function(input = list(),
       plot_complete <-
         plot_draft +
         ggplot2::geom_col(ggplot2::aes(fill = value), width = .82) +
-        scale_fill_ddh_c(palette = "gene", guide = "none") +
+        ddh::scale_fill_ddh_c(palette = "gene", guide = "none") +
         ggplot2::labs(x = paste0(stringr::str_c(input$content, collapse = ", "), " Normalized Expression")) +
         ggplot2::theme(plot.margin = ggplot2::margin(0, 15, 0, 0)) # add some space to avoid cutting of labels
     } else {
       plot_complete <-
         plot_draft +
-        ggplot2::geom_col(ggplot2::aes(fill = gene_name), width = .82) +
-        scale_fill_ddh_d(palette = "gene", shuffle = TRUE, seed = 5L) +
+        ggplot2::geom_col(ggplot2::aes(fill = id), width = .82) +
+        ddh::scale_fill_ddh_d(palette = "gene", shuffle = TRUE, seed = 5L) +
         ggplot2::labs(x = "Sum of Normalized Expression",
                       fill = "Query\nGene") +
         ggplot2::theme(legend.justification = "top")
