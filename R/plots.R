@@ -1841,15 +1841,16 @@ make_molecular_features_segments <- function(input = list(),
     dplyr::mutate(
       rank = 1:dplyr::n()) %>%
     dplyr::ungroup() %>%
-    dplyr::mutate(group = stringr::str_to_title(group))
+    dplyr::mutate(group = stringr::str_to_title(group),
+                  depscore = round(depscore, 4)) %>%
+    dplyr::rename(`Cell Line` = cell_name, `Dep Score` = depscore, Rank = rank)
 
   make_molecular_features_segments_raw <- function() {
 
     plot_complete <-
       gene_molecular_features_hits %>%
-      ggplot2::ggplot(ggplot2::aes(label = cell_name)) +
-      ggplot2::geom_point(ggplot2::aes(rank, depscore, group = Query, color = group),
-                          size = 2, alpha = 0.6) +
+      ggplot2::ggplot(ggplot2::aes(Rank, `Dep Score`, group = Query, color = group, label = `Cell Line`)) +
+      ggplot2::geom_point(size = 2, alpha = 0.6) +
       ## colors
       ggplot2::scale_color_manual(values = c("Sensitive" = ddh_pal_d(palette = "gene")(2)[1],
                                              "Resistant" = ddh_pal_d(palette = "gene")(2)[2],
@@ -1872,9 +1873,9 @@ make_molecular_features_segments <- function(input = list(),
       ) +
       {if(length(input$content) > 1) ggrepel::geom_label_repel(data = gene_molecular_features_hits %>%
                                                                  dplyr::group_by(Query) %>%
-                                                                 dplyr::filter(rank == floor(max(rank)/2)) %>%
+                                                                 dplyr::filter(Rank == floor(max(Rank)/2)) %>%
                                                                  dplyr::ungroup(),
-                                                               ggplot2::aes(rank, depscore, label = Query),
+                                                               ggplot2::aes(Rank, `Dep Score`, label = Query),
                                                                color = "black", show.legend = FALSE)} +
       NULL
 
