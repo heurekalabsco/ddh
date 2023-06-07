@@ -4,7 +4,7 @@
 \alias{make_gene_drugs_cor_table}
 \title{Gene Drugs Cor Table}
 \usage{
-make_gene_drugs_cor_table(input = list())
+make_gene_drugs_cor_table(input = list(), ...)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -13,9 +13,6 @@ make_gene_drugs_cor_table(input = list())
 If no error, then returns a gene drugs cor Table. If an error is thrown, then will return an empty table.
 }
 \description{
-\code{make_gene_drugs_cor_table} returns an image of ...
-}
-\details{
 This is a table function that takes a gene name and returns a gene drugs cor Table
 }
 \examples{

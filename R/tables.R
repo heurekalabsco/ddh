@@ -1132,8 +1132,6 @@ make_drug_genes_cor_table <- function(input = list()
 
 #' Gene Drugs Cor Table
 #'
-#' \code{make_gene_drugs_cor_table} returns an image of ...
-#'
 #' This is a table function that takes a gene name and returns a gene drugs cor Table
 #'
 #' @param input Expecting a list containing type and content variable.
@@ -1147,16 +1145,17 @@ make_drug_genes_cor_table <- function(input = list()
 #' \dontrun{
 #' make_gene_drugs_cor_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_gene_drugs_cor_table <- function(#data_gene_drugs_cor_table = gene_drugs_cor_table,
-  input = list()) {
+make_gene_drugs_cor_table <- function(input = list(),
+                                      ...) {
   make_gene_drugs_cor_table_raw <- function() {
     gene_drugs_cor_table <-
       get_data_object(object_names = input$content,
                       dataset_name = "gene_drugs_cor_table",
-                      pivotwider = T) %>%
-      dplyr::mutate(across(contains(c("score", "r2")), as.numeric)) %>%
+                      pivotwider = TRUE) %>%
+      dplyr::mutate(across(contains(c("z_score", "r2")), as.numeric)) %>%
       dplyr::select(-data_set) %>%
-      dplyr::arrange(dplyr::desc(r2))
+      dplyr::arrange(dplyr::desc(r2)) %>%
+      dplyr::rename(Query = id, Drug = drug, MOA = moa, `Z-score` = z_score, R2 = r2)
     return(gene_drugs_cor_table)
   }
   tryCatch(make_gene_drugs_cor_table_raw(),

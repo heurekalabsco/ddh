@@ -20,6 +20,7 @@ Human body tissue expression levels for the queried gene/s. The x-axis shows the
 \examples{
 make_tissue(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 make_tissue(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
+make_tissue(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 \dontrun{
 make_tissue(input = list(type = 'gene', content = 'ROCK1'))
 }
