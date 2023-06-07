@@ -1847,8 +1847,9 @@ make_molecular_features_segments <- function(input = list(),
 
     plot_complete <-
       gene_molecular_features_hits %>%
-      ggplot2::ggplot(ggplot2::aes(rank, depscore, group = Query, color = group)) +
-      ggplot2::geom_point(size = 2, alpha = 0.6) +
+      ggplot2::ggplot(ggplot2::aes(label = cell_name)) +
+      ggplot2::geom_point(ggplot2::aes(rank, depscore, group = Query, color = group),
+                          size = 2, alpha = 0.6) +
       ## colors
       ggplot2::scale_color_manual(values = c("Sensitive" = ddh_pal_d(palette = "gene")(2)[1],
                                              "Resistant" = ddh_pal_d(palette = "gene")(2)[2],
