@@ -1859,7 +1859,7 @@ make_molecular_features_segments <- function(input = list(),
       ggplot2::labs(
         x = NULL,
         y = "Dependency Score",
-        color = "Group"
+        color = "Segment"
       ) +
       ## theme changes
       ddh::theme_ddh(grid = "y") +
