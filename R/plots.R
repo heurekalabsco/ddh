@@ -1847,14 +1847,12 @@ make_molecular_features_segments <- function(input = list(),
 
     plot_complete <-
       gene_molecular_features_hits %>%
-      ggplot2::ggplot(ggplot2::aes(rank, depscore, color = Query)) +
-      ggplot2::geom_point(size = 2, stroke = .25, alpha = 0.6, color = "gray90") +
-      ggplot2::geom_point(data = gene_molecular_features_hits[gene_molecular_features_hits$group != "Neutral",],
-                          ggplot2::aes(rank, depscore, color = group),
-                          size = 2, alpha = 0.6) +
-      scale_color_ddh_d(palette = input$type) +
-      ggplot2::guides(
-        color = ggplot2::guide_legend(reverse = TRUE, override.aes = list(size = 4, stroke = .8))) +
+      ggplot2::ggplot(ggplot2::aes(rank, depscore, group = Query, color = group)) +
+      ggplot2::geom_point(size = 2, alpha = 0.6) +
+      ## colors
+      ggplot2::scale_color_manual(values = c("Sensitive" = ddh_pal_d(palette = "gene")(2)[1],
+                                             "Resistant" = ddh_pal_d(palette = "gene")(2)[2],
+                                             "Neutral" = "grey90")) +
       ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = c(0.01, 0.01))) +
       ## titles
       ggplot2::labs(
