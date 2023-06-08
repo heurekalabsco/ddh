@@ -217,19 +217,66 @@ make_summary_text <- function(input = list(),
 #' make_summary_protein(input = list(content = "ROCK2"), var = "protein_name")
 #' make_summary_protein(input = list(content = "ROCK1"), var = "sequence")
 make_summary_protein <- function(input = list(),
-                                 var = "gene_name") { #default so no error if empty, but this pulls the var out of the df
+                                 summary_len = 40, # number of WORDS
+                                 ...) {
   if (is.null(input$content)) {
     return (NULL)
   }
-  protein_summary_var <-
+
+  custom_list <-
     get_data_object(object_name = input$content,
                     dataset_name = "universal_proteins",
                     pivotwider = TRUE) %>%
-    dplyr::mutate(across(contains(c("mass")), as.numeric)) %>%
-    dplyr::rename("gene_name" = "id") %>%
-    dplyr::pull(var)
+    dplyr::mutate(across(contains(c("mass")), as.numeric))
 
-  return(protein_summary_var)
+  custom_list[custom_list == "NA"] <- NA
+  custom_list[custom_list == ""] <- NA
+  custom_list <-
+    custom_list %>%
+    dplyr::mutate_all(~ ifelse(is.na(.), "No info.", .))
+
+  if (length(input$content) == 1) {
+    valid_summaries <- glue::glue("<div><h3>{custom_list$id}: {custom_list$protein_name}</h3></div>
+                                    <div><b>Protein Summary: </b>{custom_list$function_cc}</div>
+                                    <div><b>Uniprot ID: </b><a href='https://www.uniprot.org/uniprot/{custom_list$uniprot_id}' target='_blank'>{custom_list$uniprot_id}</a></div>
+                                    <div><b>Enzyme Commission: </b><a href='https://enzyme.expasy.org/EC/{custom_list$ec}' target='_blank'>{custom_list$ec}</a></div>
+                                    <div><b>Protein Mass: </b>{custom_list$mass} kDa bp</div>
+                                    ") %>%
+      htmltools::HTML()
+  } else {
+    custom_list <-
+      custom_list %>%
+      dplyr::mutate(function_cc = ifelse(stringr::str_count(function_cc) >= summary_len,
+                                         paste0(gsub(paste0("^((\\w+\\W+){", summary_len, "}\\w+).*$"), "\\1", function_cc), " ..."),
+                                         function_cc)
+      )
+
+    custom_list_split <- split(custom_list, custom_list$id)
+
+    tab_fun_gene <- function(custom_list_split){
+      summary_tables <- list()
+      for (i in names(custom_list_split)){
+        tabledata <- custom_list_split[[i]]
+        summary_tables[[i]] <- glue::glue("<div><a href='?show=gene&query={tabledata$id}' target='_blank'><h3>{tabledata$id}</a>: {tabledata$protein_name}</h3></div>
+                                            <div><b>Protein Summary: </b>{tabledata$function_cc}</div>
+                                            <div><b>Uniprot ID: </b><a href='https://www.uniprot.org/uniprot/{tabledata$uniprot_id}' target='_blank'>{tabledata$uniprot_id}</a></div>
+                                            <div><b>Enzyme Commission: </b><a href='https://enzyme.expasy.org/EC/{tabledata$ec}' target='_blank'>{tabledata$ec}</a></div>
+                                            <div><b>Protein Mass: </b>{tabledata$mass} kDa bp</div>
+                                            ")
+      }
+      return(dplyr::bind_rows(summary_tables) %>%
+               tidyr::unite("text", dplyr::everything(), sep = " ")
+      )
+    }
+
+    valid_summaries <-
+      custom_list_split %>%
+      tab_fun_gene() %>%
+      dplyr::pull(text) %>%
+      htmltools::HTML()
+  }
+
+  return(valid_summaries)
 }
 
 #' Make Cell Summary

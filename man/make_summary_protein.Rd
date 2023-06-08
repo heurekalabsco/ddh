@@ -4,7 +4,7 @@
 \alias{make_summary_protein}
 \title{Make Protein Summary}
 \usage{
-make_summary_protein(input = list(), var = "gene_name")
+make_summary_protein(input = list(), summary_len = 40, ...)
 }
 \arguments{
 \item{input}{A list containing a content variable.}
