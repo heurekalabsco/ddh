@@ -81,8 +81,8 @@ setup_graph <- function(setup_input = list(), #changed name here to prevent var 
 #' @param threshold A numerical representing the number of genes to pull from top and bottom tables
 #' @param deg A numerical representing the minimum number of connections for a gene to be connected to the network
 #' @param corr_type A string that describes what type of correlations to include, options are: "positive", "negative", or "both"
-#' @param displayHeight Default to "90vh". The height of the network in pixels("500px"), as a percentage("100%"), or as a percentage of the viewport("70vh", where 70 represents 70% of the viewport)
-#' @param displayWidth Default to "100%". The width of the network in pixels("500px"), as a percentage("100%"), or as a percentage of the viewport("70vh", where 70 represents 70% of the viewport)
+#' @param displayHeight Default to "90vh". The height of the network in pixels ("500px"), as a percentage (100 percent), or as a percentage of the viewport ("70vh", where 70 represents 70 percent of the viewport)
+#' @param displayWidth Default to 100 percent. The width of the network in pixels ("500px"), as a percentage (100 percent), or as a percentage of the viewport ("70vh", where 70 represents 70 percent of the viewport)
 #' @param tooltipLink Boolean to denote whether or not to include a link in the tooltip for a gene. Default to false.
 #'
 #' @return Outputs a complete network graph. If an error is thrown, then will return an empty graph.

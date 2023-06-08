@@ -26,9 +26,9 @@ make_graph(
 
 \item{corr_type}{A string that describes what type of correlations to include, options are: "positive", "negative", or "both"}
 
-\item{displayHeight}{Default to "90vh". The height of the network in pixels("500px"), as a percentage("100%"), or as a percentage of the viewport("70vh", where 70 represents 70% of the viewport)}
+\item{displayHeight}{Default to "90vh". The height of the network in pixels ("500px"), as a percentage (100 percent), or as a percentage of the viewport ("70vh", where 70 represents 70 percent of the viewport)}
 
-\item{displayWidth}{Default to "100%". The width of the network in pixels("500px"), as a percentage("100%"), or as a percentage of the viewport("70vh", where 70 represents 70% of the viewport)}
+\item{displayWidth}{Default to 100 percent. The width of the network in pixels ("500px"), as a percentage (100 percent), or as a percentage of the viewport ("70vh", where 70 represents 70 percent of the viewport)}
 
 \item{tooltipLink}{Boolean to denote whether or not to include a link in the tooltip for a gene. Default to false.}
 }
