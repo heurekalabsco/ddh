@@ -4,7 +4,7 @@
 \alias{make_summary_moa}
 \title{Make MOA Summary}
 \usage{
-make_summary_moa(input = list(), var = "name")
+make_summary_moa(input = list(), var = "name", ...)
 }
 \description{
 Make MOA Summary

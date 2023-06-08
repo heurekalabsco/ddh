@@ -4,7 +4,7 @@
 \alias{make_summary_gene}
 \title{Make Gene Summary}
 \usage{
-make_summary_gene(input = list(), var = "approved_symbol")
+make_summary_gene(input = list(), var = "id")
 }
 \arguments{
 \item{input}{A list containing a content variable.}
@@ -15,8 +15,8 @@ make_summary_gene(input = list(), var = "approved_symbol")
 The make_gene_summary function takes a gene as an input and returns summary text.
 }
 \examples{
-make_summary_gene(input = list(content = "ROCK1"), var = "approved_symbol")
-make_summary_gene(input = list(content = "ROCK1"), var = "approved_name")
-make_summary_gene(input = list(content = "ROCK1"), var = "entrez_summary")
-make_summary_gene(input = list(content = c("ROCK1", "ROCK2")), var = "approved_name")
+make_summary_gene(input = list(content = "ROCK1"), var = "id")
+make_summary_gene(input = list(content = "ROCK1"), var = "name")
+make_summary_gene(input = list(content = "ROCK1"), var = "summary")
+make_summary_gene(input = list(content = c("ROCK1", "ROCK2")), var = "name")
 }

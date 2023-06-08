@@ -9,12 +9,12 @@
 #'
 #' @export
 #' @examples
-#' make_summary_gene(input = list(content = "ROCK1"), var = "approved_symbol")
-#' make_summary_gene(input = list(content = "ROCK1"), var = "approved_name")
-#' make_summary_gene(input = list(content = "ROCK1"), var = "entrez_summary")
-#' make_summary_gene(input = list(content = c("ROCK1", "ROCK2")), var = "approved_name")
+#' make_summary_gene(input = list(content = "ROCK1"), var = "id")
+#' make_summary_gene(input = list(content = "ROCK1"), var = "name")
+#' make_summary_gene(input = list(content = "ROCK1"), var = "summary")
+#' make_summary_gene(input = list(content = c("ROCK1", "ROCK2")), var = "name")
 make_summary_gene <- function(input = list(),
-                              var = "approved_symbol") { #default so no error if empty, but this pulls the var out of the df
+                              var = "id") {
   if (is.null(input$content)) {
     return (NULL)
   }
@@ -22,9 +22,10 @@ make_summary_gene <- function(input = list(),
     get_data_object(object_name = input$content,
                     dataset_name = "universal_gene_summary",
                     pivotwider = TRUE) %>%
-    dplyr::mutate(across(contains(c("count", "rank")), as.numeric),
-                  "approved_symbol" = id) %>%
+    dplyr::mutate(across(contains(c("count", "rank")), as.numeric)) %>%
+    dplyr::rename(name = approved_name, summary = entrez_summary) %>%
     dplyr::pull(var) #any column name
+
   return(gene_summary_var)
 }
 
@@ -55,9 +56,9 @@ make_summary_pathway <- function(input = list(),
   return(pathway_summary_var)
 }
 
-#' Make List Summary
+#' Make Summary Text
 #'
-#' The make_summary_list function takes one or many genes as inputs and returns summary list key summary information. This is a solution for make_summary_gene to make summaries of more than one gene.
+#' This function takes one or many genes as inputs and returns summary list key summary information. This is a solution for make_summary_gene to make summaries of more than one gene.
 #'
 #' @param input A list containing a content variable.
 #' @param var Variable that determines which text is returned
@@ -66,17 +67,15 @@ make_summary_pathway <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' make_summary_list(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
-#' make_summary_list(input = list(type = "cell", content = c("HEL", "HEPG2")))
-make_summary_list <- function(data_universal_gene_summary = universal_gene_summary,
-                              data_gene_location = gene_location,
-                              data_cell_expression_meta = cell_expression_meta,
-                              data_cell_osaurus = cell_osaurus,
+#' make_summary_text(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
+#' make_summary_text(input = list(type = "cell", content = c("HEL", "HEPG2")))
+make_summary_text <- function(input = list(),
                               summary_len = 40, # number of WORDS
-                              input = list()) {
+                              ...) {
   if (is.null(input$content)) {
     return (NULL)
   }
+
   if(input$type == "gene") {
     data_gene_location <-
       get_data_object(object_names = input$content,
@@ -229,7 +228,7 @@ make_summary_protein <- function(input = list(),
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("mass")), as.numeric)) %>%
     dplyr::rename("gene_name" = "id") %>%
-    dplyr::pull(var) #any column name
+    dplyr::pull(var)
 
   return(protein_summary_var)
 }
@@ -248,7 +247,6 @@ make_summary_protein <- function(input = list(),
 #' make_summary_cell(input = list(content = "HEPG2"), var = "cell_line")
 #' make_summary_cell(input = list(content = "HEPG2"), var = "lineage_subtype")
 make_summary_cell <- function(input = list(),
-                              #data_cell_expression_names = cell_expression_names,
                               var = "cell_line") {
   # if (is.null(input$content)) {
   #   return (NULL)
@@ -268,7 +266,6 @@ make_summary_cell <- function(input = list(),
 #' @examples
 #' make_summary_lineage(input = list(content = "Cervix"))
 make_summary_lineage <- function(input = list(),
-                                 #data_cell_expression_names = cell_expression_names,
                                  var = "cell_line") { #default so no error if empty, but this pulls the var out of the df
   # if (is.null(input$query)) {
   #   return (NULL)
@@ -291,7 +288,6 @@ make_summary_lineage <- function(input = list(),
 #' make_summary_cellosaurus(input = list(content = "HEPG2"), var = "CC") %>% lit_linkr(data_universal_gene_summary = universal_gene_summary)
 #' make_summary_cellosaurus(input = list(content = "HEPG2"), var = "ATCC_url") #url
 make_summary_cellosaurus <- function(input = list(),
-                                     # data_cell_osaurus = cell_osaurus,
                                      var = "ID") {
   # cell_var <-
   #   data_cell_osaurus %>%
@@ -317,10 +313,8 @@ make_summary_cellosaurus <- function(input = list(),
 #' get_essential(input = list(type = "cell", content = "HEPG2"))
 #' get_essential(input = list(type = "cell", content = c("HEPG2", "HUH7")))
 #' get_essential(input = list(type = "compound", content = "aspirin"))
-get_essential <- function(input = list()#,
-                          #data_universal_prism_long = universal_prism_long,
-                          #data_cell_expression_names = cell_expression_names
-                          ) {
+get_essential <- function(input = list(),
+                          ...) {
   if(input$type == "gene") {
     #new pre-computed
     essential <-
@@ -360,7 +354,6 @@ get_essential <- function(input = list()#,
 #' @examples
 #' make_summary_compound(input = list(content = "aspirin"), var = "name")
 make_summary_compound <- function(input = list(),
-                                  # data_universal_prism_meta = universal_prism_meta,
                                   var = "name") { #default so no error if empty, but this pulls the var out of the df
   # if (is.null(input$query)) {
   #   return (NULL)
@@ -380,7 +373,6 @@ make_summary_compound <- function(input = list(),
 #' @examples
 #' make_summary_metabolite(input = list(content = "citrate"), var = "name")
 make_summary_metabolite <- function(input = list(),
-                                    # data_compound_hmdb_names = compound_hmdb_names,
                                     var = "name") { #default so no error if empty, but this pulls the var out of the df
   # if (is.null(input$query)) {
   #   return (NULL)
@@ -401,8 +393,8 @@ make_summary_metabolite <- function(input = list(),
 #' make_summary_moa(input = list(content = "cyclooxygenase inhibitor", content = "cyclooxygenase inhibitor"), var = "name")
 #' make_summary_moa(input = list(content = "cyclooxygenase inhibitor", content = "cyclooxygenase inhibitor"), var = "moa")
 make_summary_moa <- function(input = list(),
-                             # data_universal_prism_meta = universal_prism_meta,
-                             var = "name") {
+                             var = "name",
+                             ...) {
   # if (is.null(input$query)) {
   #   return (NULL)
   # }
@@ -422,9 +414,8 @@ make_summary_moa <- function(input = list(),
 #' @export
 #' @examples
 #' make_summary_compound_list(input = list(content = c("aspirin", "carprofen")))
-make_summary_compound_list <- function(input = list()
-                                       # data_universal_prism_meta = universal_prism_meta
-                                       ) {
+make_summary_compound_list <- function(input = list(),
+                                       ...) {
   # if (is.null(input$content)) {
   #   return (NULL)
   # }

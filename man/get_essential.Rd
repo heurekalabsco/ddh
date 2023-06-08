@@ -4,7 +4,7 @@
 \alias{get_essential}
 \title{Get Essential}
 \usage{
-get_essential(input = list())
+get_essential(input = list(), ...)
 }
 \description{
 Gets number of cells lines a gene is essential within
