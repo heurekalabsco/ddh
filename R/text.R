@@ -87,8 +87,7 @@ make_summary_text <- function(input = list(),
                       dataset_name = "universal_gene_summary",
                       pivotwider = TRUE) %>%
       dplyr::left_join(data_gene_location, by = "id") %>%
-      dplyr::mutate(across(contains(c("count", "rank")), as.numeric),
-                    "approved_symbol" = id)
+      dplyr::mutate(across(contains(c("count", "rank")), as.numeric))
 
     custom_list[custom_list == "NA"] <- NA
     custom_list[custom_list == ""] <- NA
@@ -96,8 +95,8 @@ make_summary_text <- function(input = list(),
       custom_list %>%
       dplyr::mutate_all(~ ifelse(is.na(.), "No info.", .))
 
-    if(length(input$content) == 1) {
-      valid_summaries <- glue::glue("<div><h3>{custom_list$approved_symbol}: {custom_list$approved_name}</h3></div>
+    if (length(input$content) == 1) {
+      valid_summaries <- glue::glue("<div><h3>{custom_list$id}: {custom_list$approved_name}</h3></div>
                                     <div><b>Entrez ID: </b><a href='https://www.ncbi.nlm.nih.gov/gene/?term={custom_list$ncbi_gene_id}' target='_blank'>{custom_list$ncbi_gene_id}</a></div>
                                     <div><b>ENSEMBL ID: </b>{custom_list$ensembl_gene_id}</div>
                                     <div><b>Chromosome: </b>{custom_list$chromosome}</div>
@@ -121,7 +120,7 @@ make_summary_text <- function(input = list(),
         summary_tables <- list()
         for (i in names(custom_list_split)){
           tabledata <- custom_list_split[[i]]
-          summary_tables[[i]] <- glue::glue("<div><a href='?show=gene&query={tabledata$id}' target='_blank'><h3>{tabledata$id}</a>: {tabledata$id}</h3></div>
+          summary_tables[[i]] <- glue::glue("<div><a href='?show=gene&query={tabledata$id}' target='_blank'><h3>{tabledata$id}</a>: {tabledata$approved_name}</h3></div>
                                             <div><b>Entrez ID: </b><a href='https://www.ncbi.nlm.nih.gov/gene/?term={tabledata$ncbi_gene_id}' target='_blank'>{tabledata$ncbi_gene_id}</a></div>
                                             <div><b>ENSEMBL ID: </b>{tabledata$ensembl_gene_id}</div>
                                             <div><b>Description</b></div>
