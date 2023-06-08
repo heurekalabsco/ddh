@@ -51,7 +51,4 @@ make_graph(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 make_graph(input = list(type = "pathway", query = "1902965", content = c("RDX", "ROCK2", "DTX3L", "MSN", "SORL1", "EZR")), corr_type = "positive")
 make_graph(input = list(type = "gene", content = "DTX3L"), corr_type = "negative") # disconnected query gene
 make_graph(input = list(type = "compound", content = "aspirin"), corr_type = "negative")
-\dontrun{
-make_graph(input = list(type = 'gene', content = 'ROCK1'))
-}
 }
