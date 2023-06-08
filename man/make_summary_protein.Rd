@@ -15,7 +15,6 @@ make_summary_protein(input = list(), summary_len = 40, ...)
 The make_summary_protein function takes a gene as an input and returns summary text about its protein.
 }
 \examples{
-make_summary_protein(input = list(content = "ROCK1"), var = "gene_name")
-make_summary_protein(input = list(content = "ROCK2"), var = "protein_name")
-make_summary_protein(input = list(content = "ROCK1"), var = "sequence")
+make_summary_protein(input = list(type = "gene", content = c("ROCK1")))
+make_summary_protein(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 }

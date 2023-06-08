@@ -102,7 +102,7 @@ make_summary_text <- function(input = list(),
                                     <div><b>Chromosome: </b>{custom_list$chromosome}</div>
                                     <div><b>Coding Sequence Length: </b>{custom_list$cds_length} bp</div>
                                     <div><b>Aka: </b>{custom_list$aka}</div>
-                                    <div><b>Description</b></div>
+                                    <div><b>Description: </b></div>
                                     <div><p>{custom_list$entrez_summary}</p></div>
                                     ") %>%
         htmltools::HTML()
@@ -123,7 +123,7 @@ make_summary_text <- function(input = list(),
           summary_tables[[i]] <- glue::glue("<div><a href='?show=gene&query={tabledata$id}' target='_blank'><h3>{tabledata$id}</a>: {tabledata$approved_name}</h3></div>
                                             <div><b>Entrez ID: </b><a href='https://www.ncbi.nlm.nih.gov/gene/?term={tabledata$ncbi_gene_id}' target='_blank'>{tabledata$ncbi_gene_id}</a></div>
                                             <div><b>ENSEMBL ID: </b>{tabledata$ensembl_gene_id}</div>
-                                            <div><b>Description</b></div>
+                                            <div><b>Description: </b></div>
                                             <div><p>{tabledata$entrez_summary}</p></div>
                                             ")
         }
@@ -213,9 +213,8 @@ make_summary_text <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' make_summary_protein(input = list(content = "ROCK1"), var = "gene_name")
-#' make_summary_protein(input = list(content = "ROCK2"), var = "protein_name")
-#' make_summary_protein(input = list(content = "ROCK1"), var = "sequence")
+#' make_summary_protein(input = list(type = "gene", content = c("ROCK1")))
+#' make_summary_protein(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 make_summary_protein <- function(input = list(),
                                  summary_len = 40, # number of WORDS
                                  ...) {
@@ -233,15 +232,16 @@ make_summary_protein <- function(input = list(),
   custom_list[custom_list == ""] <- NA
   custom_list <-
     custom_list %>%
-    dplyr::mutate_all(~ ifelse(is.na(.), "No info.", .))
+    dplyr::mutate_all(~ ifelse(is.na(.), "No info.", .)) %>%
+    dplyr::mutate(function_cc = gsub("\\s*\\{[^\\)]+\\}*.", "", function_cc))
 
   if (length(input$content) == 1) {
     valid_summaries <- glue::glue("<div><h3>{custom_list$id}: {custom_list$protein_name}</h3></div>
-                                  <div><b>Protein Summary: </b></div>
-                                  <div><p>{custom_list$function_cc}</p></div>
                                   <div><b>Uniprot ID: </b><a href='https://www.uniprot.org/uniprot/{custom_list$uniprot_id}' target='_blank'>{custom_list$uniprot_id}</a></div>
                                   <div><b>Enzyme Commission: </b><a href='https://enzyme.expasy.org/EC/{custom_list$ec}' target='_blank'>{custom_list$ec}</a></div>
                                   <div><b>Protein Mass: </b>{custom_list$mass} kDa</div>
+                                  <div><b>Description: </b></div>
+                                  <div><p>{custom_list$function_cc}</p></div>
                                   ") %>%
       htmltools::HTML()
   } else {
@@ -259,11 +259,11 @@ make_summary_protein <- function(input = list(),
       for (i in names(custom_list_split)){
         tabledata <- custom_list_split[[i]]
         summary_tables[[i]] <- glue::glue("<div><a href='?show=gene&query={tabledata$id}' target='_blank'><h3>{tabledata$id}</a>: {tabledata$protein_name}</h3></div>
-                                          <div><b>Protein Summary: </b></div>
-                                          <div><p>{tabledata$function_cc}</p></div>
                                           <div><b>Uniprot ID: </b><a href='https://www.uniprot.org/uniprot/{tabledata$uniprot_id}' target='_blank'>{tabledata$uniprot_id}</a></div>
                                           <div><b>Enzyme Commission: </b><a href='https://enzyme.expasy.org/EC/{tabledata$ec}' target='_blank'>{tabledata$ec}</a></div>
                                           <div><b>Protein Mass: </b>{tabledata$mass} kDa</div>
+                                          <div><b>Description: </b></div>
+                                          <div><p>{tabledata$function_cc}</p></div>
                                           ")
       }
       return(dplyr::bind_rows(summary_tables) %>%
