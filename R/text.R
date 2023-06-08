@@ -237,11 +237,12 @@ make_summary_protein <- function(input = list(),
 
   if (length(input$content) == 1) {
     valid_summaries <- glue::glue("<div><h3>{custom_list$id}: {custom_list$protein_name}</h3></div>
-                                    <div><b>Protein Summary: </b>{custom_list$function_cc}</div>
-                                    <div><b>Uniprot ID: </b><a href='https://www.uniprot.org/uniprot/{custom_list$uniprot_id}' target='_blank'>{custom_list$uniprot_id}</a></div>
-                                    <div><b>Enzyme Commission: </b><a href='https://enzyme.expasy.org/EC/{custom_list$ec}' target='_blank'>{custom_list$ec}</a></div>
-                                    <div><b>Protein Mass: </b>{custom_list$mass} kDa bp</div>
-                                    ") %>%
+                                  <div><b>Protein Summary: </b></div>
+                                  <div><p>{custom_list$function_cc}</p></div>
+                                  <div><b>Uniprot ID: </b><a href='https://www.uniprot.org/uniprot/{custom_list$uniprot_id}' target='_blank'>{custom_list$uniprot_id}</a></div>
+                                  <div><b>Enzyme Commission: </b><a href='https://enzyme.expasy.org/EC/{custom_list$ec}' target='_blank'>{custom_list$ec}</a></div>
+                                  <div><b>Protein Mass: </b>{custom_list$mass} kDa</div>
+                                  ") %>%
       htmltools::HTML()
   } else {
     custom_list <-
@@ -258,11 +259,12 @@ make_summary_protein <- function(input = list(),
       for (i in names(custom_list_split)){
         tabledata <- custom_list_split[[i]]
         summary_tables[[i]] <- glue::glue("<div><a href='?show=gene&query={tabledata$id}' target='_blank'><h3>{tabledata$id}</a>: {tabledata$protein_name}</h3></div>
-                                            <div><b>Protein Summary: </b>{tabledata$function_cc}</div>
-                                            <div><b>Uniprot ID: </b><a href='https://www.uniprot.org/uniprot/{tabledata$uniprot_id}' target='_blank'>{tabledata$uniprot_id}</a></div>
-                                            <div><b>Enzyme Commission: </b><a href='https://enzyme.expasy.org/EC/{tabledata$ec}' target='_blank'>{tabledata$ec}</a></div>
-                                            <div><b>Protein Mass: </b>{tabledata$mass} kDa bp</div>
-                                            ")
+                                          <div><b>Protein Summary: </b></div>
+                                          <div><p>{tabledata$function_cc}</p></div>
+                                          <div><b>Uniprot ID: </b><a href='https://www.uniprot.org/uniprot/{tabledata$uniprot_id}' target='_blank'>{tabledata$uniprot_id}</a></div>
+                                          <div><b>Enzyme Commission: </b><a href='https://enzyme.expasy.org/EC/{tabledata$ec}' target='_blank'>{tabledata$ec}</a></div>
+                                          <div><b>Protein Mass: </b>{tabledata$mass} kDa</div>
+                                          ")
       }
       return(dplyr::bind_rows(summary_tables) %>%
                tidyr::unite("text", dplyr::everything(), sep = " ")
