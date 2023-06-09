@@ -1029,18 +1029,18 @@ make_structure3d <- function(input = list(),
                          dataset_name = "gene_pdb_table")
   make_structure3d_raw <- function() {
     #check  to see if pdb file exists from alpha fold model
-    pdb_path <- load_pdb(input = input)
+    # pdb_path <- load_pdb(input = input)
 
-    if(!is.null(pdb_path) & is.null(pdb_id)) {
-      plot_data <- bio3d::read.pdb(pdb_path)
-    } else {
+    # if(!is.null(pdb_path) & is.null(pdb_id)) {
+    #   plot_data <- bio3d::read.pdb(pdb_path)
+    # } else {
       plot_data <-
         data_gene_pdb_table %>%
         dplyr::filter(key == "pdb") %>%
         {if (is.null(pdb_id)) dplyr::slice(., 1) else dplyr::filter(., value == pdb_id)} %>%
         dplyr::pull(value) %>%
         r3dmol::m_fetch_pdb()
-    }
+    # }
 
     plot_complete <-
       r3dmol::r3dmol() %>%
