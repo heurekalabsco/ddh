@@ -302,9 +302,7 @@ make_protein_sequence <- function(input = list(),
     get_data_object(object_name = input$content,
                     dataset_name = "universal_proteins",
                     pivotwider = TRUE) %>%
-    dplyr::pull(sequence) %>%
-    paste0(sep = "<br/>") %>%
-    shiny::HTML()
+    dplyr::pull(sequence)
 
   return(valid_sequence)
 }
