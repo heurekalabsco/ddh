@@ -279,6 +279,34 @@ make_summary_protein <- function(input = list(),
   return(valid_summaries)
 }
 
+#' Make Protein Sequence
+#'
+#' The make_protein_sequence function takes a gene as an input and returns its protein sequence.
+#'
+#' @param input A list containing a content variable.
+#' @param var Variable that determines which text is returned
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' make_protein_sequence(input = list(type = "gene", content = c("ROCK1")))
+#' make_protein_sequence(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
+make_protein_sequence <- function(input = list(),
+                                  ...) {
+  if (is.null(input$content)) {
+    return (NULL)
+  }
+
+  valid_sequence <-
+    get_data_object(object_name = input$content,
+                    dataset_name = "universal_proteins",
+                    pivotwider = TRUE) %>%
+    dplyr::pull(sequence)
+
+  return(valid_sequence)
+}
+
 #' Make Cell Summary
 #'
 #' The make_summary_cell function takes a cell as an input and returns summary text about it.
