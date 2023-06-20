@@ -1034,12 +1034,12 @@ make_structure3d <- function(input = list(),
     # if(!is.null(pdb_path) & is.null(pdb_id)) {
     #   plot_data <- bio3d::read.pdb(pdb_path)
     # } else {
-      plot_data <-
-        data_gene_pdb_table %>%
-        dplyr::filter(key == "pdb") %>%
-        {if (is.null(pdb_id)) dplyr::slice(., 1) else dplyr::filter(., value == pdb_id)} %>%
-        dplyr::pull(value) %>%
-        r3dmol::m_fetch_pdb()
+    plot_data <-
+      data_gene_pdb_table %>%
+      dplyr::filter(key == "pdb") %>%
+      {if (is.null(pdb_id)) dplyr::slice(., 1) else dplyr::filter(., value == pdb_id)} %>%
+      dplyr::pull(value) %>%
+      r3dmol::m_fetch_pdb()
     # }
 
     plot_complete <-
@@ -1085,7 +1085,7 @@ make_structure3d <- function(input = list(),
   tryCatch(make_structure3d_raw(),
            error = function(e){
              message(e)
-             })
+           })
 }
 
 ## PUBMED PLOT ------------------------------------------
@@ -1134,7 +1134,7 @@ make_pubmed <- function(input = list(),
                      y = cumsum,
                      group = id,
                      color = forcats::fct_reorder2(id, year, cumsum, .na_rm = FALSE) #dropping NAs causes mismatch & errors
-                     ),
+        ),
         linewidth = 1.2
       ) +
       ggplot2::coord_cartesian(clip = "off") + #allows points & labels to fall off plotting area
@@ -1252,9 +1252,10 @@ make_pubmed <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' make_cellanatogram(input = list(type = "gene", content = c("ROCK1")))
+#' make_cellanatogram(input = list(type = "gene", content = c("ROCK2")))
 #' make_cellanatogram(input = list(type = "gene", content = c("ROCK2")), card = TRUE)
 #' make_cellanatogram(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
+#' make_cellanatogram(input = list(type = "gene", content = c("ROCK1")))
 #' \dontrun{
 #' make_cellanatogram(input = list(type = 'gene', content = 'ROCK2'))
 #' }
@@ -1262,8 +1263,8 @@ make_cellanatogram <- function(input = list(),
                                card = FALSE) {
   data_gene_subcell <-
     ddh::get_data_object(object_names = input$content,
-                    dataset_name = "gene_subcell",
-                    pivotwider = TRUE)
+                         dataset_name = "gene_subcell",
+                         pivotwider = TRUE)
   make_cellanatogram_raw <- function() {
     plot_data <-
       data_gene_subcell %>%
@@ -1307,11 +1308,14 @@ make_cellanatogram <- function(input = list(),
   }
   #error handling
   tryCatch(make_cellanatogram_raw(),
-           error = function(){
-             gganatogram::gganatogram(data = NULL, outline = TRUE,
-                                      fillOutline = "grey95",
-                                      organism = "cell") +
-               ggplot2::theme_void()})
+           error = function(e){
+             message(e)
+             gganatogram::gganatogram(data = NULL,
+                                     outline = TRUE,
+                                     fillOutline = "grey95",
+                                     organism = "cell") +
+               ggplot2::theme_void()}
+  )
 }
 
 #' Cell Anatogram Facet
@@ -1499,8 +1503,8 @@ make_tissue <- function(input = list(),
                         card = FALSE) {
   data_gene_tissue <-
     ddh::get_data_object(object_names = input$content,
-                    dataset_name = "gene_tissue",
-                    pivotwider = TRUE) %>%
+                         dataset_name = "gene_tissue",
+                         pivotwider = TRUE) %>%
     dplyr::select(id, organ, value) %>%
     dplyr::mutate(value = as.numeric(value))
 
@@ -2965,8 +2969,8 @@ make_correlation <- function(input = list(),
   #wrap data_gene_achilles_cor_nest in an if/else for type, and fetch data_prism_cor_nest instead?
   data_gene_achilles_cor_long <-
     ddh::get_data_object(object_names = input$content,
-                    dataset_name = "gene_achilles_cor_long",
-                    pivotwider = TRUE) %>%
+                         dataset_name = "gene_achilles_cor_long",
+                         pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("r2")), as.numeric))
   make_correlation_raw <- function() {
     if(input$type == "gene") {
