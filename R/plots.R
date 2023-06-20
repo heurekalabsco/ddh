@@ -1252,7 +1252,7 @@ make_pubmed <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' make_cellanatogram(input = list(type = "gene", content = c("ROCK2")))
+#' make_cellanatogram(input = list(type = "gene", content = c("ROCK1")))
 #' make_cellanatogram(input = list(type = "gene", content = c("ROCK2")), card = TRUE)
 #' make_cellanatogram(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 #' \dontrun{
@@ -1261,14 +1261,14 @@ make_pubmed <- function(input = list(),
 make_cellanatogram <- function(input = list(),
                                card = FALSE) {
   data_gene_subcell <-
-    get_data_object(object_names = input$content,
+    ddh::get_data_object(object_names = input$content,
                     dataset_name = "gene_subcell",
-                    pivotwider = TRUE) %>%
-    dplyr::mutate(value = round(as.numeric(value), 1)) %>%
-    dplyr::select(organ, type, colour, value)
+                    pivotwider = TRUE)
   make_cellanatogram_raw <- function() {
     plot_data <-
       data_gene_subcell %>%
+      dplyr::mutate(value = round(as.numeric(value), 1)) %>%
+      dplyr::select(organ, type, colour, value) %>%
       dplyr::group_by(organ) %>%
       dplyr::summarise(type = type[1], value = mean(value)) %>%
       dplyr::ungroup() %>%
@@ -1307,9 +1307,11 @@ make_cellanatogram <- function(input = list(),
   }
   #error handling
   tryCatch(make_cellanatogram_raw(),
-           error = function(e){
-             message(e)
-             make_bomb_plot()})
+           error = function(){
+             gganatogram::gganatogram(data = NULL, outline = TRUE,
+                                      fillOutline = "grey95",
+                                      organism = "cell") +
+               ggplot2::theme_void()})
 }
 
 #' Cell Anatogram Facet
