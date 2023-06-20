@@ -780,7 +780,7 @@ make_gene_dependency_enrichment_table <- function(input = list()) {
 #' make_molecular_features_segments_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
 make_molecular_features_segments_table <- function(input = list(),
-                                                  ...) {
+                                                   ...) {
   make_molecular_features_segments_table_raw <- function() {
     gene_molecular_features_hits <-
       ddh::get_data_object(object_names = input$content,
@@ -1151,11 +1151,16 @@ make_gene_drugs_cor_table <- function(input = list(),
     gene_drugs_cor_table <-
       get_data_object(object_names = input$content,
                       dataset_name = "gene_drugs_cor_table",
-                      pivotwider = TRUE) %>%
-      dplyr::mutate(across(contains(c("z_score", "r2")), as.numeric)) %>%
-      dplyr::select(-data_set) %>%
-      dplyr::arrange(dplyr::desc(r2)) %>%
-      dplyr::rename(Query = id, Drug = drug, MOA = moa, `Z-score` = z_score, R2 = r2)
+                      pivotwider = TRUE)
+
+    if(nrow(gene_drugs_cor_table) > 0) {
+      gene_drugs_cor_table <-
+        gene_drugs_cor_table%>%
+        dplyr::mutate(across(contains(c("z_score", "r2")), as.numeric)) %>%
+        dplyr::select(-data_set) %>%
+        dplyr::arrange(dplyr::desc(r2)) %>%
+        dplyr::rename(Query = id, Drug = drug, MOA = moa, `Z-score` = z_score, R2 = r2)
+    }
     return(gene_drugs_cor_table)
   }
   tryCatch(make_gene_drugs_cor_table_raw(),
@@ -1223,8 +1228,8 @@ make_gene_drugs_table <- function(input = list()) {
   make_gene_drugs_table_raw <- function() {
     gene_drugs_table <-
       ddh::get_data_object(object_names = input$content,
-                      dataset_name = "gene_drugs_table",
-                      pivotwider = TRUE) %>%
+                           dataset_name = "gene_drugs_table",
+                           pivotwider = TRUE) %>%
       dplyr::select(all_of(c("id", "fav_drug", "moa"))) %>%
       dplyr::arrange(fav_drug)
     return(gene_drugs_table)
