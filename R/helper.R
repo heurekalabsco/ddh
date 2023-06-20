@@ -82,8 +82,20 @@ get_data_object <- function(object_names,
     #dplyr::distinct(id, data_set, key, value) #remove redundancies introduced by rbind()
     #breaks my pivoting, so commenting out
 
+  #add a check to ensure data are there, esp. before pivotin
+  if(nrow(data_object) == 0){
+    empty_table <-
+      tibble::tibble(
+        "id" = character(),
+        "data_set" = character(),
+        "key" = character(),
+        "value" = character()
+      )
+    return(empty_table)
+  }
+
   #pivot wider is last, so it can handle if any objects filter to length zero
-  if(pivotwider == TRUE){ #&& nrow(data_object) > 0
+  if(pivotwider == TRUE){
     col_label <- data_object[[3]][[1]] #first entry in 'key'
     data_object <-
       data_object %>%
