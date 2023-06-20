@@ -1843,7 +1843,8 @@ make_molecular_features_segments <- function(input = list(),
     dplyr::ungroup() %>%
     dplyr::mutate(group = stringr::str_to_title(group),
                   depscore = round(depscore, 4)) %>%
-    dplyr::rename(`Cell Line` = cell_name, `Dep Score` = depscore, Rank = rank)
+    dplyr::rename(`Cell Line` = cell_name, `Dep Score` = depscore, Rank = rank) %>%
+    dplyr::mutate(group = factor(group, levels = c("Resistant", "Neutral", "Sensitive")))
 
   make_molecular_features_segments_raw <- function() {
 
@@ -1853,8 +1854,8 @@ make_molecular_features_segments <- function(input = list(),
       ggplot2::geom_point(size = 2, alpha = 0.6) +
       ## colors
       ggplot2::scale_color_manual(values = c("Sensitive" = ddh_pal_d(palette = "gene")(2)[1],
-                                             "Resistant" = ddh_pal_d(palette = "gene")(2)[2],
-                                             "Neutral" = "grey90")) +
+                                             "Neutral" = "grey90",
+                                             "Resistant" = ddh_pal_d(palette = "gene")(2)[2])) +
       ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = c(0.01, 0.01))) +
       ## titles
       ggplot2::labs(
