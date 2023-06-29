@@ -743,16 +743,17 @@ make_gene_dependency_enrichment_table <- function(input = list()) {
       ddh::get_data_object(object_names = input$content,
                            dataset_name = "gene_dependency_enrichment",
                            pivotwider = TRUE) %>%
-      dplyr::mutate(across(contains(c("NGenes", "PValue", "FDR")), as.numeric)) %>%
+      dplyr::mutate(across(contains(c("NES", "Pval", "adjPval")), as.numeric)) %>%
+      dplyr::mutate_if(is.numeric, ~ signif(., digits = 3)) %>%
       dplyr::select(-data_set) %>%
-
+      dplyr::select(Query = id, Pathway = GeneSet, `P-value` = Pval, FDR = adjPval, Direction, `Pathway Size`, Genes) %>%
       dplyr::mutate(`Gene Set` = gsub("_.*", "", GeneSet)) %>%
       dplyr::rowwise() %>%
       dplyr::mutate(GeneSet = gsub(paste0(`Gene Set`, "_"), "", GeneSet)) %>%
       dplyr::ungroup() %>%
       dplyr::mutate(GeneSet = stringr::str_replace_all(GeneSet, "_", " ")) %>%
-      dplyr::mutate(GeneSet = stringr::str_to_sentence(GeneSet)) %>%
-      dplyr::rename("Query" = "id", "Pathway" = "GeneSet", "# Genes" = "NGenes", "P-value" = "PValue")
+      dplyr::mutate(GeneSet = stringr::str_to_sentence(GeneSet))
+
     return(gene_dependency_enrichment)
   }
   #error handling
@@ -862,7 +863,7 @@ make_molecular_features_pathways_table <- function(input = list(),
       dplyr::mutate(dplyr::across(dplyr::contains(c("pval", "adjPval")), as.numeric)) %>%
       dplyr::mutate_if(is.numeric, ~ signif(., digits = 3)) %>%
       dplyr::select(-data_set) %>%
-      dplyr::rename(Query = id, Pathway = GeneSet, `P-value` = pval, FDR = adjPval) %>%
+      dplyr::rename(Query = id, Pathway = GeneSet, `P-value` = pval, FDR = adjPval, `Pathway Size` = pathway_size) %>%
       dplyr::mutate(`Gene Set` = gsub("_.*", "", Pathway)) %>%
       dplyr::rowwise() %>%
       dplyr::mutate(Pathway = gsub(paste0(`Gene Set`, "_"), "", Pathway)) %>%

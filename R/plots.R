@@ -1984,7 +1984,6 @@ make_molecular_features_pathways <- function(input = list(),
         x = "-log10(P-value)",
         y = NULL) +
       ddh::theme_ddh(grid = "y") +
-      ggplot2::facet_wrap(~ Direction) +
       NULL
 
     return(plot_complete)
