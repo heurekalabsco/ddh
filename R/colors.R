@@ -1,5 +1,14 @@
-#COLORS----
-#' Function to load DDH colors
+# LOAD DDH COLORS-----------------------------------------------------
+#'
+#' Loads and defines colors & palettes for DDH
+#'
+#' @return Returns a list of color sets and their alpha versions along with palette functions for genes
+#' proteins, cells, and compounds, which can then be loaded into DDH
+#'
+#' @examples
+#' data_colors <- load_colors()
+#'
+#' @author Matthew Hirschey & Pol Castellano
 #'
 #' @export
 load_ddh_colors <- function() {
@@ -71,15 +80,22 @@ load_ddh_colors <- function() {
 
 }
 
-#' Function to generate color palettes
+#' GENERATE COLORS----------------------------------------------
+#'
+#' Generates color palettes using a specified main color
 #'
 #' @param hex Hex code for main color as string
-#' @param discrete Reorder for categorical data to place main color first
-#' @return A set of three colors
+#' @param discrete If true, categorical data is reordered to place main color first
+#'
+#' @return A set, or palette, of three colors
 #'
 #' @examples
 #' generate_colors("#2EC09C")
 #' generate_colors("#BE34EF")
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @export
 generate_colors <- function(hex, discrete = FALSE) {
   color_set <- c(
     colorspace::desaturate(colorspace::lighten(hex, .6), .2),
@@ -93,16 +109,24 @@ generate_colors <- function(hex, discrete = FALSE) {
 }
 
 
-#' Function to generate shuffled colors based on `colorRampPalette`
+#' COLOR RAMP PALETTE SHUFFLE ----------------------------------
+#'
+#' Generates a shuffled color palette based on `colorRampPalette`
 #'
 #' @param colors Colors to interpolate; must be a valid argument to col2rgb().
-#' @return A function with argument a vector of values between 0 and 1 that are
+#' @param seed If NULL, set to a randomized integer. Otherwise, takes on given integer value
+#'
+#' @return A function with an argument vector containing values between 0 and 1 that are
 #'         mapped to a numeric matrix of RGB color values with one row per color
 #'         and 3 or 4 columns
 #'
 #' @examples
 #' colorRampPalette_shuffle(colors = c("#DEBBF4", "#BE34EF", "#AC7B84"))
 #' colorRampPalette_shuffle(colors = c("#DEBBF4", "#BE34EF", "#AC7B84"), seed = 123L)
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @export
 colorRampPalette_shuffle <- function (colors, seed = NULL, ...)
 {
   if (is.null(seed)) seed <- sample.int(999999999, 1)
@@ -120,13 +144,21 @@ colorRampPalette_shuffle <- function (colors, seed = NULL, ...)
   }
 }
 
-#' Function to extract DDH colors as hex codes
+#' DDH COLORS --------------------------------------------------
 #'
-#' @param ... Character names of colors
+#' Extracts DDH colors as hex codes
+#'
+#' @param ... Categorical character names of colors - some combination of "gene", "protein",
+#' "gene_protein", "cell", and "compound"
+#'
+#' @return If no arguments provided, DDH's full color set is returned. If parameters provided,
+#' the corresponding categories' color subsets are returned.
 #'
 #' @examples
 #' ddh_colors()
 #' ddh_colors("gene")
+#'
+#' @author Matthew Hirschey & Pol Castellano
 #'
 #' @export
 ddh_colors <- function(...) {
@@ -147,16 +179,22 @@ ddh_colors <- function(...) {
 }
 
 
-#' Return function to interpolate a continuous DDH color palette
+#' DDH PAL C
+#'
+#' Returns a function that can easily generate and interpolate a continuous DDH color palette
 #'
 #' @param palette Character name of palette in ddh_palettes
 #' @param reverse Boolean indicating whether the palette should be reversed
 #' @param ... Additional arguments to pass to [grDevices::colorRampPalette()]
 #'
+#' @return A color palette function created using `colorRampPalette`
+#'
 #' @examples
 #' ddh_pal_c()(10)
 #' ddh_pal_c("protein")(3)
 #' ddh_pal_c("cOMPOUND", reverse = TRUE)(5)
+#'
+#' @author Matthew Hirschey & Pol Castellano
 #'
 #' @export
 ddh_pal_c <- function(palette = "gene", reverse = FALSE, ...) {
