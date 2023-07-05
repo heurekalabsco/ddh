@@ -1,11 +1,28 @@
 ## SETUP GRAPH ----------------------------------------------------------------------
-#' Setup graph parameters
 #'
-#' The overall purpose of this function is to create an object that can be used to generate a network graph by filtering the query object. A list is returned that has four elements.
+#' This function creates an object that can be used to generate a network graph by
+#' filtering the query object by certain gene parameters.
+#'
+#' @param setup_input A list containing the character vector of gene_symbols used to set up network graph
+#' @param setup_threshold A numerical value bounding the rank of potential genes during filtering
+#' @param setup_corr_type A string that describes what type of correlations to include. Options are: "positive", "negative", and "both".
+#'
+#' @return Outputs a list with four elements containing the full dataset, threshold values, and selected genes that can then be utilized to produce a network graph.
+#'
+#' @examples
+#'
+#' setup_graph(setup_input = list(type = "gene", content = "ROCK1"), setup_threshold = 10, setup_corr_type = "positive")
+#' setup_graph(setup_input = list(...), setup_threshold = 2, setup_corr_type = "negative")
+#' setup_graph(setup_input = list(...), setup_threshold = 12, setup_corr_type = "both")
+#'
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @export
 #'
 #' @importFrom magrittr %>%
 #'
-#' @export
+#'
 setup_graph <- function(setup_input = list(), #changed name here to prevent var naming overlap for nested funs()
                         setup_threshold,
                         setup_corr_type) {
@@ -71,27 +88,24 @@ setup_graph <- function(setup_input = list(), #changed name here to prevent var 
 }
 
 ## MAKE GRAPH ----------------------------------------------------------------------
-#' Create network graph visualization using visNetwork
+#' Creates network graph visualization using visNetwork
 #'
-#' This function takes in dependency correlations and a gene query list to then output a dependency network graph
-#' visualization containing the top/bottom threshold for each of the top/bottom threshold of the gene query list
+#' This function takes in dependency correlations and a gene query list and outputs a dependency network graph
+#' visualization containing the top/bottom threshold for each of the genes in the gene query list
 #' using visNetwork.
 #'
 #' @param input A list containing character vector of gene_symbols used to create network graph
-#' @param threshold A numerical representing the number of genes to pull from top and bottom tables
+#' @param threshold A numerical value representing the number of genes to pull from top and bottom tables
 #' @param deg A numerical representing the minimum number of connections for a gene to be connected to the network
-#' @param corr_type A string that describes what type of correlations to include, options are: "positive", "negative", or "both"
+#' @param corr_type A string that describes what type of correlations to include. Options are: "positive", "negative", and "both".
 #' @param displayHeight Default to "90vh". The height of the network in pixels ("500px"), as a percentage (100 percent), or as a percentage of the viewport ("70vh", where 70 represents 70 percent of the viewport)
 #' @param displayWidth Default to 100 percent. The width of the network in pixels ("500px"), as a percentage (100 percent), or as a percentage of the viewport ("70vh", where 70 represents 70 percent of the viewport)
 #' @param tooltipLink Boolean to denote whether or not to include a link in the tooltip for a gene. Default to false.
 #'
 #' @return Outputs a complete network graph. If an error is thrown, then will return an empty graph.
 #'
-#' @importFrom magrittr %>%
-#' @import visNetwork
-#'
-#' @export
 #' @examples
+#'
 #' make_graph(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_graph(input = list(type = "gene", content = "ROCK1"))
 #' make_graph(input = list(type = "gene", content = "ROCK1"), threshold = 15)
@@ -102,6 +116,15 @@ setup_graph <- function(setup_input = list(), #changed name here to prevent var 
 #' make_graph(input = list(type = "pathway", query = "1902965", content = c("RDX", "ROCK2", "DTX3L", "MSN", "SORL1", "EZR")), corr_type = "positive")
 #' make_graph(input = list(type = "gene", content = "DTX3L"), corr_type = "negative") # disconnected query gene
 #' make_graph(input = list(type = "compound", content = "aspirin"), corr_type = "negative")
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#
+#' @export
+#'
+#' @importFrom magrittr %>%
+#' @import visNetwork
+#'
+#'
 make_graph <- function(input = list(),
                        threshold = 10,
                        deg = 2,
@@ -402,20 +425,20 @@ graph_title <- "Network Graph."
 graph_legend <- "Each point represents a single gene taken from the top associated genes with the query gene. Genes with only one connection were removed."
 graph_legend_list <- "Each point represents one of the queried genes, and then the top and bottom associated genes with it. Genes with only one connection were removed."
 
-#' Bipartite Graph Graph
+#' BIPARTITE GRAPH----------------------------------------------------------------------
 #'
-#' \code{make_bipartite_graph} returns an image of ...
+#' This graph function takes a gene name and returns a bipartite graph visualization for it.
 #'
-#' This is a graph function that takes a gene name and returns a bipartite graph graph
+#' @param input A list containing character vector of gene_symbols used to create bipartite graph
+#' @param censor ??
+#' @param collapsed ??
+#' @param threshold A numerical value representing the number of genes to pull from top/ bottom tables
+#' @param corr_type A string that describes what type of correlations to include. Options are: "positive", "negative", and "both".
 #'
-#' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a bipartite graph graph. If an error is thrown, then will return an empty graph.
+#' @return If no error, a bipartite graph visualization is returned. If an error is thrown, then an empty graph is returned.
 #'
-#' @importFrom magrittr %>%
-#' @import visNetwork
-#'
-#' @export
 #' @examples
+#'
 #' make_bipartite_graph(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_bipartite_graph(input = list(type = "gene", content = "ROCK1"), collapsed = TRUE, threshold = 10, corr_type = "positive")
 #' make_bipartite_graph(input = list(type = "gene", content = c("ROCK1", "ROCK2")), collapsed = TRUE, threshold = 10, corr_type = "positive", censor = c("ADP", "Adenosine triphosphate"))
@@ -423,6 +446,15 @@ graph_legend_list <- "Each point represents one of the queried genes, and then t
 #' \dontrun{
 #' make_bipartite_graph(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#' @import visNetwork
+#'
+#' @export
+#'
+#'
 make_bipartite_graph <- function(input = list(),
                                  # data_master_top_table = gene_master_top_table,
                                  # data_master_bottom_table = gene_master_bottom_table,
