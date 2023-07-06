@@ -40,19 +40,24 @@ make_summary_gene <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' make_summary_pathway(input = list(query = "16769"), var = "gs_description")
-#' make_summary_pathway(input = list(query = "16769"), var = "pathway_size")
+#' make_summary_pathway(input = list(content = "GOBP_FIBROBLAST_GROWTH_FACTOR_PRODUCTION"), var = "gs_name")
+#' make_summary_pathway(input = list(content = "GOBP_FIBROBLAST_GROWTH_FACTOR_PRODUCTION"), var = "gs_cat")
+#' make_summary_pathway(input = list(content = "GOBP_FIBROBLAST_GROWTH_FACTOR_PRODUCTION"), var = "gs_description")
+#' make_summary_pathway(input = list(content = "GOBP_FIBROBLAST_GROWTH_FACTOR_PRODUCTION"), var = "pathway_size")
 make_summary_pathway <- function(input = list(),
                                  var = "gs_description") {
-  if (is.null(input$query)) {
+  if (is.null(input$content)) {
     return (NULL)
   }
   pathway_summary_var <-
-    get_data_object(object_name = input$query,
-                    dataset_name = "universal_pathways",
-                    pivotwider = FALSE) %>%
-    dplyr::filter(key == var) %>%
-    dplyr::pull(value) #any column name
+    get_content("universal_pathways", dataset = TRUE) %>%
+    dplyr::filter(gs_name %in% input$content) %>%
+    dplyr::mutate(gs_name = sub("^[^_]*_", "", gs_name)) %>%
+    dplyr::mutate(gs_name = gsub("_", " ", gs_name),
+                  gs_name = stringr::str_to_title(gs_name)) %>%
+    dplyr::select(dplyr::all_of(var)) %>%
+    dplyr::pull(1) %>% #any column name
+    unique()
   return(pathway_summary_var)
 }
 

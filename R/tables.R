@@ -943,7 +943,7 @@ make_cca_genes_table <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' make_cca_pathway_table(input = list(type = 'pathway', content = 'GOBP_FIBROBLAST_GROWTH_FACTOR_PRODUCTION'))
+#' make_cca_pathway_table(input = list(type = 'pathway', content = 'GOMF_NUCLEOTIDE_PHOSPHATASE_ACTIVITY_ACTING_ON_FREE_NUCLEOTIDES'))
 #' \dontrun{
 #' make_cca_pathway_table(input = list(type = 'pathway', content = 'GOBP_FIBROBLAST_GROWTH_FACTOR_PRODUCTION'))
 #' }
