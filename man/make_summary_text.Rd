@@ -17,4 +17,5 @@ This function takes one or many genes as inputs and returns summary list key sum
 \examples{
 make_summary_text(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 make_summary_text(input = list(type = "cell", content = c("HEL", "HEPG2")))
+make_summary_text(input = list(type = "gene", subtype = "pathway", query = 5887))
 }
