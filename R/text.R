@@ -96,7 +96,7 @@ make_summary_text <- function(input = list(),
                                     <div><b>Category: </b>{pathway_summary_var$gs_cat[1]}</div>
                                     <div><b>Subategory: </b>{pathway_summary_var$gs_subcat[1]}</div>
                                     <div><b>Size: </b>{pathway_summary_var$pathway_size[1]}</div>
-                                    <div><b>URL: </b><a>{pathway_summary_var$gs_url[1]}</a></div>
+                                    <div><b>URL: </b><a href='{pathway_summary_var$gs_url[1]}' target='_blank'>{pathway_summary_var$gs_url[1]}</a></div>
                                     <div><b>Genes: </b></div>
                                     <div><p>{paste0(pathway_summary_var$human_gene_symbol, collapse = ', ')}</p></div>
                                     <div><b>Description: </b></div>
