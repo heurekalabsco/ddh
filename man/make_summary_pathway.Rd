@@ -15,8 +15,8 @@ make_summary_pathway(input = list(), var = "gs_description")
 The make_pathway_summary function takes an id as a character input and returns summary information of the pathway.
 }
 \examples{
-make_summary_pathway(input = list(content = "GOBP_FIBROBLAST_GROWTH_FACTOR_PRODUCTION"), var = "gs_name")
-make_summary_pathway(input = list(content = "GOBP_FIBROBLAST_GROWTH_FACTOR_PRODUCTION"), var = "gs_cat")
-make_summary_pathway(input = list(content = "GOBP_FIBROBLAST_GROWTH_FACTOR_PRODUCTION"), var = "gs_description")
-make_summary_pathway(input = list(content = "GOBP_FIBROBLAST_GROWTH_FACTOR_PRODUCTION"), var = "pathway_size")
+make_summary_pathway(input = list(query = 5887), var = "gs_name")
+make_summary_pathway(input = list(query = 5887), var = "gs_cat")
+make_summary_pathway(input = list(query = 5887), var = "gs_description")
+make_summary_pathway(input = list(query = 5887), var = "pathway_size")
 }
