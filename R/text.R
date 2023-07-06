@@ -74,34 +74,57 @@ make_summary_pathway <- function(input = list(),
 #' @examples
 #' make_summary_text(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 #' make_summary_text(input = list(type = "cell", content = c("HEL", "HEPG2")))
+#' make_summary_text(input = list(type = "gene", subtype = "pathway", query = 5887))
 make_summary_text <- function(input = list(),
                               summary_len = 40, # number of WORDS
                               ...) {
-  if (is.null(input$content)) {
+  if (is.null(input$query) & is.null(input$content)) {
     return (NULL)
   }
 
-  if(input$type == "gene") {
-    data_gene_location <-
-      get_data_object(object_names = input$content,
-                      dataset_name = "gene_location",
-                      pivotwider = TRUE)
+  if (input$type == "gene") {
+    if (input$subtype == "pathway") {
+      pathway_summary_var <-
+        get_content("universal_pathways", dataset = TRUE) %>%
+        dplyr::filter(gs_id %in% input$query) %>%
+        dplyr::mutate(gs_name = sub("^[^_]*_", "", gs_name)) %>%
+        dplyr::mutate(gs_name = gsub("_", " ", gs_name),
+                      gs_name = stringr::str_to_title(gs_name))
 
-    custom_list <-
-      get_data_object(object_name = input$content,
-                      dataset_name = "universal_gene_summary",
-                      pivotwider = TRUE) %>%
-      dplyr::left_join(data_gene_location, by = "id") %>%
-      dplyr::mutate(across(contains(c("count", "rank")), as.numeric))
+      valid_summaries <- glue::glue("<div><h3>Pathway: {pathway_summary_var$gs_name[1]}</h3></div>
+                                    <div><b>Gene Set ID: </b>{pathway_summary_var$gs_id[1]}</div>
+                                    <div><b>Category: </b>{pathway_summary_var$gs_cat[1]}</div>
+                                    <div><b>Subategory: </b>{pathway_summary_var$gs_subcat[1]}</div>
+                                    <div><b>Size: </b>{pathway_summary_var$pathway_size[1]}</div>
+                                    <div><b>URL: </b>{pathway_summary_var$gs_url[1]}</div>
+                                    <div><b>Genes: </b></div>
+                                    <div><p>{paste0(pathway_summary_var$human_gene_symbol, collapse = ', ')}</p></div>
+                                    <div><b>Description: </b></div>
+                                    <div><p>{pathway_summary_var$gs_description[1]}</p></div>
+                                    ") %>%
+        htmltools::HTML()
 
-    custom_list[custom_list == "NA"] <- NA
-    custom_list[custom_list == ""] <- NA
-    custom_list <-
-      custom_list %>%
-      dplyr::mutate_all(~ ifelse(is.na(.), "No info.", .))
+    } else {
+      data_gene_location <-
+        get_data_object(object_names = input$content,
+                        dataset_name = "gene_location",
+                        pivotwider = TRUE)
 
-    if (length(input$content) == 1) {
-      valid_summaries <- glue::glue("<div><h3>{custom_list$id}: {custom_list$approved_name}</h3></div>
+      custom_list <-
+        get_data_object(object_name = input$content,
+                        dataset_name = "universal_gene_summary",
+                        pivotwider = TRUE) %>%
+        dplyr::left_join(data_gene_location, by = "id") %>%
+        dplyr::mutate(across(contains(c("count", "rank")), as.numeric))
+
+      custom_list[custom_list == "NA"] <- NA
+      custom_list[custom_list == ""] <- NA
+      custom_list <-
+        custom_list %>%
+        dplyr::mutate_all(~ ifelse(is.na(.), "No info.", .))
+
+      if (length(input$content) == 1) {
+        valid_summaries <- glue::glue("<div><h3>{custom_list$id}: {custom_list$approved_name}</h3></div>
                                     <div><b>Entrez ID: </b><a href='https://www.ncbi.nlm.nih.gov/gene/?term={custom_list$ncbi_gene_id}' target='_blank'>{custom_list$ncbi_gene_id}</a></div>
                                     <div><b>ENSEMBL ID: </b>{custom_list$ensembl_gene_id}</div>
                                     <div><b>Chromosome: </b>{custom_list$chromosome}</div>
@@ -110,39 +133,41 @@ make_summary_text <- function(input = list(),
                                     <div><b>Description: </b></div>
                                     <div><p>{custom_list$entrez_summary}</p></div>
                                     ") %>%
-        htmltools::HTML()
-    } else {
-      custom_list <-
-        custom_list %>%
-        dplyr::mutate(entrez_summary = ifelse(stringr::str_count(entrez_summary) >= summary_len,
-                                              paste0(gsub(paste0("^((\\w+\\W+){", summary_len, "}\\w+).*$"), "\\1", entrez_summary), " ..."),
-                                              entrez_summary)
-        )
+          htmltools::HTML()
+      } else {
+        custom_list <-
+          custom_list %>%
+          dplyr::mutate(entrez_summary = ifelse(stringr::str_count(entrez_summary) >= summary_len,
+                                                paste0(gsub(paste0("^((\\w+\\W+){", summary_len, "}\\w+).*$"), "\\1", entrez_summary), " ..."),
+                                                entrez_summary)
+          )
 
-      custom_list_split <- split(custom_list, custom_list$id)
+        custom_list_split <- split(custom_list, custom_list$id)
 
-      tab_fun_gene <- function(custom_list_split){
-        summary_tables <- list()
-        for (i in names(custom_list_split)){
-          tabledata <- custom_list_split[[i]]
-          summary_tables[[i]] <- glue::glue("<div><a href='?show=gene&query={tabledata$id}' target='_blank'><h3>{tabledata$id}</a>: {tabledata$approved_name}</h3></div>
+        tab_fun_gene <- function(custom_list_split){
+          summary_tables <- list()
+          for (i in names(custom_list_split)){
+            tabledata <- custom_list_split[[i]]
+            summary_tables[[i]] <- glue::glue("<div><a href='?show=gene&query={tabledata$id}' target='_blank'><h3>{tabledata$id}</a>: {tabledata$approved_name}</h3></div>
                                             <div><b>Entrez ID: </b><a href='https://www.ncbi.nlm.nih.gov/gene/?term={tabledata$ncbi_gene_id}' target='_blank'>{tabledata$ncbi_gene_id}</a></div>
                                             <div><b>ENSEMBL ID: </b>{tabledata$ensembl_gene_id}</div>
                                             <div><b>Description: </b></div>
                                             <div><p>{tabledata$entrez_summary}</p></div>
                                             ")
+          }
+          return(dplyr::bind_rows(summary_tables) %>%
+                   tidyr::unite("text", dplyr::everything(), sep = " ")
+          )
         }
-        return(dplyr::bind_rows(summary_tables) %>%
-                 tidyr::unite("text", dplyr::everything(), sep = " ")
-        )
-      }
 
-      valid_summaries <-
-        custom_list_split %>%
-        tab_fun_gene() %>%
-        dplyr::pull(text) %>%
-        htmltools::HTML()
+        valid_summaries <-
+          custom_list_split %>%
+          tab_fun_gene() %>%
+          dplyr::pull(text) %>%
+          htmltools::HTML()
+      }
     }
+  }
 
   # } else if (input$type == "cell") {
     # custom_list <-
@@ -203,7 +228,7 @@ make_summary_text <- function(input = list(),
     #     dplyr::pull(text) %>%
     #     htmltools::HTML()
     # }
-  }
+
   return(valid_summaries)
 }
 
