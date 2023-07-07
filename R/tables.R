@@ -2,8 +2,6 @@
 # PATHWAY TABLES -----
 #' Pathway List Table
 #'
-#' \code{make_pathway_list} returns an image of ...
-#'
 #' This is a table function that takes a gene name and returns a sub-table of gene sets and pathways that contain your gene query
 #'
 #' @param input Expecting a list containing type and content variable.
@@ -13,50 +11,31 @@
 #'
 #' @export
 #' @examples
-#' make_pathway_list(input = list(type = 'gene', content = 'ROCK1'))
-#' make_pathway_list(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
-#' \dontrun{
-#' make_pathway_list(input = list(type = 'gene', content = 'ROCK1'))
-#' }
-make_pathway_list <- function(input = list()) {
-  make_pathway_list_raw <- function() {
-    gene_pathways <-
-      get_data_object(object_name = input$content,
-                      dataset_name = "universal_gene_pathways",
-                      pivotwider = TRUE) %>%
-      dplyr::select(-any_of(c("id", "data_set")))
-    return(gene_pathways)
+#' make_pathway_table(input = list(type = 'gene', subtype = 'gene', content = 'ROCK1'))
+#' make_pathway_table(input = list(type = 'gene', subtype = 'gene', content = c('ROCK1', 'ROCK2')))
+#' make_pathway_table(input = list(type = 'gene', subtype = 'pathway', query = 5887))
+make_pathway_table <- function(input = list()) {
+  make_pathway_table_raw <- function() {
+    if(input$subtype != "pathway") {
+      pathways_table <-
+        get_data_object(object_name = input$content,
+                        dataset_name = "universal_gene_pathways",
+                        pivotwider = TRUE) %>%
+        dplyr::select(-any_of(c("id", "data_set")))
+      return(pathways_table)
+    } else {
+      pathways_table <-
+        get_data_object(object_name = input$query,
+                        dataset_name = "universal_pathways",
+                        pivotwider = TRUE) %>%
+        dplyr::select(Gene = human_gene_symbol,
+                      `Entrez ID` = human_entrez_gene,
+                      `ENSEMBL ID` = human_ensembl_gene)
+    }
+    return(pathways_table)
   }
   #error handling
-  tryCatch(make_pathway_list_raw(),
-           error = function(e){
-             message(e)
-           })
-}
-
-#' Pathway Genes Table
-#'
-#' \code{make_pathway_genes} returns a table of genes in a queried pathway
-#'
-#' This is a table function that takes a gene_set id in the query slot and returns a sub-table of genes that your gene set contains
-#'#'
-#' @importFrom magrittr %>%
-#'
-#' @export
-#' @examples
-#' make_pathway_genes(input = list(type = 'gene', subtype = 'pathway', query = 5887))
-make_pathway_genes <- function(input = list()){
-  make_pathway_genes_raw <- function() {
-    gene_pathways_table <-
-      get_data_object(object_name = input$query,
-                      dataset_name = "universal_pathways",
-                      pivotwider = TRUE) %>%
-      dplyr::select(Gene = human_gene_symbol, `Entrez ID` = human_entrez_gene, `ENSEMBL ID` = human_ensembl_gene)
-
-    return(gene_pathways_table)
-  }
-  #error handling
-  tryCatch(make_pathway_genes_raw(),
+  tryCatch(make_pathway_table_raw(),
            error = function(e){
              message(e)
            })
