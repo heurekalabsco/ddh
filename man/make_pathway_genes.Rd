@@ -14,5 +14,5 @@ This is a table function that takes a gene_set id in the query slot and returns 
 #'
 }
 \examples{
-make_pathway_genes(input = list(type = 'gene', subtype = 'pathway', query = '16769'))
+make_pathway_genes(input = list(type = 'gene', subtype = 'pathway', query = 5887))
 }

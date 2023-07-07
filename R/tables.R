@@ -44,21 +44,16 @@ make_pathway_list <- function(input = list()) {
 #'
 #' @export
 #' @examples
-#' make_pathway_genes(input = list(type = 'gene', subtype = 'pathway', query = '16769'))
+#' make_pathway_genes(input = list(type = 'gene', subtype = 'pathway', query = 5887))
 make_pathway_genes <- function(input = list()){
   make_pathway_genes_raw <- function() {
-    gene_pathways <-
+    gene_pathways_table <-
       get_data_object(object_name = input$query,
                       dataset_name = "universal_pathways",
                       pivotwider = TRUE) %>%
-      dplyr::select(gene_symbol) %>%
-      tidyr::unnest(cols = "gene_symbol")
-    gene_pathway_table <-
-      gene_pathways %>%
-      # dplyr::filter(gene_symbol %in% c("ROCK1", "ROCK2")) %>% #for testing
-      dplyr::mutate(gene_description = purrr::map_chr(gene_symbol, ~ make_summary_gene(input = list(content = .), var = "approved_name")))
+      dplyr::select(Gene = human_gene_symbol, `Entrez ID` = human_entrez_gene, `ENSEMBL ID` = human_ensembl_gene)
 
-    return(gene_pathway_table)
+    return(gene_pathways_table)
   }
   #error handling
   tryCatch(make_pathway_genes_raw(),

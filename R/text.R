@@ -50,8 +50,9 @@ make_summary_pathway <- function(input = list(),
     return (NULL)
   }
   pathway_summary_var <-
-    get_content("universal_pathways", dataset = TRUE) %>%
-    dplyr::filter(gs_id %in% input$query) %>%
+    get_data_object(object_name = input$query,
+                    dataset_name = "universal_pathways",
+                    pivotwider = TRUE) %>%
     dplyr::mutate(gs_name = sub("^[^_]*_", "", gs_name)) %>%
     dplyr::mutate(gs_name = gsub("_", " ", gs_name),
                   gs_name = stringr::str_to_title(gs_name)) %>%
@@ -85,8 +86,9 @@ make_summary_text <- function(input = list(),
   if (input$type == "gene") {
     if (input$subtype == "pathway") {
       pathway_summary_var <-
-        get_content("universal_pathways", dataset = TRUE) %>%
-        dplyr::filter(gs_id %in% input$query) %>%
+        get_data_object(object_name = input$query,
+                        dataset_name = "universal_pathways",
+                        pivotwider = TRUE) %>%
         dplyr::mutate(gs_name = sub("^[^_]*_", "", gs_name)) %>%
         dplyr::mutate(gs_name = gsub("_", " ", gs_name),
                       gs_name = stringr::str_to_title(gs_name))
