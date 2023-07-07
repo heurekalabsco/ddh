@@ -94,7 +94,7 @@ make_summary_text <- function(input = list(),
                       gs_name = stringr::str_to_title(gs_name))
 
       valid_summaries <- glue::glue("<div><h3>Pathway: {pathway_summary_var$gs_name[1]}</h3></div>
-                                    <div><b>Gene Set ID: </b>{pathway_summary_var$gs_id[1]}</div>
+                                    <div><b>Gene Set ID: </b>{pathway_summary_var$id[1]}</div>
                                     <div><b>Category: </b>{pathway_summary_var$gs_cat[1]}</div>
                                     <div><b>Subategory: </b>{pathway_summary_var$gs_subcat[1]}</div>
                                     <div><b>Size: </b>{pathway_summary_var$pathway_size[1]}</div>
