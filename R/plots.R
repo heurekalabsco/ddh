@@ -2058,6 +2058,71 @@ make_cca_genes <- function(input = list(),
              make_bomb_plot()})
 }
 
+## CCA PATHWAYS PLOT ---------------------------------------------------
+#' Co-essentiality Pathway Plot
+#'
+#' Top 10 pathways associated to the queried pathway/s. The x-axis shows the first canonical correlation between pathways (range 0-1).
+#'
+#' @param input Expecting a list containing type and content variable.
+#'
+#' @return If no error, then returns a barplot. If an error is thrown, then will return a bomb plot.
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' make_cca_pathways(input = list(type = 'pathway', query = 5887))
+#' make_cca_pathways(input = list(type = 'pathway', query = 5887), gset = "GOBP")
+#' make_cca_pathways(input = list(type = 'pathway', query = 5887), gset = c("GOBP", "C2"))
+make_cca_pathways <- function(input = list(),
+                              n_features = 10,
+                              gset = NULL,
+                              ...) {
+
+  pathway_pathways_hits <- ddh::make_cca_pathway_table(input = input, gene_set = gset)
+
+  make_cca_pathways_raw <- function() {
+
+    plot_data <-
+      pathway_pathways_hits %>%
+      dplyr::group_by(Query) %>%
+      dplyr::slice(1:n_features) %>%
+      dplyr::ungroup() %>%
+      dplyr::mutate(min_cc = min(CC))
+
+    plot_complete <- plot_data %>%
+      ggplot2::ggplot(ggplot2::aes(CC, reorder(Pathway, CC), fill = `Gene Set`)) +
+      ggplot2::geom_col() +
+      scale_fill_ddh_d() +
+      ggplot2::labs(
+        x = "Correlation",
+        y = NULL,
+        fill = "Gene Set") +
+      ddh::theme_ddh(grid = "y") +
+      ggplot2::coord_cartesian(xlim = c(plot_data$min_cc[1] - 0.01, plot_data$CC[1] + 0.01)) +
+      NULL
+
+    if (length(input$content) > 1) {
+      plot_complete <-
+        plot_complete +
+        ggplot2::facet_wrap(~ Query)
+    }
+
+    if (!is.null(gset) & length(gset) == 1) {
+      plot_complete <-
+        plot_complete +
+        ggplot2::theme(legend.position = "none")
+    }
+
+    return(plot_complete)
+  }
+  #error handling
+  tryCatch(make_cca_pathways_raw(),
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
+}
+
 ## CELL DEPS --------------------------------------------------------------------
 #' Dependency Curve Plot
 #'

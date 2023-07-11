@@ -917,29 +917,36 @@ make_cca_genes_table <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' make_cca_pathway_table(input = list(type = 'pathway', content = 'GOMF_NUCLEOTIDE_PHOSPHATASE_ACTIVITY_ACTING_ON_FREE_NUCLEOTIDES'))
+#' make_cca_pathway_table(input = list(type = 'pathway', query = 5887))
 #' \dontrun{
-#' make_cca_pathway_table(input = list(type = 'pathway', content = 'GOBP_FIBROBLAST_GROWTH_FACTOR_PRODUCTION'))
+#' make_cca_pathway_table(input = list(type = 'pathway', query = 5887))
 #' }
 make_cca_pathway_table <- function(input = list(),
                                    gene_set = NULL,
                                    ...) {
   make_cca_pathway_table_raw <- function() {
     pathway_pathway_hits <-
-      ddh::get_data_object(object_names = input$content,
+      ddh::get_data_object(object_names = input$query,
                            dataset_name = "pathway_cca_pathway",
                            pivotwider = TRUE) %>%
       dplyr::mutate(dplyr::across(QuerySize:CCS, as.numeric)) %>%
       dplyr::select(-data_set) %>%
-      dplyr::mutate(`Gene Set` = gsub("_.*", "", Pathway)) %>%
+      dplyr::mutate(Query_geneset = gsub("_.*", "", Query),
+                    `Gene Set` = gsub("_.*", "", Pathway)) %>%
       dplyr::rowwise() %>%
-      dplyr::mutate(Pathway = gsub(paste0(`Gene Set`, "_"), "", Pathway)) %>%
+      dplyr::mutate(Query = gsub(paste0(Query_geneset, "_"), "", Query),
+                    Pathway = gsub(paste0(`Gene Set`, "_"), "", Pathway)) %>%
       dplyr::ungroup() %>%
-      dplyr::rename(Query = id) %>%
+      dplyr::rename(`Query ID` = id) %>%
       dplyr::mutate(Query = stringr::str_replace_all(Query, "_", " "),
                     Pathway = stringr::str_replace_all(Pathway, "_", " ")) %>%
       dplyr::mutate(Query = stringr::str_to_sentence(Query),
-                    Pathway = stringr::str_to_sentence(Pathway))
+                    Pathway = stringr::str_to_sentence(Pathway)) %>%
+      dplyr::rename("# Genes Query" = QuerySize, "# Genes Pathway" = PathwaySize,
+                    "Explained Variance Query" = QueryVarExp,
+                    "Explained Variance Pathway" = PathwayVarExp,
+                    CC = CC1, "Query Gene Set" = Query_geneset) %>%
+      dplyr::select(-CCS)
 
     if(!is.null(gene_set)) {
       if (!any(gene_set %in% pathway_pathway_hits$`Gene Set`)) stop ("Gene set not found.")

@@ -16,8 +16,8 @@ If no error, then returns a pathway-pathway table. If an error is thrown, then w
 This is a table function that takes a pathway name and returns a pathway-pathway table
 }
 \examples{
-make_cca_pathway_table(input = list(type = 'pathway', content = 'GOMF_NUCLEOTIDE_PHOSPHATASE_ACTIVITY_ACTING_ON_FREE_NUCLEOTIDES'))
+make_cca_pathway_table(input = list(type = 'pathway', query = 5887))
 \dontrun{
-make_cca_pathway_table(input = list(type = 'pathway', content = 'GOBP_FIBROBLAST_GROWTH_FACTOR_PRODUCTION'))
+make_cca_pathway_table(input = list(type = 'pathway', query = 5887))
 }
 }
