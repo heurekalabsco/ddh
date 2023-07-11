@@ -917,14 +917,14 @@ make_cca_genes_table <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' make_cca_pathway_table(input = list(type = 'pathway', query = 5887))
+#' make_cca_pathways_table(input = list(type = 'pathway', query = 5887))
 #' \dontrun{
-#' make_cca_pathway_table(input = list(type = 'pathway', query = 5887))
+#' make_cca_pathways_table(input = list(type = 'pathway', query = 5887))
 #' }
-make_cca_pathway_table <- function(input = list(),
-                                   gene_set = NULL,
-                                   ...) {
-  make_cca_pathway_table_raw <- function() {
+make_cca_pathways_table <- function(input = list(),
+                                    gene_set = NULL,
+                                    ...) {
+  make_cca_pathways_table_raw <- function() {
     pathway_pathway_hits <-
       ddh::get_data_object(object_names = input$query,
                            dataset_name = "pathway_cca_pathway",
@@ -957,7 +957,7 @@ make_cca_pathway_table <- function(input = list(),
     return(pathway_pathway_hits)
   }
   #error handling
-  tryCatch(make_cca_pathway_table_raw(),
+  tryCatch(make_cca_pathways_table_raw(),
            error = function(e){
              message(e)
            })

@@ -2022,11 +2022,14 @@ make_cca_genes <- function(input = list(),
 
   make_cca_genes_raw <- function() {
 
-    plot_complete <-
+    plot_data <-
       gene_pathways_hits %>%
       dplyr::group_by(Query) %>%
       dplyr::slice(1:n_features) %>%
       dplyr::ungroup() %>%
+      dplyr::mutate(min_cc = min(CC))
+
+    plot_complete <- plot_data %>%
       ggplot2::ggplot(ggplot2::aes(CC, reorder(Pathway, CC), fill = `Gene Set`)) +
       ggplot2::geom_col() +
       scale_fill_ddh_d() +
@@ -2035,6 +2038,7 @@ make_cca_genes <- function(input = list(),
         y = NULL,
         fill = "Gene Set") +
       ddh::theme_ddh(grid = "y") +
+      ggplot2::coord_cartesian(xlim = c(plot_data$min_cc[1] - 0.01, plot_data$CC[1] + 0.01)) +
       NULL
 
     if (length(input$content) > 1) {
@@ -2079,7 +2083,7 @@ make_cca_pathways <- function(input = list(),
                               gset = NULL,
                               ...) {
 
-  pathway_pathways_hits <- ddh::make_cca_pathway_table(input = input, gene_set = gset)
+  pathway_pathways_hits <- ddh::make_cca_pathways_table(input = input, gene_set = gset)
 
   make_cca_pathways_raw <- function() {
 
@@ -3117,9 +3121,9 @@ make_correlation <- function(input = list(),
       ## labels
       ggplot2::labs(
         x = NULL,
-        y = glue::glue("{text_var} correlations with {content_var}"),
-        color = glue::glue("Query {text_var}"),
-        fill = glue::glue("Query {text_var}")
+        y = "Correlation",
+        color = "Query",
+        fill = "Query"
       ) +
       ## theme changes
       ddh::theme_ddh() +
