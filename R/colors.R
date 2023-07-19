@@ -270,7 +270,7 @@ ddh_pal_d <- function(palette = "gene", reverse = FALSE, shuffle = FALSE, seed =
 }
 
 
-#' SCALE COLOR DDH C
+#' SCALE COLOR DDH C -----------------------------------------------------
 #'
 #' Color scale constructor for continuous DDH color palettes
 #'
@@ -303,9 +303,9 @@ scale_color_ddh_c <- function(palette = "gene", reverse = FALSE, ...) {
   ggplot2::scale_color_gradientn(colours = pal(256), ...)
 }
 
-
-
-#' SCALE COLOR DDH D
+#'
+#'
+#' SCALE COLOR DDH D -------------------------------------------------
 #'
 #' Color scale constructor for discrete DDH colors
 #'
@@ -317,6 +317,8 @@ scale_color_ddh_c <- function(palette = "gene", reverse = FALSE, ...) {
 #'            scale_color_gradientn(), used respectively when discrete is TRUE
 #'            or FALSE
 #'
+#' @return A color scale for discrete color palettes for various categories
+#'
 #' @examples
 #' library(ggplot2)
 #' ggplot(mpg, aes(displ, cty, color = manufacturer)) +
@@ -324,7 +326,6 @@ scale_color_ddh_c <- function(palette = "gene", reverse = FALSE, ...) {
 #' ggplot(iris, aes(Sepal.Width, Sepal.Length, color = Species)) +
 #'   geom_point(size = 4) + scale_color_ddh_d("protein", shuffle = TRUE, seed = 123L)
 #'
-#' @return A color scale for discrete color palettes for various categories
 #'
 #' @author Matthew Hirschey & Pol Castellano
 #'
@@ -342,17 +343,19 @@ scale_color_ddh_d <- function(palette = "gene", reverse = FALSE, shuffle = FALSE
   ggplot2::discrete_scale("colour", paste0("ddh_", palette), palette = pal, ...)
 }
 
-
-
-#' SCALE FILL DDH C
 #'
-#' FillS scale constructor for continuous DDH color palettes
+#'
+#' SCALE FILL DDH C -----------------------------------------------
+#'
+#' Fills scale constructor for continuous DDH color palettes
 #'
 #' @param palette Character name of palette in ddh_palettes
 #' @param reverse Boolean indicating whether the palette should be reversed
 #' @param ... Additional arguments passed to discrete_scale() or
 #'            scale_fill_gradientn(), used respectively when discrete is TRUE
 #'            or FALSE
+#'
+#' @return A filled color scale constructor for continuous palettes
 #'
 #' @examples
 #' library(ggplot2)
@@ -361,6 +364,7 @@ scale_color_ddh_d <- function(palette = "gene", reverse = FALSE, shuffle = FALSE
 #' ggplot(iris, aes(Sepal.Width, Sepal.Length, fill = Sepal.Width)) +
 #'   geom_point(size = 4, shape = 21) +
 #'   scale_fill_ddh_c("Gene_Protein", reverse = TRUE) + theme_ddh()
+#'
 #'
 #' @author Matthew Hirschey & Pol Castellano
 #'
@@ -376,11 +380,11 @@ scale_fill_ddh_c <- function(palette = "gene", reverse = FALSE, ...) {
   ggplot2::scale_fill_gradientn(colours = pal(256), ...)
 }
 
-
-
-#' SCALE FILL DDH D
 #'
-#' FillS scale constructor for discrete DDH color palettes
+#'
+#' SCALE FILL DDH D ---------------------------------------
+#'
+#' Fills scale constructor for discrete DDH color palettes
 #'
 #' @param palette Character name of palette in ddh_palettes
 #' @param reverse Boolean indicating whether the palette should be reversed
@@ -389,6 +393,8 @@ scale_fill_ddh_c <- function(palette = "gene", reverse = FALSE, ...) {
 #' @param ... Additional arguments passed to discrete_scale() or
 #'            scale_fill_gradientn(), used respectively when discrete is TRUE
 #'            or FALSE
+#'
+#' @return A filled color scale constructor for discrete palettes
 #'
 #' @examples
 #' library(ggplot2)
