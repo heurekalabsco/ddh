@@ -192,7 +192,7 @@ ddh_colors <- function(...) {
 #' @examples
 #' ddh_pal_c()(10)
 #' ddh_pal_c("protein")(3)
-#' ddh_pal_c("cOMPOUND", reverse = TRUE)(5)
+#' ddh_pal_c("compound", reverse = TRUE)(5)
 #'
 #' @author Matthew Hirschey & Pol Castellano
 #'
@@ -219,17 +219,26 @@ ddh_pal_c <- function(palette = "gene", reverse = FALSE, ...) {
 }
 
 
-#' Return function to interpolate a discrete DDH color palette
+#' DDH PAL D
+#'
+#' Returns a function that can interpolate a discrete DDH color palette
 #'
 #' @param palette Character name of palette in ddh_palettes
 #' @param reverse Boolean indicating whether the palette should be reversed
+#' @param shuffle Boolean indicating whether the colors should be shuffled
+#' @param seed Boolean setting a seed to ensure consistent randomization
+#'
+#' @return A color palette function created using `colorRampPalette`
 #'
 #' @examples
 #' ddh_pal_d()(10)
 #' ddh_pal_d("protein")(3)
-#' ddh_pal_d("cOMPOUND", reverse = TRUE)(5)
+#' ddh_pal_d("compound", reverse = TRUE, shuffle = FALSE)(5)
+#'
+#' @author Matthew Hirschey & Pol Castellano
 #'
 #' @export
+
 ddh_pal_d <- function(palette = "gene", reverse = FALSE, shuffle = FALSE, seed = NULL) {
 
   palette <- stringr::str_to_lower(palette)
@@ -261,6 +270,8 @@ ddh_pal_d <- function(palette = "gene", reverse = FALSE, shuffle = FALSE, seed =
 }
 
 
+#' SCALE COLOR DDH C
+#'
 #' Color scale constructor for continuous DDH color palettes
 #'
 #' @param palette Character name of palette in ddh_palettes
@@ -268,12 +279,18 @@ ddh_pal_d <- function(palette = "gene", reverse = FALSE, shuffle = FALSE, seed =
 #' @param ... Additional arguments passed to discrete_scale() or
 #'            scale_color_gradientn(), used respectively when discrete is TRUE
 #'            or FALSE
+#'
+#' @return A color scale for continuous color palettes for various categories
+#'
 #' @examples
 #' library(ggplot2)
 #' ggplot(mpg, aes(hwy, cty, color = displ)) + geom_point(size = 4) +
 #' scale_color_ddh_c()
 #' ggplot(iris, aes(Sepal.Width, Sepal.Length, color = Sepal.Width)) +
-#'   geom_point(size = 4) + scale_color_ddh_c("cOMPOUND", reverse = TRUE)
+#' geom_point(size = 4) + scale_color_ddh_c("cOMPOUND", reverse = TRUE)
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
 #' @export
 scale_color_ddh_c <- function(palette = "gene", reverse = FALSE, ...) {
 
@@ -288,6 +305,8 @@ scale_color_ddh_c <- function(palette = "gene", reverse = FALSE, ...) {
 
 
 
+#' SCALE COLOR DDH D
+#'
 #' Color scale constructor for discrete DDH colors
 #'
 #' @param palette Character name of palette in ddh_palettes
@@ -305,6 +324,10 @@ scale_color_ddh_c <- function(palette = "gene", reverse = FALSE, ...) {
 #' ggplot(iris, aes(Sepal.Width, Sepal.Length, color = Species)) +
 #'   geom_point(size = 4) + scale_color_ddh_d("protein", shuffle = TRUE, seed = 123L)
 #'
+#' @return A color scale for discrete color palettes for various categories
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
 #' @export
 scale_color_ddh_d <- function(palette = "gene", reverse = FALSE, shuffle = FALSE, seed = NULL, ...) {
 
@@ -321,7 +344,9 @@ scale_color_ddh_d <- function(palette = "gene", reverse = FALSE, shuffle = FALSE
 
 
 
-#' Fill scale constructor for continuous DDH color palettes
+#' SCALE FILL DDH C
+#'
+#' FillS scale constructor for continuous DDH color palettes
 #'
 #' @param palette Character name of palette in ddh_palettes
 #' @param reverse Boolean indicating whether the palette should be reversed
@@ -337,6 +362,8 @@ scale_color_ddh_d <- function(palette = "gene", reverse = FALSE, shuffle = FALSE
 #'   geom_point(size = 4, shape = 21) +
 #'   scale_fill_ddh_c("Gene_Protein", reverse = TRUE) + theme_ddh()
 #'
+#' @author Matthew Hirschey & Pol Castellano
+#'
 #' @export
 scale_fill_ddh_c <- function(palette = "gene", reverse = FALSE, ...) {
 
@@ -351,7 +378,9 @@ scale_fill_ddh_c <- function(palette = "gene", reverse = FALSE, ...) {
 
 
 
-#' Fill scale constructor for discrete DDH color palettes
+#' SCALE FILL DDH D
+#'
+#' FillS scale constructor for discrete DDH color palettes
 #'
 #' @param palette Character name of palette in ddh_palettes
 #' @param reverse Boolean indicating whether the palette should be reversed
@@ -368,6 +397,8 @@ scale_fill_ddh_c <- function(palette = "gene", reverse = FALSE, ...) {
 #'   scale_fill_ddh_d("protein", reverse = TRUE)
 #' ggplot(mpg, aes(class, fill = class)) + geom_bar() +
 #'   scale_fill_ddh_d("cell", shuffle = TRUE, seed = 1L)
+#'
+#' @author Matthew Hirschey & Pol Castellano
 #'
 #' @export
 scale_fill_ddh_d <- function(palette = "gene", reverse = FALSE, shuffle = FALSE, seed = NULL, ...) {
