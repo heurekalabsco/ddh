@@ -2,14 +2,15 @@
 #this creates a cache, which funs get objects from AWS and place here
 content_cache <- cachem::cache_mem()
 
+#' GET CONTENT ------------------------------------------------
+#'
 #' Function to load data from AWS into environment
 #'
-#' @param object_names String containing file name to get
-#' @param dataset Boolean that will indicate if it is a dataset and therefore fetch from _data/
+#' @param object_name String containing file name to be retrieved
+#' @param dataset Boolean that will indicate if it is a dataset and therefore will fetch from _data/
 #'
-#' @importFrom magrittr %>%
+#' @return Arrow object corresponding to fetched AWS data
 #'
-#' @export
 #' @examples
 #' get_content("ROCK1")
 #' get_content(object_name = "ROCK2")
@@ -17,6 +18,12 @@ content_cache <- cachem::cache_mem()
 #' \dontrun{
 #' get_content("ROCK1")
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 get_content <- function(object_name,
                         dataset = FALSE){
   if(length(object_name) > 1){
@@ -40,14 +47,15 @@ get_content <- function(object_name,
     caching_get_aws_object()
 }
 
+#' GET DATA OBJECT -----------------------------------------------------
+#'
 #' Function to get filtered data object from environment
 #'
 #' @param object_names Character vector, can be greater than 1, of file names to get
 #' @param data_set_name String containing dataset name to filter out from object
 #'
-#' @importFrom magrittr %>%
+#' @return The filtered data object
 #'
-#' @export
 #' @examples
 #' ROCK1 <- get_data_object(object_names = c("ROCK1"))
 #' get_data_object(object_names = c("ROCK1"), dataset_name = "gene_female_tissue")
@@ -59,6 +67,12 @@ get_content <- function(object_name,
 #' \dontrun{
 #' get_data_object(object_name = c("ROCK1"), dataset_name = "gene_female_tissue")
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 get_data_object <- function(object_names,
                             dataset_name = NULL,
                             pivotwider = FALSE){
@@ -109,9 +123,18 @@ get_data_object <- function(object_names,
   return(data_object)
 }
 
-#' Pathway Genes
+#' GET GENE SYMBOLS FOR PATHWAY ------------------------------------------------
 #'
-#'  \code{make_pathway_genes} returns a vector of gene symbols in a queried pathway
+#' Function to return a vector of gene symbols in a queried pathway
+#'
+#' @param pathway_id Establishes pathway for which gene symbols will be pulled
+#'
+#' @return Vector containing gene symbols for selected pathway
+#'
+#' @examples
+#' get_gene_symbols_for_pathway("id")
+#'
+#' @author Matthew Hirschey & Pol Castellano
 #'
 #' @export
 get_gene_symbols_for_pathway <- function(pathway_id) {
@@ -120,16 +143,24 @@ get_gene_symbols_for_pathway <- function(pathway_id) {
     dplyr::pull("value")
 }
 
-#' Get Stats
+#' GET STATS ---------------------------------------------------------------
+#'
+#' Function to extract statistical data for a queried variable
 #'
 #' @param data_set A character indicating data set from which the stats were generated, typically one of achilles, expression_gene, expression_protein, or prism name.
 #' @param var A character indicating the variable to extract from the stats summary dataframe, typically one of threshold, sd, mean, upper, pr lower.
 #'
+#' @return Vector containing statistical information for selected variable
+#'
+#' @examples
+#' get_stats(data_set = "achilles", var = "sd")
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
 #' @importFrom magrittr %>%
 #'
 #' @export
-#' @examples
-#' get_stats(data_set = "achilles", var = "sd")
+
 get_stats <- function(data_set,
                       var){
   universal_stats_summary <- get_content("universal_stats_summary", dataset = TRUE)
@@ -141,28 +172,49 @@ get_stats <- function(data_set,
   return(stat)
 }
 
-#' Create a temporary URL to download a file from a S3 bucket
+#' GET TEMPORARY URL ----------------------------------------------------------
+#'
+#' Creates a temporary URL to download a file from a S3 bucket
+#'
 #' @param bucket_name_env A character the name of an environment variable containing the bucket name
 #' @param key A character the file within the bucket
 #'
+#' @return Temporary URL for S3 bucket access
+#'
+#' @examples
+#' get_temporary_url(??, ??)
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @export
 get_temporary_url <- function(bucket_name_env, key) {
   bucket <- Sys.getenv(bucket_name_env)
   s3 <- paws::s3()
   s3$generate_presigned_url(client_method = "get_object", params = list(Bucket = bucket, Key = key))
 }
 
-#DATA CARDS----
-#' Load single card
+# LOAD IMAGE------------------------------------------------------------
 #'
-#' @importFrom magrittr %>%
+#' Loads an image from a S3 Bucket
 #'
-#' @export
+#' @param input Specifies the type and content of the image to be retrieved
+#' @param fun_name Provides a descriptive name for the image
+#' @param card Boolean defining if type is a card or plot
+#'
+#' @return Returns an image fetched from a S3 bucket
+#'
 #' @examples
 #' load_image(input = list(type = "gene", content = c("ROCK3")), fun_name = "make_female_anatogram")
 #' load_image(input = list(type = "gene", content = c("ROCK1")), fun_name = "make_female_anatogram", card = TRUE)
 #' load_image(input = list(type = "gene", content = c("ROCK1", "ROCK2")), fun_name = "make_female_anatogram")
 #' load_image(input = list(type = "compound", content = c("aspirin")), fun_name = "make_celldeps")
 #' load_image(input = list(type = "compound", content = c("aspirin")), fun_name = "make_molecule_structure")
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 load_image <- function(input = list(),
                        fun_name,
                        card = FALSE) { #type is either card or plot
