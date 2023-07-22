@@ -1,3 +1,5 @@
+#' THEME_DDH
+#'
 #' A ggplot theme which allow custom yet consistent styling of plots in the
 #' Data-driven hypothesis web app.
 #'
@@ -21,6 +23,7 @@
 #' Defaults to 0 (no margin by default).
 #' @param ... Other arguments passed to ggplot methods.
 #'
+#'
 #' @examples
 #' \dontrun{
 #' library(ggplot2)
@@ -31,6 +34,8 @@
 #'   theme_ddh(grid = "y", axisline = "none", panelborder = TRUE,
 #'             panelbackground = TRUE, axis_num = "y", margin = 20)
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
 #'
 #' @export
 theme_ddh <- function(style = "default", base_size = 15,

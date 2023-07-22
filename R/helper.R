@@ -1013,12 +1013,19 @@ make_quarto <- function(title){
 
 #' GOOD FILE NAMER
 #'
+#' Generates a good file name for a queried object
+#'
 #' @param input Expecting a list that contains a content object
 #'
-#' @export
+#' @return A good file name
 #'
 #' @examples
 #' good_file_namer(input = list(content = c("ROCK1", "ROCK2")))
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @export
+
 good_file_namer <- function(input = list){
   if(length(input$content) == 1){
     good_file_name <- input$content
