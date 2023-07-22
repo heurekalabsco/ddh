@@ -245,17 +245,23 @@ load_image <- function(input = list(),
            })
 }
 
-#' Load PDB file
+#' LOAD PDB FILE -------------------------------------------------------
+#'
+#' Loads a PDB file corresponding to queried parameters
 #'
 #' @param input Expecting a list containing type and content variable.
 #'
-#' @return Path to a url containing a PDB file.
+#' @return Path to a URL containing a PDB file.
 #'
-#' @export
 #' @examples
 #' load_pdb(input = list(content = c("ROCK1")))
 #' load_pdb(input = list(content = c("ROCK3")))
 #' load_pdb(input = list(content = c("ROCK1", "ROCK2")))
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @export
+
 load_pdb <- function(input = list()){
   load_pdb_raw <- function(){
     if(length(input$content > 1)){
@@ -283,57 +289,74 @@ load_pdb <- function(input = list()){
            })
 }
 
-#' Format Path Part
+#' FORMAT PATH PART ------------------------------------------------------
+#'
+#' Formats part of an image path by replacing invalid characters and slashes with "_"
+#'
+#' @param key The original image path
+#'
+#' @return The image path with invalid characters substituted with "_"
+#'
+#' @examples
+#' format_path_part("key")
+#'
+#' @author Matthew Hirschey & Pol Castellano
 #'
 #' @export
 format_path_part <- function(key) {
-  # formats part of an image path replacing invalid characters slashes with "_"
+
   gsub("[/]", "_", key)
 }
 
-#EMPTY----
+#' MAKE EMPTY TABLE --------------------------------------------------------
+#
 #' Function to create an empty table
 #'
-#' @return A data.frame.
-#' @export
+#' @return A data frame
 #'
 #' @examples
 #' make_empty_table()
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @export
 make_empty_table <- function() {
   message("No data available")
   #consider making an "empty" feather to pull the dataframe headers from?
 }
 
+#' MAKE EMPTY PLOT ------------------------------------------------
+#'
 #' Function to create an empty plot
 #'
 #' @return A ggplot2 object.
-#' @export
 #'
 #' @examples
 #' make_empty_plot()
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @export
 make_empty_plot <- function() {
   ggplot2::ggplot() +
     ggplot2::labs(title = "Nothing to see here. Try again.")
 }
 
-#' Empty Graph Graph
-#'
-#' \code{make_empty_graph} returns an image of ...
+#' MAKE EMPTY GRAPH GRAPH----------------------------------------------------------
 #'
 #' This is a graph function that takes a gene name and returns a empty graph graph
 #'
 #' @param input Expecting a list containing type and content variable.
+#'
 #' @return If no error, then returns a empty graph graph. If an error is thrown, then will return an empty graph.
+#'
+#' @examples
+#' make_empty_graph(type == "compound")
 #'
 #' @importFrom magrittr %>%
 #' @import visNetwork
 #'
 #' @export
-#' @examples
-#' make_empty_graph()
-#' \dontrun{
-#' make_empty_graph()
-#' }
 make_empty_graph <- function(type = "gene") {
   if(type == "gene") {
     queryColor <- color_set_gene_alpha[2]
@@ -362,15 +385,20 @@ make_empty_graph <- function(type = "gene") {
               borderWidth = 2)
 }
 
+#' MAKE BOMB PLOT -----------------------------------
+#'
 #' Function to create a bomb plot
 #'
-#' @importFrom magrittr %>%
-#'
 #' @return A ggplot2 object.
-#' @export
 #'
 #' @examples
 #' make_bomb_plot()
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_bomb_plot <- function(){
   #fill background
   background <- data.frame(
@@ -629,11 +657,19 @@ make_bomb_plot <- function(){
   return(plot_complete)
 }
 
-#DATA GENERATION----
-#' Fix names
+#' FIX NAMES -----------------------------------------------------------
+#'
+#' Corrects wrongly specified gene names to their official symbol
 #'
 #' @param wrong_name A gene name that is not its official symbol
 #' @param summary_df The gene_summary dataframe with all gene symbols
+#'
+#' @return If a corresponding approved symbol is found, it is returned. If not, the original gene name is returned.
+#'
+#' @examples
+#' fix_names("ROCK1", summary_df = universal_gene_summary)
+#'
+#' @author Matthew Hirschey & Pol Castellano
 #'
 #' @importFrom magrittr %>%
 #'
@@ -651,10 +687,19 @@ fix_names <- function(wrong_name,
   #fixes 251, leaves 11
 }
 
-#' Clean colnames
+#' CLEAN COLNAMES
+#'
+#' Returns dataset with corrected gene names
 #'
 #' @param dataset A dataset to fix gene names
 #' @param summary_df The gene_summary dataframe with all gene symbols
+#'
+#' @return Corrected dataset
+#'
+#' @examples
+#' clean_colnames("dataset", summary_df = universal_gene_summary)
+#'
+#' @author Matthew Hirschey & Pol Castellano
 #'
 #' @importFrom magrittr %>%
 #'
@@ -672,17 +717,23 @@ clean_colnames <- function(dataset,
   return(dataset)
 }
 
-#' Function to obtain plot sizes
+#' PLOT SIZE FINDER ------------------------------------------------
 #'
-#' @param function_name Function name.
+#' Obtains plot size for a specified function
+#'
+#' @param function_name Function name
+#'
+#' @return A list with the corresponding plot size for the function type
+#'
+#' @examples
+#' plot_size_finder("make_ideogram")
+#'
+#' @author Matthew Hirschey & Pol Castellano
 #'
 #' @importFrom magrittr %>%
 #'
-#' @return A list with plot size
-#'
 #' @export
-#' @examples
-#' plot_size_finder("make_ideogram")
+
 plot_size_finder <- function(function_name){ #this function sets the output size to pre-render a plot
   #switch statement for majority of plots, ignore for cards only, and COMMENT out intentionally excluded
   type <-
@@ -750,19 +801,24 @@ plot_size_finder <- function(function_name){ #this function sets the output size
   return(plot_size)
 }
 
-#DOCUMENTATION----
-#' Function to create roxygen structures
+#' MAKE ROXYGEN ---------------------------------------------------
+#'
+#' Function to create roxygen documentation structures
 #'
 #' @param fun_name Function name.
 #' @param type Function type.
 #'
-#' @importFrom magrittr %>%
+#' @return A roxygen structure
 #'
-#' @return A roxygen structure.
-#'
-#' @export
 #' @examples
 #' make_roxygen("make_ideogram")
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+
 make_roxygen <- function(fun_name,
                          type = "graph"){
   name <- stringr::str_remove_all(fun_name, pattern = "make_") %>%
@@ -792,17 +848,23 @@ make_roxygen <- function(fun_name,
   writeLines(roxygen, con = output_file)
 }
 
-#' Extract Documentation Sections
+#' HELP EXTRACT (EXTRACT DOCUMENTATION SECTIONS) ---------------------------
 #'
-#' Extract parts of a function help documentation.
+#' Extracts parts of a function to aid in documentation.
 #'
 #' @param fun Function name.
-#' @param section Help section to extract.
+#' @param section Function section to extract.
 #'
-#' @export
+#' @return The extracted function section
+#'
 #' @examples
 #' help_extract("make_radial", package = ddh, section = "Description")
 #' help_extract("make_radial", package = ddh, section = "Examples")
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @export
+
 help_extract <- function(fun,
                          section = "Description",
                          ...) {
@@ -827,16 +889,22 @@ help_extract <- function(fun,
   return(out)
 }
 
-#' Extract Title Function
+#' EXTRACT TITLE FUNCTION --------------------------------------------
 #'
-#' Extract function title from documentation.
+#' Extracts function title from documentation.
 #'
 #' @param fun Function name.
 #'
-#' @export
+#' @return Function title
+#'
 #' @examples
 #' title_extract("make_radial", package = ddh)
 #' title_extract("make_umap_plot", package = ddh)
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @export
+
 title_extract <- function(fun,
                           ...) {
   x <- capture.output(tools:::Rd2txt(utils:::.getHelpFile(help(fun, ...)),
@@ -847,14 +915,22 @@ title_extract <- function(fun,
   return(title)
 }
 
-#' Make Legend
+#' MAKE LEGEND -------------------------------------------------------
+#'
+#' Creates a legend for a queried function
 #'
 #' @param fun Function name.
 #' @param html Boolean indicating HTML format or not. Default is FALSE.
 #'
-#' @export
+#' @return The function legend
+#'
 #' @examples
 #' make_legend(fun = "make_radial")
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @export
+
 make_legend <- function(fun,
                         html = FALSE,
                         ...) {
@@ -870,20 +946,21 @@ make_legend <- function(fun,
   return(legend)
 }
 
-###make example
-#' Make Example
+#' MAKE EXAMPLE --------------------------------------------------------------
 #'
 #' Function to create an HTML string of examples to use on the index page and the start here methods doc
 #'
 #' @param privateMode Boolean indicating if private data is pointed to
+#'
 #' @return An HTML string.
 #'
-#' @export
 #' @examples
-#' make_example()
-#' \dontrun{
-#' make_example()
-#' }
+#' make_example(privateMode = TRUE)
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @export
+
 make_example <- function(privateMode = TRUE){
   #need to dynamically switch depending on privateMode
   tld <- dplyr::if_else(privateMode == TRUE, "com", "org")
@@ -900,14 +977,23 @@ make_example <- function(privateMode = TRUE){
   return(examples)
 }
 
-#QUARTO HELPER----
-#' Make Quarto
+#' MAKE QUARTO ---------------------------------------------------
+#'
+#' Generates a Quarto Markdown File for a queried title
+#'
+#' @param title Title header for the Quarto Markdown File
+#'
+#' @return A Quarto Markdown File
+#'
+#' @examples
+#' make_quarto("Gene Information")
+#'
+#' @author Matthew Hirschey & Pol Castellano
 #'
 #' @importFrom magrittr %>%
 #'
 #' @export
-#' @examples
-#' make_quarto("Gene Information")
+
 make_quarto <- function(title){
   file_name <- janitor::make_clean_names(title) %>%
     stringr::str_replace_all(pattern = "_", replacement = "-")
@@ -925,7 +1011,7 @@ make_quarto <- function(title){
   return(glue::glue("{file_name}.qmd"))
 }
 
-#' Good File Namer
+#' GOOD FILE NAMER
 #'
 #' @param input Expecting a list that contains a content object
 #'
