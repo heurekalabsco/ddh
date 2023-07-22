@@ -1,8 +1,6 @@
-#' Send Report Message
+#' SEND REPORT MESSAGE ---------------------------------------------------------
 #'
-#' \code{send_report_message} generates a message that gets sent to the AWS simple queue service (SQS) for report generation
-#'
-#' This is an emailing function that sends a message to the SQS queue for email generation
+#' Generates a message that gets sent to the AWS simple queue service (SQS) for email report generation
 #'
 #' @param first_name First name of the report addressee, which is used in the report email body
 #' @param last_name Last name of the report addressee.
@@ -11,12 +9,15 @@
 #' @param private A Boolean determining which information to include in the report
 #' @param greeting One of "default", "seminar", or "paper" to customize the front of the report
 #'
-#' @export
 #' @examples
 #' send_report_message(first_name = "Matthew", last_name = "Hirschey", email_address = "hey_at_datadriventhypothesis.com", input = list(type = "gene", query = "ROCK1", content = "ROCK1"), private = TRUE)
 #' \dontrun{
 #' send_report_message(first_name = "Matthew", last_name = "Hirschey", email_address = "hey_at_datadriventhypothesis.com", input = list(type = "gene", query = "ROCK1", content = "ROCK1"), private = TRUE)
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @export
 send_report_message <- function(first_name,
                                 last_name,
                                 email_address,
