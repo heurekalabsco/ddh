@@ -1,18 +1,23 @@
-#' Make Gene Summary
+#' MAKE GENE SUMMARY ----------------------------------------------------------------
 #'
 #' The make_gene_summary function takes a gene as an input and returns summary text.
 #'
 #' @param input A list containing a content variable.
 #' @param var Variable that determines which text is returned
 #'
-#' @importFrom magrittr %>%
+#' @return A summary of the queried gene
 #'
-#' @export
 #' @examples
 #' make_summary_gene(input = list(content = "ROCK1"), var = "id")
 #' make_summary_gene(input = list(content = "ROCK1"), var = "name")
 #' make_summary_gene(input = list(content = "ROCK1"), var = "summary")
 #' make_summary_gene(input = list(content = c("ROCK1", "ROCK2")), var = "name")
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_summary_gene <- function(input = list(),
                               var = "id") {
   if (is.null(input$content)) {
@@ -29,19 +34,25 @@ make_summary_gene <- function(input = list(),
   return(gene_summary_var)
 }
 
-#' Make Pathway Summary
+#' MAKE PATHWAY SUMMARY ---------------------------------------------------------
 #'
 #' The make_pathway_summary function takes an id as a character input and returns summary information of the pathway.
 #'
 #' @param input A list containing a content variable.
 #' @param var Variable that determines which text is returned
 #'
-#' @importFrom magrittr %>%
+#' @return A summary of the queried pathway
 #'
-#' @export
 #' @examples
 #' make_summary_pathway(input = list(query = "16769"), var = "gs_description")
 #' make_summary_pathway(input = list(query = "16769"), var = "pathway_size")
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+
 make_summary_pathway <- function(input = list(),
                                  var = "gs_description") {
   if (is.null(input$query)) {
@@ -56,19 +67,26 @@ make_summary_pathway <- function(input = list(),
   return(pathway_summary_var)
 }
 
-#' Make Summary Text
+#' MAKE SUMMARY TEXT ---------------------------------------------------------
 #'
-#' This function takes one or many genes as inputs and returns summary list key summary information. This is a solution for make_summary_gene to make summaries of more than one gene.
+#' This function takes one or many genes as inputs and returns summary list containing key summary information.
+#' This is a solution for make_summary_gene to make summaries of more than one gene.
 #'
 #' @param input A list containing a content variable.
 #' @param var Variable that determines which text is returned
 #'
-#' @importFrom magrittr %>%
+#' @return A summary list of all queried genes
 #'
-#' @export
 #' @examples
 #' make_summary_text(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 #' make_summary_text(input = list(type = "cell", content = c("HEL", "HEPG2")))
+#'
+#' @author Matthew Hirschey & Pol Castellano
+
+#' @importFrom magrittr %>%
+#'
+#' @export
+
 make_summary_text <- function(input = list(),
                               summary_len = 40, # number of WORDS
                               ...) {
@@ -202,19 +220,23 @@ make_summary_text <- function(input = list(),
   return(valid_summaries)
 }
 
-#' Make Protein Summary
+#' MAKE PROTEIN SUMMARY -----------------------------------------------------
 #'
 #' The make_summary_protein function takes a gene as an input and returns summary text about its protein.
 #'
 #' @param input A list containing a content variable.
 #' @param var Variable that determines which text is returned
 #'
-#' @importFrom magrittr %>%
+#' @return A summary of the queried protein
 #'
-#' @export
 #' @examples
 #' make_summary_protein(input = list(type = "gene", content = c("ROCK1")))
 #' make_summary_protein(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+
 make_summary_protein <- function(input = list(),
                                  summary_len = 40, # number of WORDS
                                  ...) {
@@ -279,19 +301,25 @@ make_summary_protein <- function(input = list(),
   return(valid_summaries)
 }
 
-#' Make Protein Sequence
+#' MAKE PROTEIN SEQUENCE
 #'
 #' The make_protein_sequence function takes a gene as an input and returns its protein sequence.
 #'
 #' @param input A list containing a content variable.
 #' @param var Variable that determines which text is returned
 #'
-#' @importFrom magrittr %>%
+#' @return The protein sequence of the queried gene
 #'
-#' @export
 #' @examples
 #' make_protein_sequence(input = list(type = "gene", content = c("ROCK1")))
 #' make_protein_sequence(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+
 make_protein_sequence <- function(input = list(),
                                   ...) {
   if (is.null(input$content)) {
@@ -307,19 +335,25 @@ make_protein_sequence <- function(input = list(),
   return(valid_sequence)
 }
 
-#' Make Cell Summary
+#' MAKE CELL SUMMARY ---------------------------------------------------------------
 #'
 #' The make_summary_cell function takes a cell as an input and returns summary text about it.
 #'
 #' @param input A list containing a content variable.
 #' @param var Variable that determines which text is returned
 #'
-#' @importFrom magrittr %>%
+#' @return A summary of the queried cell
 #'
-#' @export
 #' @examples
 #' make_summary_cell(input = list(content = "HEPG2"), var = "cell_line")
 #' make_summary_cell(input = list(content = "HEPG2"), var = "lineage_subtype")
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+
 make_summary_cell <- function(input = list(),
                               var = "cell_line") {
   # if (is.null(input$content)) {
@@ -332,13 +366,24 @@ make_summary_cell <- function(input = list(),
   # return(cell_summary_var)
 }
 
-#' Make Lineage Summary
+#' MAKE LINEAGE SUMMARY -----------------------------------------------------------------
+#'
+#' The make_summary_lineage function takes a lineage as an input and returns summary text about it.
+#'
+#' @param input A list containing a content variable.
+#' @param var Variable that determines which text is returned
+#'
+#' @return A summary of the queried lineage
+#'
+#' @examples
+#' make_summary_lineage(input = list(content = "Cervix"))
+#'
+#' @author Matthew Hirschey & Pol Castellano
 #'
 #' @importFrom magrittr %>%
 #'
 #' @export
-#' @examples
-#' make_summary_lineage(input = list(content = "Cervix"))
+
 make_summary_lineage <- function(input = list(),
                                  var = "cell_line") { #default so no error if empty, but this pulls the var out of the df
   # if (is.null(input$query)) {
@@ -351,16 +396,27 @@ make_summary_lineage <- function(input = list(),
   # return(cell_lineage_var)
 }
 
-#' Make cell_osaurus Summary
+#' MAKE CELL_OSAURUS SUMMARY
 #'
-#' @importFrom magrittr %>%
+#' The make_summary_cellosaurus function takes a cell_osaurus var as an input and returns summary text about it.
 #'
-#' @export
+#' @param input A list containing a content variable.
+#' @param var Variable that determines which text is returned
+#'
+#' @return A summary of the queried cell_osaurus variable
+#'
 #' @examples
 #' make_summary_cellosaurus(input = list(content = "HEPG2"), var = "SX") #sex
 #' make_summary_cellosaurus(input = list(content = "HEPG2"), var = "AG") #age
 #' make_summary_cellosaurus(input = list(content = "HEPG2"), var = "CC") %>% lit_linkr(data_universal_gene_summary = universal_gene_summary)
 #' make_summary_cellosaurus(input = list(content = "HEPG2"), var = "ATCC_url") #url
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+
 make_summary_cellosaurus <- function(input = list(),
                                      var = "ID") {
   # cell_var <-
@@ -372,13 +428,15 @@ make_summary_cellosaurus <- function(input = list(),
   # return(cell_var)
 }
 
-#' Get Essential
+#' GET ESSENTIAL -------------------------------------------------------------
 #'
-#' Gets number of cells lines a gene is essential within
+#' Gets number of cell lines a gene is essential within
 #'
-#' @importFrom magrittr %>%
+#' @param input A list containing a type and content variable.
+#' @param ... Additional arguments to pass
 #'
-#' @export
+#' @return Number of essential cell lines
+#'
 #' @examples
 #' get_essential(input = list(type = "gene", content = "ROCK1"))
 #' get_essential(input = list(type = "gene", content = "ROCK2"))
@@ -387,6 +445,12 @@ make_summary_cellosaurus <- function(input = list(),
 #' get_essential(input = list(type = "cell", content = "HEPG2"))
 #' get_essential(input = list(type = "cell", content = c("HEPG2", "HUH7")))
 #' get_essential(input = list(type = "compound", content = "aspirin"))
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 get_essential <- function(input = list(),
                           ...) {
   if(input$type == "gene") {
@@ -420,13 +484,24 @@ get_essential <- function(input = list(),
   return(sentence)
 }
 
-#' Make Compound Summary
+#' MAKE COMPOUND SUMMARY ---------------------------------------------------------
+#'
+#' The make_summary_compound function takes a compound as an input and returns summary text about it.
+#'
+#' @param input A list containing a content variable.
+#' @param var Variable that determines which text is returned
+#'
+#' @return A summary of the queried compound
+#'
+#' @examples
+#' make_summary_compound(input = list(content = "aspirin"), var = "name")
+#'
+#' @author Matthew Hirschey & Pol Castellano
 #'
 #' @importFrom magrittr %>%
 #'
 #' @export
-#' @examples
-#' make_summary_compound(input = list(content = "aspirin"), var = "name")
+
 make_summary_compound <- function(input = list(),
                                   var = "name") { #default so no error if empty, but this pulls the var out of the df
   # if (is.null(input$query)) {
@@ -439,13 +514,25 @@ make_summary_compound <- function(input = list(),
   # return(compound_summary_var)
 }
 
-#' Make Metabolite Summary
+#' MAKE METABOLITE SUMMARY --------------------------------------------------------
+#'
+#' The make_summary_metabolite function takes a compound as an input and returns summary text about it.
+#'
+#' @param input A list containing a content variable.
+#' @param var Variable that determines which text is returned
+#'
+#' @return A summary of the queried metabolite
+#'
+#' @examples
+#' make_summary_metabolite(input = list(content = "citrate"), var = "name")
+#'
+#' @author Matthew Hirschey & Pol Castellano
 #'
 #' @importFrom magrittr %>%
 #'
 #' @export
-#' @examples
-#' make_summary_metabolite(input = list(content = "citrate"), var = "name")
+#'
+
 make_summary_metabolite <- function(input = list(),
                                     var = "name") { #default so no error if empty, but this pulls the var out of the df
   # if (is.null(input$query)) {
@@ -458,14 +545,25 @@ make_summary_metabolite <- function(input = list(),
   # return(compound_summary_var)
 }
 
-#' Make MOA Summary
+#' MAKE MOA SUMMARY -------------------------------------------------------------
+#'
+#' The make_summary_moa function takes a MOA as an input and returns summary text about it.
+#'
+#' @param input A list containing a content variable.
+#' @param var Variable that determines which text is returned
+#'
+#' @return A summary of the queried MOA
+#'
+#' @examples
+#' make_summary_moa(input = list(content = "cyclooxygenase inhibitor", content = "cyclooxygenase inhibitor"), var = "name")
+#' make_summary_moa(input = list(content = "cyclooxygenase inhibitor", content = "cyclooxygenase inhibitor"), var = "moa")
+#'
+#' @author Matthew Hirschey & Pol Castellano
 #'
 #' @importFrom magrittr %>%
 #'
 #' @export
-#' @examples
-#' make_summary_moa(input = list(content = "cyclooxygenase inhibitor", content = "cyclooxygenase inhibitor"), var = "name")
-#' make_summary_moa(input = list(content = "cyclooxygenase inhibitor", content = "cyclooxygenase inhibitor"), var = "moa")
+#'
 make_summary_moa <- function(input = list(),
                              var = "name",
                              ...) {
@@ -481,13 +579,25 @@ make_summary_moa <- function(input = list(),
   # return(moa_summary_var)
 }
 
-#' Make Compound List Summary
+#' MAKE COMPOUND LIST SUMMARY -----------------------------------------------------
+#'
+#'The make_summary_compound_list function takes a compound list as an input and returns summary text about it.
+#'
+#' @param input A list containing a content variable.
+#' @param ... Additional arguments to pass
+#'
+#' @return A summary of the queried compound list
+#'
+#' @examples
+#' make_summary_compound_list(input = list(content = c("aspirin", "carprofen")))
+#'
+#' @author Matthew Hirschey & Pol Castellano
 #'
 #' @importFrom magrittr %>%
 #'
 #' @export
-#' @examples
-#' make_summary_compound_list(input = list(content = c("aspirin", "carprofen")))
+#'
+
 make_summary_compound_list <- function(input = list(),
                                        ...) {
   # if (is.null(input$content)) {
