@@ -1,23 +1,25 @@
 
-# PATHWAY TABLES -----
+# MAKE PATHWAY LIST TABLE ----------------------------------------------------
 #' Pathway List Table
-#'
-#' \code{make_pathway_list} returns an image of ...
 #'
 #' This is a table function that takes a gene name and returns a sub-table of gene sets and pathways that contain your gene query
 #'
 #' @param input Expecting a list containing type and content variable.
+#'
 #' @return If no error, then returns a pathway list table. If an error is thrown, then will return an empty table.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_pathway_list(input = list(type = 'gene', content = 'ROCK1'))
 #' make_pathway_list(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
 #' make_pathway_list(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_pathway_list <- function(input = list()) {
   make_pathway_list_raw <- function() {
     gene_pathways <-
@@ -34,17 +36,24 @@ make_pathway_list <- function(input = list()) {
            })
 }
 
-#' Pathway Genes Table
+#' MAKE PATHWAY GENES TABLE ---------------------------------------------------------
 #'
-#' \code{make_pathway_genes} returns a table of genes in a queried pathway
+#' This is a table function that takes a gene_set id in the query slot and returns
+#' a sub-table of genes that your gene set contains
 #'
-#' This is a table function that takes a gene_set id in the query slot and returns a sub-table of genes that your gene set contains
-#'#'
+#' @param input Expecting a list containing type and content variable.
+#'
+#' @return If no error, then returns a pathway gene table. If an error is thrown, then will return an empty table.
+#'
+#' @examples
+#' make_pathway_genes(input = list(type = 'gene', subtype = 'pathway', query = '16769'))
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
 #' @importFrom magrittr %>%
 #'
 #' @export
-#' @examples
-#' make_pathway_genes(input = list(type = 'gene', subtype = 'pathway', query = '16769'))
+
 make_pathway_genes <- function(input = list()){
   make_pathway_genes_raw <- function() {
     gene_pathways <-
@@ -67,23 +76,27 @@ make_pathway_genes <- function(input = list()){
            })
 }
 
-#' Compound Table
+#' MAKE COMPOUND TABLE --------------------------------------------------------
 #'
-#' \code{make_compound_table} returns an image of ...
-#'
-#' This is a table function that takes a compound name and returns a table. It is commented out until we revisit compouter as a query feather.
+#' This is a table function that takes a compound name and returns a table.
+#' It is commented out until we revisit computer as a query feather.
 #'
 #' @param input Expecting a list containing type and content variable.
+#'
 #' @return If no error, then returns a compound Table. If an error is thrown, then will return an empty table.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_compound_table(input = list(content = "aspirin"), top = TRUE)
 #' \dontrun{
 #' make_compound_table(input = list(content = "aspirin"), top = FALSE)
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+
 make_compound_table <- function(input = list(),
                                 # data_compound_prism_cor_nest = compound_prism_cor_nest,
                                 # data_compound_prism_names = compound_prism_names,
@@ -119,24 +132,26 @@ make_compound_table <- function(input = list(),
   # )
 }
 
-# PUBMED TABLE -----
+# MAKE PUBMED TABLE -------------------------------------------------------------
 #' Pubmed Table
-#'
-#' \code{make_pubmed_table} returns an image of ...
 #'
 #' This is a table function that takes a gene name and returns a pubmed Table
 #'
 #' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a pubmed table..
+#' @return If no error, then returns a pubmed table. If an error is thrown, then will return an empty table.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_pubmed_table(input = list(type = 'gene', content = 'ROCK1'))
 #' \dontrun{
 #' make_pubmed_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+
 make_pubmed_table <- function(input = list()) {
   make_pubmed_table_raw <- function() {
     pubmed_table <-
@@ -156,26 +171,27 @@ make_pubmed_table <- function(input = list()) {
            })
 }
 
-# CELL ANATOGRAM TABLES -----
+# CELL ANATOGRAM TABLES -----------------------------------------------------------
 #' Cellanatogram Table
-#'
-#' \code{make_cellanatogram_table} returns an image of ...
 #'
 #' This is a table function that takes a gene name and returns a cellanatogram Table
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a cellanatogram Table. If an error is thrown, then will return an empty table.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_cellanatogram_table(input = list(type = 'gene', content = 'ROCK2'))
 #' make_cellanatogram_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
-
 #' \dontrun{
 #' make_cellanatogram_table(input = list(type = 'gene', content = 'ROCK2'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+
 make_cellanatogram_table <- function(input = list()) {
   make_cellanatogram_table_raw <- function() {
 
@@ -194,19 +210,14 @@ make_cellanatogram_table <- function(input = list()) {
            })
 }
 
-# EXPRESSION TABLES -----
+# EXPRESSION TABLES ----------------------------------------------------------
 #' Expression Table
 #'
-#' \code{make_expression_table} returns an image of ...
-#'
-#' This is a table function that takes a gene name and returns a expression Table
+#' This is a table function that takes a gene name and returns an expression table
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a expression Table. If an error is thrown, then will return an empty table.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_expression_table(input = list(type = 'gene', content = 'ROCK1'))
 #' make_expression_table(input = list(type = 'gene', content = 'ROCK1'), var = "protein")
@@ -214,6 +225,12 @@ make_cellanatogram_table <- function(input = list()) {
 #' \dontrun{
 #' make_expression_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_expression_table <- function(input = list(),
                                   var = "gene") { #you are so slow
   make_expression_table_raw <- function() {
@@ -274,25 +291,26 @@ make_expression_table <- function(input = list(),
            })
 }
 
-# HUMAN ANATOGRAM TABLES -----
+# HUMAN ANATOGRAM TABLES ------------------------------------------------------
 #' Human Anatogram Table
 #'
-#' \code{make_humananatogram_table} returns an image of ...
-#'
-#' This is a table function that takes a gene name and returns a humananatogram Table
+#' This is a table function that takes a gene name and returns a humana natogram Ttble
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a human anatogram Table. If an error is thrown, then will return an empty table.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_humananatogram_table(input = list(type = 'gene', content = 'ROCK1'))
 #' make_humananatogram_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
 #' make_humananatogram_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_humananatogram_table <- function(input = list()) {
   make_humananatogram_table_raw <- function() {
     humananatogram_table <-
@@ -316,7 +334,7 @@ make_humananatogram_table <- function(input = list()) {
              message(e)
            })
 }
-## GET CLUSTER  -----------------------------------------------
+## GET CLUSTER  -------------------------------------------------------------
 #' Clustering Table
 #'
 #' This is a helper function that takes a gene name and return a vector containing the cluster numbers for input
@@ -324,15 +342,18 @@ make_humananatogram_table <- function(input = list()) {
 #' @param input Expecting a list containing a content variable.
 #' @return Returns a vector containing the cluster number.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' get_cluster(input = list(type = 'gene', content = 'ROCK1'))
 #' get_cluster(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
 #' get_cluster(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 get_cluster <- function(input = list()){
   cluster <- get_data_object(object_names = input$content,
                              dataset_name = "gene_signature_clusters") %>%
@@ -342,22 +363,25 @@ get_cluster <- function(input = list()){
   return(cluster)
 }
 
-## PROTEIN CLUSTER TABLE -----------------------------------------------
+## PROTEIN CLUSTER TABLE -------------------------------------------------------
 #' Clustering Table
 #'
-#' This is a table function that takes a gene name and returns a clustering Table
+#' This is a table function that takes a gene name and returns a protein clustering table
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a clustering Table. If an error is thrown, then will return an empty table.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_signature_clusters_table(input = list(type = 'gene', content = 'ROCK1'))
 #' \dontrun{
 #' make_signature_clusters_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_signature_clusters_table <- function(input = list(),
                                           ...) {
   make_signature_clusters_table_raw <- function() {
@@ -387,16 +411,11 @@ make_signature_clusters_table <- function(input = list(),
 ## PROTEIN CLUSTER ENRICHMENT TABLE -----------------------------------------------
 #' Clustering Enrichment Table
 #'
-#' \code{make_clustering_enrichment_table} returns an image of ...
-#'
-#' This is a table function that takes a gene name and returns a clustering enrichment Table
+#' This is a table function that takes a gene name and returns a protein clustering enrichment table
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a clustering enrichment Table. If an error is thrown, then will return an empty table.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_clustering_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
 #' make_clustering_enrichment_table(input = list(type = 'gene', content = 'ROCK1'), ontology = "MF")
@@ -404,6 +423,12 @@ make_signature_clusters_table <- function(input = list(),
 #' \dontrun{
 #' make_clustering_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_clustering_enrichment_table <- function(input = list(),
                                              ontology = "BP",
                                              filter_noise = FALSE) {
@@ -447,14 +472,22 @@ make_clustering_enrichment_table <- function(input = list(),
 ## 3D STRUCTURE TABLE --------------------------------------------------------------------
 #' Plot for 3D protein structure table
 #'
-#' @importFrom magrittr %>%
+#' This is a table function that takes a gene name and returns a 3D protein structure table
 #'
-#' @export
+#' @param input Expecting a list containing type and content variable.
+#' @return If no error, then returns a 3D structure table. If an error is thrown, then will return an empty table.
+#'
 #' @examples
 #' make_structure3d_table(input = list(content = 'ROCK1'))
 #' #' \dontrun{
 #' make_structure3d_table(input = list(content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_structure3d_table <- function(data_gene_uniprot_pdb_table = gene_uniprot_pdb_table,
                                    data_universal_proteins = universal_proteins,
                                    input = list()) {
@@ -475,19 +508,14 @@ make_structure3d_table <- function(data_gene_uniprot_pdb_table = gene_uniprot_pd
            })
 }
 
-# DEPENDENCY TABLES -----
+# DEPENDENCY TABLES ----------------------------------------------------------
 #' Dependency Table
 #'
-#' \code{make_dep_table} returns an image of ...
-#'
-#' This is a table function that takes a gene name and returns a dep Table
+#' This is a table function that takes a gene name and returns a dependency table
 #'
 #' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a dep Table. If an error is thrown, then will return an empty table.
+#' @return If no error, then returns a dependency table. If an error is thrown, then will return an empty table.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_dep_table(input = list(type = 'gene', content = 'ROCK1'))
 #' make_dep_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
@@ -496,6 +524,12 @@ make_structure3d_table <- function(data_gene_uniprot_pdb_table = gene_uniprot_pd
 #' \dontrun{
 #' make_dep_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_dep_table <- function(input = list()#,
                            # leave these here until you go back and fix cell and drug
                            # data_universal_prism_long = universal_prism_long,
