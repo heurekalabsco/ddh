@@ -603,25 +603,26 @@ make_dep_table <- function(input = list()#,
            })
 }
 
-## co-essentiality -----
+## CO-ESSENTIALITY -----------------------------------------------------------
 #' Top Table
 #'
-#' \code{make_top_table} returns an image of ...
-#'
-#' This is a table function that takes a gene name and returns a top Table
+#' This is a table function that takes a gene name and returns a top table
 #'
 #' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a top Table. If an error is thrown, then will return an empty table.
+#' @return If no error, then returns a top table. If an error is thrown, then will return an empty table.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_top_table(input = list(type = 'gene', content = 'ROCK1'))
 #' make_top_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
 #' make_top_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_top_table <- function(input = list()) {
   make_top_table_raw <- function() {
     if(input$type == "gene") {
@@ -648,24 +649,25 @@ make_top_table <- function(input = list()) {
            })
 }
 
-#' Bottom Table
+#' BOTTOM TABLE
 #'
-#' \code{make_bottom_table} returns an image of ...
-#'
-#' This is a table function that takes a gene name and returns a bottom Table
+#' This is a table function that takes a gene name and returns a bottom table
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a bottom Table. If an error is thrown, then will return an empty table.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_bottom_table(input = list(type = 'gene', content = 'ROCK1'))
 #' make_bottom_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
 #' make_bottom_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_bottom_table <- function(input = list(),
                               gls = FALSE,
                               ...) {
@@ -711,14 +713,18 @@ make_bottom_table <- function(input = list(),
            })
 }
 
-##censor-----
-#' Censor
+## CENSOR ---------------------------------------------------------------------
+#' Make Censor Table
 #'
-#' Censor is used to remove genes from similarity table that are garbage (too many associations). It does this by filtering out genes above (greater_than) a provided threshold.
+#' Censor is used to remove genes from similarity table that are garbage (too many associations).
+#' It does this by filtering out genes above (greater_than) a provided threshold.
 #'
-#' @importFrom magrittr %>%
+#' @param input Expecting a list containing type and content variable.
+#' @param censor A boolean determining whether data should be censored
+#' @param greater_than Threshold for genes with too many associations
 #'
-#' @export
+#' @return A censored gene table
+#'
 #' @examples
 #' make_censor_table(input = list(type = 'gene', content = 'ROCK1'))
 #' make_censor_table(input = list(type = 'gene', content = 'ROCK1'), choice = TRUE)
@@ -726,6 +732,12 @@ make_bottom_table <- function(input = list(),
 #' \dontrun{
 #' make_censor_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_censor_table <- function(input = list(),
                               censor = FALSE,
                               greater_than = 300) {
@@ -753,24 +765,25 @@ make_censor_table <- function(input = list(),
   return(table_data)
 }
 
-##enrichments-----
+## ENRICHMENTS ----------------------------------------------------------------
 #' Enrichment Top Table
 #'
-#' \code{make_enrichment_top} returns an image of ...
-#'
-#' This is a table function that takes a gene name and returns a enrichment top table
+#' This is a table function that takes a gene name and returns an enrichment top table
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a enrichment top table. If an error is thrown, then will return an empty table.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_gene_dependency_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
 #' \dontrun{
 #' make_gene_dependency_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_gene_dependency_enrichment_table <- function(input = list()) {
   make_gene_dependency_enrichment_table_raw <- function() {
     gene_dependency_enrichment <-
@@ -801,18 +814,20 @@ make_gene_dependency_enrichment_table <- function(input = list()) {
 #' This is a table function that takes a gene name and returns a molecular features segments table
 #'
 #' @param input Expecting a list containing type and content variable.
-#'
 #' @return If no error, then returns a molecular features segments table. If an error is thrown, then will return an empty table.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_molecular_features_segments_table(input = list(type = 'gene', content = 'ROCK1'))
 #' make_molecular_features_segments_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
 #' make_molecular_features_segments_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_molecular_features_segments_table <- function(input = list(),
                                                    ...) {
   make_molecular_features_segments_table_raw <- function() {
@@ -837,18 +852,20 @@ make_molecular_features_segments_table <- function(input = list(),
 #' This is a table function that takes a gene name and returns a molecular features table
 #'
 #' @param input Expecting a list containing type and content variable.
-#'
 #' @return If no error, then returns a molecular features table. If an error is thrown, then will return an empty table.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_molecular_features_table(input = list(type = 'gene', content = 'ROCK1'))
 #' make_molecular_features_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
 #' make_molecular_features_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_molecular_features_table <- function(input = list(),
                                           ...) {
   make_molecular_features_table_raw <- function() {
@@ -874,18 +891,20 @@ make_molecular_features_table <- function(input = list(),
 #' This is a table function that takes a gene name and returns a molecular features pathways table
 #'
 #' @param input Expecting a list containing type and content variable.
-#'
 #' @return If no error, then returns a molecular features pathways table. If an error is thrown, then will return an empty table.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_molecular_features_pathways_table(input = list(type = 'gene', content = 'ROCK1'))
 #' make_molecular_features_pathways_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
 #' make_molecular_features_pathways_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_molecular_features_pathways_table <- function(input = list(),
                                                    ...) {
   make_molecular_features_pathways_table_raw <- function() {
@@ -918,18 +937,20 @@ make_molecular_features_pathways_table <- function(input = list(),
 #' This is a table function that takes a gene name and returns a gene-pathway table
 #'
 #' @param input Expecting a list containing type and content variable.
-#'
 #' @return If no error, then returns a gene-pathway table. If an error is thrown, then will return an empty table.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_cca_genes_table(input = list(type = 'gene', content = 'ROCK1'))
 #' make_cca_genes_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
 #' make_cca_genes_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_cca_genes_table <- function(input = list(),
                                  gene_set = NULL,
                                  ...) {
@@ -969,17 +990,19 @@ make_cca_genes_table <- function(input = list(),
 #' This is a table function that takes a pathway name and returns a pathway-pathway table
 #'
 #' @param input Expecting a list containing type and content variable.
-#'
 #' @return If no error, then returns a pathway-pathway table. If an error is thrown, then will return an empty table.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_cca_pathway_table(input = list(type = 'pathway', content = 'GOBP_FIBROBLAST_GROWTH_FACTOR_PRODUCTION'))
 #' \dontrun{
 #' make_cca_pathway_table(input = list(type = 'pathway', content = 'GOBP_FIBROBLAST_GROWTH_FACTOR_PRODUCTION'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_cca_pathway_table <- function(input = list(),
                                    gene_set = NULL,
                                    ...) {
@@ -1018,11 +1041,19 @@ make_cca_pathway_table <- function(input = list(),
 # CELL SUMMARY TABLE ------
 #' Cell Summary Table
 #'
+#' This is a table function that takes a gene name and returns a cell summary table
+#'
+#' @param input Expecting a list containing type and content variable.
+#' @return If no error, then returns a cell summary table. If an error is thrown, then will return an empty table.
+#'
+#' @examples
+#' make_cell_line_table(input = list(content = 'HEPG2'))
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
 #' @importFrom magrittr %>%
 #'
 #' @export
-#' @examples
-#' make_cell_line_table(input = list(content = 'HEPG2'))
 make_cell_line_table <- function(#data_cell_expression_meta = cell_expression_meta,
   input = list()) {
 
@@ -1058,22 +1089,23 @@ make_cell_line_table <- function(#data_cell_expression_meta = cell_expression_me
 # CELL SIMILARITY TABLE -----
 #' Cell Similarity Table
 #'
-#' \code{make_cell_sim_table} returns an image of ...
-#'
-#' This is a table function that takes a gene name and returns a cell sim Table
+#' This is a table function that takes a gene name and returns a cell similarity table
 #'
 #' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a cell sim Table. If an error is thrown, then will return an empty table.
+#' @return If no error, then returns a cell similarity table. If an error is thrown, then will return an empty table.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_cell_sim_table(input = list(type = "cell", content = "HEL"))
 #' make_cell_sim_table(input = list(type = "cell", content = c("HEL", "LS513")))
 #' \dontrun{
 #' make_cell_sim_table(input = list(type = "cell", content = "HEL"))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_cell_sim_table <- function(input = list(),
                                 #data_cell_dependency_sim = cell_dependency_sim,
                                 #data_cell_expression_sim = cell_expression_sim,
@@ -1136,11 +1168,17 @@ make_cell_sim_table <- function(input = list(),
 }
 
 # DRUG TABLES -----
-#' Drug Genes Cor Table
+#' Drug Genes Correlation Table
 #'
-#' \code{make_drug_genes_cor_table} takes a drug name and returns a table of genes
+#' This is a table function that takes a drug name and returns a correlation table
 #'
-#' This is a table function that takes a drug name and returns a table of genes
+#' @param input Expecting a list containing type and content variable.
+#' @return If no error, then returns a cell similarity table. If an error is thrown, then will return an empty table.
+#'
+#' @examples
+#' make_drug_genes_cor_table(input = list(type = "cell", content = "HEL"))
+#'
+#' @author Matthew Hirschey & Pol Castellano
 #'
 #' @importFrom magrittr %>%
 #'
@@ -1171,9 +1209,6 @@ make_drug_genes_cor_table <- function(input = list()
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a gene drugs cor Table. If an error is thrown, then will return an empty table.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_gene_drugs_cor_table(input = list(type = 'gene', content = 'ACOT4'))
 #' \dontrun{
@@ -1205,16 +1240,11 @@ make_gene_drugs_cor_table <- function(input = list(),
 
 #' Drug Genes Table
 #'
-#' \code{make_drug_genes_table} returns an image of ...
-#'
-#' This is a table function that takes a gene name and returns a drug genes Table
+#' This is a table function that takes a gene name and returns a drug genes table
 #'
 #' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a drug genes Table. If an error is thrown, then will return an empty table.
+#' @return If no error, then returns a drug genes table. If an error is thrown, then will return an empty table.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_drug_genes_table(drug = "aspirin")
 #' make_drug_genes_table(drug = "ibuprofen")
@@ -1222,6 +1252,12 @@ make_gene_drugs_cor_table <- function(input = list(),
 #' \dontrun{
 #' make_drug_genes_table(drug = "aspirin")
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_drug_genes_table <- function(input = list()
                                   #data_compound_genes_table = compound_genes_table,
                                   #drug
@@ -1245,19 +1281,22 @@ make_drug_genes_table <- function(input = list()
 
 #' Gene Drugs Table
 #'
-#' This is a table function that takes a gene name and returns a drug genes Table
+#' This is a table function that takes a gene name and returns a gene drugs Table
 #'
 #' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a drug genes Table. If an error is thrown, then will return an empty table.
+#' @return If no error, then returns a gene drugs table. If an error is thrown, then will return an empty table.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_gene_drugs_table(input = list(type = "gene", content = "ROCK1"))
 #' \dontrun{
 #' make_gene_drugs_table(input = list(type = "gene", content = "ROCK1"))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_gene_drugs_table <- function(input = list()) {
   make_gene_drugs_table_raw <- function() {
     gene_drugs_table <-
@@ -1276,6 +1315,19 @@ make_gene_drugs_table <- function(input = list()) {
 }
 
 #' Cell Drugs Table
+#'
+#' This is a table function that takes a gene name and returns a cell drugs Table
+#'
+#' @param input Expecting a list containing type and content variable.
+#' @return If no error, then returns a cell drugs table. If an error is thrown, then will return an empty table.
+#'
+#' @examples
+#' make_cell_drugs_table(input = list(type = "gene", content = "ROCK1"))
+#' \dontrun{
+#' make_cell_drugs_table(input = list(type = "gene", content = "ROCK1"))
+#' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
 #'
 #' @importFrom magrittr %>%
 #'
@@ -1303,16 +1355,11 @@ make_cell_drugs_table <- function(#data_universal_prism_long = universal_prism_l
 # METABOLITE TABLES -----
 #' Metabolite Table
 #'
-#' \code{make_metabolite_table} returns an image of ...
-#'
-#' This is a table function that takes a gene name and returns a metabolite Table
+#' This is a table function that takes a gene name and returns a metabolite table
 #'
 #' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a metabolite Table. If an error is thrown, then will return an empty table.
+#' @return If no error, then returns a metabolite table. If an error is thrown, then will return an empty table.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_metabolite_table(input = list(type = 'gene', content = 'ROCK1'))
 #' make_metabolite_table(input = list(type = 'gene', content = 'ROCK1'), collapse = TRUE)
@@ -1323,6 +1370,12 @@ make_cell_drugs_table <- function(#data_universal_prism_long = universal_prism_l
 #' \dontrun{
 #' make_metabolite_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_metabolite_table <- function(input = list(),
                                   collapse = FALSE) {
   make_metabolite_table_raw <- function() {
