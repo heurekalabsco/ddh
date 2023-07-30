@@ -1,19 +1,20 @@
 ## SETUP GRAPH ----------------------------------------------------------------------
 #'
-#' This function creates an object that can be used to generate a network graph by
-#' filtering the query object by certain gene parameters.
+#' This function filters a query object by certain gene parameters, creating an object
+#' that can be used to generate a network graph visualization
 #'
 #' @param setup_input A list containing the character vector of gene_symbols used to set up network graph
 #' @param setup_threshold A numerical value bounding the rank of potential genes during filtering
 #' @param setup_corr_type A string that describes what type of correlations to include. Options are: "positive", "negative", and "both".
 #'
-#' @return Outputs a list with four elements containing the full dataset, threshold values, and selected genes that can then be utilized to produce a network graph.
+#' @return Outputs a list with four elements detailing the full gene dataset, threshold values,
+#' and selected genes that can then be utilized to produce a network graph.
 #'
 #' @examples
 #'
 #' setup_graph(setup_input = list(type = "gene", content = "ROCK1"), setup_threshold = 10, setup_corr_type = "positive")
-#' setup_graph(setup_input = list(...), setup_threshold = 2, setup_corr_type = "negative")
-#' setup_graph(setup_input = list(...), setup_threshold = 12, setup_corr_type = "both")
+#' setup_graph(setup_input = list(type = "gene", content = "ROCK1"), setup_threshold = 2, setup_corr_type = "negative")
+#' setup_graph(setup_input = list(type = "gene", content = "ROCK1"), setup_threshold = 12, setup_corr_type = "both")
 #'
 #'
 #' @author Matthew Hirschey & Pol Castellano
@@ -94,15 +95,15 @@ setup_graph <- function(setup_input = list(), #changed name here to prevent var 
 #' visualization containing the top/bottom threshold for each of the genes in the gene query list
 #' using visNetwork.
 #'
-#' @param input A list containing character vector of gene_symbols used to create network graph
+#' @param input A list containing the character vector of gene_symbols used to create network graph
 #' @param threshold A numerical value representing the number of genes to pull from top and bottom tables
-#' @param deg A numerical representing the minimum number of connections for a gene to be connected to the network
+#' @param deg A numerical value representing the minimum number of connections needed for a gene to be connected to the network
 #' @param corr_type A string that describes what type of correlations to include. Options are: "positive", "negative", and "both".
-#' @param displayHeight Default to "90vh". The height of the network in pixels ("500px"), as a percentage (100 percent), or as a percentage of the viewport ("70vh", where 70 represents 70 percent of the viewport)
-#' @param displayWidth Default to 100 percent. The width of the network in pixels ("500px"), as a percentage (100 percent), or as a percentage of the viewport ("70vh", where 70 represents 70 percent of the viewport)
-#' @param tooltipLink Boolean to denote whether or not to include a link in the tooltip for a gene. Default to false.
+#' @param displayHeight Defaults to "90vh". The height of the network in pixels ("500px"), as a percentage (100 percent), or as a percentage of the viewport ("70vh", where 70 represents 70 percent of the viewport)
+#' @param displayWidth Defaults to 100 percent. The width of the network in pixels ("500px"), as a percentage (100 percent), or as a percentage of the viewport ("70vh", where 70 represents 70 percent of the viewport)
+#' @param tooltipLink Boolean to denote whether or not to include a link in the tooltip for a gene. Defaults to false.
 #'
-#' @return Outputs a complete network graph. If an error is thrown, then will return an empty graph.
+#' @return Outputs a complete network graph. If an error is thrown, then an empty graph will be returned.
 #'
 #' @examples
 #'
@@ -429,10 +430,10 @@ graph_legend_list <- "Each point represents one of the queried genes, and then t
 #'
 #' This graph function takes a gene name and returns a bipartite graph visualization for it.
 #'
-#' @param input A list containing character vector of gene_symbols used to create bipartite graph
-#' @param censor ??
-#' @param collapsed ??
-#' @param threshold A numerical value representing the number of genes to pull from top/ bottom tables
+#' @param input A list containing the character vector of gene_symbols used to create the bipartite graph
+#' @param censor If true, the most common metabolites are removed. If false, nothing is changed.
+#' @param collapsed If true, data is filtered by "metabolite_collapsed". If false, data is filtered by "collapsed"
+#' @param threshold A numerical value representing the number of genes to pull from top/bottom tables
 #' @param corr_type A string that describes what type of correlations to include. Options are: "positive", "negative", and "both".
 #'
 #' @return If no error, a bipartite graph visualization is returned. If an error is thrown, then an empty graph is returned.
@@ -444,7 +445,7 @@ graph_legend_list <- "Each point represents one of the queried genes, and then t
 #' make_bipartite_graph(input = list(type = "gene", content = c("ROCK1", "ROCK2")), collapsed = TRUE, threshold = 10, corr_type = "positive", censor = c("ADP", "Adenosine triphosphate"))
 #' make_bipartite_graph(input = list(type = "compound", content = "adp"))
 #' \dontrun{
-#' make_bipartite_graph(input = list(type = 'gene', content = 'ROCK1'))
+#'   make_bipartite_graph(input = list(type = 'gene', content = 'ROCK1'))
 #' }
 #'
 #' @author Matthew Hirschey & Pol Castellano

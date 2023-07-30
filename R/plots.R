@@ -7,13 +7,18 @@
 #' @param card A boolean that sets which image should be pulled for display
 #' @return If no error, then returns a barcode image url.
 #'
-#' @export
 #' @examples
 #' make_barcode(input = list(type = "gene", query = "ROCK1", content = "ROCK1"))
 #' make_barcode(input = list(content = "ROCK1"))
 #' \dontrun{
 #' make_barcode(input = list(type = "gene", content = "ROCK1"), card = TRUE)
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_barcode <- function(input = list(),
                          card = FALSE) {
   make_barcode_raw <- function() {
@@ -53,21 +58,24 @@ make_barcode <- function(input = list(),
 ## IDEOGRAM PLOT --------------------------------------------------------
 #' Ideogram Plot
 #'
-#' Each point shows the location of the query gene(s) on human chromosomes.
+#' Returns a plot where each point shows the location of the query gene(s) on human chromosomes.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns an ideogram plot. If an error is thrown, then will return a bomb plot
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_ideogram(input = list(type = "gene", query = "ROCK1", content = "ROCK1"))
 #' make_ideogram(input = list(type = "gene", query = "ROCK1", content = "ROCK1"), card = TRUE)
 #' \dontrun{
 #' make_ideogram(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_ideogram <- function(input = list(),
                           card = FALSE) {
   make_ideogram_raw <- function() {
@@ -178,15 +186,14 @@ make_ideogram <- function(input = list(),
 ## SIZE PLOT --------------------------------------------------------
 #' Protein Size Plot
 #'
-#' Mass compared to all protein masses. The colored strip visualizes the distribution of protein sizes. Each colored box is thus representing a decile of the full data. The triangle indicates where exactly the queried genes fall on this gradient of protein sizes.
+#' The plot contains a colored strip visualizing the distribution of all protein masses.
+#' Each colored box represents a decile of the full data.
+#' The triangle indicates the exact location of the queried genes on the protein size gradient.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
-#' @return If no error, then returns a proteinsize plot. If an error is thrown, then will return a bomb plot.
+#' @return If no error, then returns a protein size plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_proteinsize(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_proteinsize(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
@@ -195,6 +202,12 @@ make_ideogram <- function(input = list(),
 #' \dontrun{
 #' make_proteinsize(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_proteinsize <- function(input = list(),
                              card = FALSE) {
   make_proteinsize_raw <- function() {
@@ -344,9 +357,6 @@ make_proteinsize <- function(input = list(),
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a sequence plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_sequence(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_sequence(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
@@ -354,6 +364,12 @@ make_proteinsize <- function(input = list(),
 #' \dontrun{
 #' make_sequence(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_sequence <- function(input = list(),
                           card = FALSE) {
   make_sequence_raw <- function() {
@@ -424,21 +440,25 @@ make_sequence <- function(input = list(),
 ## PROTEIN DOMAIN PLOT --------------------------------------------------------
 #' Protein Domain Plot
 #'
-#' Rectangles represent the locations and size of named protein domains, while black shaped elements represent PTMs. Horizontal line(s) indicate the length of one or more selected proteins.
+#' Rectangles represent the locations and size of named protein domains, while black shaped elements represent PTMs.
+#' Horizontal line(s) indicate the length of one or more selected proteins.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a protein domain plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_protein_domain(input = list(content = "ROCK2"), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
 #' make_protein_domain(input = list(content = c("ROCK1", "ROCK2")), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
 #' \dontrun{
 #' make_protein_domain(input = list(content = "ROCK1"), dom_var = "Protein kinase", ptm_var = "N-acetylserine")
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_protein_domain <- function(input = list(),
                                 dom_var = NULL,
                                 ptm_var = NULL) {
@@ -584,8 +604,6 @@ make_protein_domain <- function(input = list(),
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a radial plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @importFrom magrittr %>%
-#' @export
 #' @examples
 #' make_radial(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_radial(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), cluster = TRUE)
@@ -593,6 +611,12 @@ make_protein_domain <- function(input = list(),
 #' \dontrun{
 #' make_radial(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_radial <- function(input = list(),
                         relative = TRUE,
                         cluster = FALSE,
@@ -763,8 +787,6 @@ make_radial <- function(input = list(),
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a bar plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @importFrom magrittr %>%
-#' @export
 #' @examples
 #' make_radial_bar(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_radial_bar(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), cluster = TRUE)
@@ -772,6 +794,12 @@ make_radial <- function(input = list(),
 #' \dontrun{
 #' make_radial_bar(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_radial_bar <- function(input = list(),
                             relative = TRUE,
                             cluster = FALSE,
@@ -799,17 +827,20 @@ make_radial_bar <- function(input = list(),
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
-#' @return If no error, then returns a umap plot plot. If an error is thrown, then will return a bomb plot.
+#' @return If no error, then returns a UMAP embeddings plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_umap_plot(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), show_subset = TRUE)
 #' make_umap_plot(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')), labels = TRUE)
 #' \dontrun{
 #' make_umap_plot(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_umap_plot <- function(input = list(),
                            show_subset = FALSE,
                            labels = FALSE) {
@@ -874,21 +905,26 @@ make_umap_plot <- function(input = list(),
 ## CLUSTER ENRICHMENT PLOT --------------------------------------------------------
 #' Amino Acid Signature Enrichment Plot
 #'
-#' Enriched pathways for all proteins in the selected cluster. The x-axis shows the number of proteins in the cluster that belong to each term while the color scale represents the p-values of each enriched term.
+#' Enriched pathways for all proteins in the selected cluster.
+#' The x-axis shows the number of proteins in the cluster that belong to each term.
+#' The color scale represents the p-values of each enriched term.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
-#' @return If no error, then returns a cluster enrich plot. If an error is thrown, then will return a bomb plot.
+#' @return If no error, then returns a cluster enrichment plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_cluster_enrich(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_cluster_enrich(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
 #' make_cluster_enrich(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_cluster_enrich <- function(input = list(),
                                 ontology = "BP"){
   make_cluster_enrich_plot_raw <- function() {
@@ -953,15 +989,18 @@ make_cluster_enrich <- function(input = list(),
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a structure plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_structure(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_structure(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' \dontrun{
 #' make_structure(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_structure <- function(input = list(),
                            card = FALSE){
   make_structure_raw <- function(){
@@ -1004,16 +1043,20 @@ make_structure <- function(input = list(),
 #' Protein 3D predicted structure rendered in an interactive ribbon diagram.
 #'
 #' @param input Expecting a list containing type and content variable.
+#' @return If no error, then returns a 3D structure plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_structure3d(input = list(type = 'gene', content = 'ROCK1'))
 #' make_structure3d(input = list(type = 'gene', content = 'ROCK2'))
 #' \dontrun{
 #' make_structure3d(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_structure3d <- function(input = list(),
                              pdb_id = NULL,
                              color = FALSE,
@@ -1091,15 +1134,13 @@ make_structure3d <- function(input = list(),
 ## PUBMED PLOT ------------------------------------------
 #' PubMed Plot
 #'
-#' Number of publications mentioning the queried gene over time. The x-axis shows the year of publication and the y-axis shows the cumulative publication count.
+#' Number of publications mentioning the queried gene over time.
+#' The x-axis shows the year of publication and the y-axis shows the cumulative publication count.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a pubmed plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_pubmed(input = list(type = 'gene', content = 'ROCK1'))
 #' make_pubmed(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
@@ -1108,6 +1149,12 @@ make_structure3d <- function(input = list(),
 #' \dontrun{
 #' make_pubmed(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_pubmed <- function(input = list(),
                         card = FALSE) {
   #get data
@@ -1247,10 +1294,6 @@ make_pubmed <- function(input = list(),
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a cellanatogram plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @import gganatogram
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_cellanatogram(input = list(type = "gene", content = c("ROCK2")))
 #' make_cellanatogram(input = list(type = "gene", content = c("ROCK2")), card = TRUE)
@@ -1259,6 +1302,13 @@ make_pubmed <- function(input = list(),
 #' \dontrun{
 #' make_cellanatogram(input = list(type = 'gene', content = 'ROCK2'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @import gganatogram
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_cellanatogram <- function(input = list(),
                                card = FALSE) {
   data_gene_subcell <-
@@ -1318,14 +1368,23 @@ make_cellanatogram <- function(input = list(),
   )
 }
 
-#' Cell Anatogram Facet
+#' CELL ANATOGRAM FACET ------------------------------------------------------------
+#' Cell Anatogram Facet Plot
+#'
+#' Subcellular expression levels for the queried gene(s)
+#'
+#' @param input Expecting a list containing type and content variable.
+#' @return If no error, then returns a cellanatogram facet plot. If an error is thrown, then will return a bomb plot.
+#'
+#' @examples
+#' make_cellanatogramfacet(input = list(type = "gene", content = c("BRCA1", "ROCK2")))
+#'
+#' @author Matthew Hirschey & Pol Castellano
 #'
 #' @import gganatogram
 #' @importFrom magrittr %>%
 #'
 #' @export
-#' @examples
-#' make_cellanatogramfacet(input = list(type = "gene", content = c("BRCA1", "ROCK2")))
 make_cellanatogramfacet <- function(input = list()) {
   data_gene_subcell <-
     get_data_object(object_names = input$content,
@@ -1369,8 +1428,7 @@ make_cellanatogramfacet <- function(input = list()) {
              make_bomb_plot()})
 }
 
-## HUMAN BODY ANATOGRAMS --------------------------------------------------------
-#' Female Anatogram Expression Plot
+## FEMALE ANATOGRAM EXPRESSION PLOT --------------------------------------------------------
 #'
 #' Female human body expression levels for the queried gene/s.
 #'
@@ -1378,10 +1436,6 @@ make_cellanatogramfacet <- function(input = list()) {
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a female anatogram plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @import gganatogram
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_female_anatogram(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_female_anatogram(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
@@ -1389,6 +1443,13 @@ make_cellanatogramfacet <- function(input = list()) {
 #' \dontrun{
 #' make_female_anatogram(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @import gganatogram
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_female_anatogram <- function(input = list(),
                                   anatogram = "female",
                                   card = FALSE) {
@@ -1451,25 +1512,27 @@ make_female_anatogram <- function(input = list(),
              make_bomb_plot()})
 }
 
-#' Male Anatogram Expression Plot
+#' MALE ANATOGRAM EXPRESSION PLOT --------------------------------------------------
 #'
 #' Male human body expression levels for the queried gene/s.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
-#'
 #' @return If no error, then returns a male anatogram plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @import gganatogram
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_male_anatogram(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_male_anatogram(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' \dontrun{
 #' make_male_anatogram(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @import gganatogram
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_male_anatogram <- function(input = list(),
                                 anatogram = "male",
                                 card = FALSE){
@@ -1480,18 +1543,16 @@ make_male_anatogram <- function(input = list(),
   return(male_anatogram)
 }
 
-##TISSUE GEOM_COL ------------------------------------------
+#' TISSUE GEOM_COL --------------------------------------------------------------
 #' Tissue Expression Plot
 #'
-#' Human body tissue expression levels for the queried gene/s. The x-axis shows the normalized expression values and the y-axis shows the human body tissue.
+#' Human body tissue expression levels for the queried gene/s.
+#' The x-axis shows the normalized expression values and the y-axis shows the human body tissue.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a tissue plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_tissue(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_tissue(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
@@ -1499,6 +1560,12 @@ make_male_anatogram <- function(input = list(),
 #' \dontrun{
 #' make_tissue(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_tissue <- function(input = list(),
                         card = FALSE) {
   data_gene_tissue <-
@@ -1589,9 +1656,6 @@ make_tissue <- function(input = list(),
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a cellexpression plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_cellexpression(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_cellexpression(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
@@ -1599,6 +1663,12 @@ make_tissue <- function(input = list(),
 #' \dontrun{
 #' make_cellexpression(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_cellexpression <- function(input = list(),
                                 var = "gene",
                                 card = FALSE) {
@@ -1719,17 +1789,25 @@ make_cellexpression <- function(input = list(),
 # GENE V. PROTEIN EXPRESSION ----------------------------------
 #' Gene Expression versus Protein Expression
 #'
-#' Each point shows the gene expression value compared to the protein expression value for a gene within a given cell line. The Pearson correlation coefficient and the p-values are provided in the top-left corner of the plot.
+#' Each point shows the gene expression value compared to the protein expression value for a gene within a given cell line.
+#' The Pearson correlation coefficient and the p-values are provided in the top-left corner of the plot.
 #'
-#' @importFrom magrittr %>%
+#' @param input Expecting a list containing type and content variable.
+#' @param card A boolean that sets whether the plot should be scaled down to be a card
+#' @return If no error, then returns a gene v. expression plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @export
 #' @examples
 #' make_cellgeneprotein(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_cellgeneprotein(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' \dontrun{
 #' make_cellgeneprotein(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_cellgeneprotein <- function(input = list(),
                                  card = FALSE) {
   data_universal_expression_long <-
@@ -1826,18 +1904,21 @@ make_cellgeneprotein <- function(input = list(),
 ## MOLECULAR FEATURES SEGMENTS ---------------------------------------------------
 #' Molecular Features Segments Plot
 #'
-#' Each point shows the ranked dependency score ordered from low to high scores. Colors indicate the sensitive and resistant cell lines for the queried gene/s knock-out based on a cubic splines model.
+#' Each point shows the ranked dependency score ordered from low to high scores.
+#' Colors indicate the sensitive and resistant cell lines for the queried gene/s knock-out based on a cubic splines model.
 #'
 #' @param input Expecting a list containing type and content variable.
-#'
 #' @return If no error, then returns a scatterplot. If an error is thrown, then will return a bomb plot.
+#'
+#' @examples
+#' make_molecular_features_segments(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_molecular_features_segments(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
+#'
+#' @author Matthew Hirschey & Pol Castellano
 #'
 #' @importFrom magrittr %>%
 #'
 #' @export
-#' @examples
-#' make_molecular_features_segments(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-#' make_molecular_features_segments(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
 make_molecular_features_segments <- function(input = list(),
                                              ...) {
 
@@ -1901,16 +1982,18 @@ make_molecular_features_segments <- function(input = list(),
 #' Top molecular features associated to the queried gene/s knock-out sensitivity. The x-axis shows the log2 fold change (reference group: sensitive).
 #'
 #' @param input Expecting a list containing type and content variable.
+#' @return If no error, then returns a molecular features bar plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @return If no error, then returns a barplot. If an error is thrown, then will return a bomb plot.
-#'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_molecular_features(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_molecular_features(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
 #' make_molecular_features(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')), n_features = 20)
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_molecular_features <- function(input = list(),
                                     n_features = 10,
                                     ...) {
@@ -1954,16 +2037,18 @@ make_molecular_features <- function(input = list(),
 #' Top pathways associated to the queried gene/s knock-out sensitivity. The x-axis shows the -log10 P-value (reference group: sensitive).
 #'
 #' @param input Expecting a list containing type and content variable.
+#' @return If no error, then returns a molecular features pathways barplot. If an error is thrown, then will return a bomb plot.
 #'
-#' @return If no error, then returns a barplot. If an error is thrown, then will return a bomb plot.
-#'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_molecular_features_pathways(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_molecular_features_pathways(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
 #' make_molecular_features_pathways(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')), n_pathways = 20)
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_molecular_features_pathways <- function(input = list(),
                                              n_pathways = 10,
                                              ...) {
@@ -2002,18 +2087,20 @@ make_molecular_features_pathways <- function(input = list(),
 #' Top 10 pathways associated to the queried gene/s. The x-axis shows the first canonical correlation between the gene and the pathway (range 0-1).
 #'
 #' @param input Expecting a list containing type and content variable.
+#' @return If no error, then returns a co-essentiality bar plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @return If no error, then returns a barplot. If an error is thrown, then will return a bomb plot.
-#'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_cca_genes(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_cca_genes(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), gset = "GOBP")
 #' make_cca_genes(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), gset = c("GOBP", "C2"))
 #' make_cca_genes(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
 #' make_cca_genes(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')), n_features = 20)
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_cca_genes <- function(input = list(),
                            n_features = 10,
                            gset = NULL,
@@ -2059,18 +2146,18 @@ make_cca_genes <- function(input = list(),
              make_bomb_plot()})
 }
 
-## CELL DEPS --------------------------------------------------------------------
+## CELL DEPENDENCIES CURVE PLOT --------------------------------------------------------------------
 #' Dependency Curve Plot
 #'
-#' Each point shows the ranked dependency score ordered from low to high scores. Dependency scores less than -1 indicate a gene that is essential within a cell line. Dependency scores close to 0 mean no changes in fitness when the gene is knocked out. Dependency scores greater than 1 indicate gene knockouts lead to a gain in fitness.
+#' Each point shows the ranked dependency score ordered from low to high scores.
+#' Dependency scores less than -1 indicate a gene that is essential within a cell line.
+#' Dependency scores close to 0 mean no changes in fitness when the gene is knocked out.
+#' Dependency scores greater than 1 indicate gene knockouts lead to a gain in fitness.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
-#' @return If no error, then returns a celldeps plot. If an error is thrown, then will return a bomb plot.
+#' @return If no error, then returns a cell dependency plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_celldeps(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_celldeps(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
@@ -2078,6 +2165,12 @@ make_cca_genes <- function(input = list(),
 #' \dontrun{
 #' make_celldeps(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_celldeps <- function(input = list(),
                           card = FALSE,
                           lineplot = FALSE,
@@ -2233,24 +2326,30 @@ make_celldeps <- function(input = list(),
              make_bomb_plot()})
 }
 
-## BAR PLOT --------------------------------------------------------------------
+## CELL DEPENDENCIES BAR PLOT --------------------------------------------------------------------
 #' Cell Dependencies Bar Plot
 #'
-#' Each bar shows the dependency scores of the queried genes in a cell line. Dependency scores less than -1 indicate a gene that is essential within a cell line. Dependency scores close to 0 mean no changes in fitness when the gene is knocked out. Dependency scores greater than 1 indicate gene knockouts lead to a gain in fitness.
+#' Each bar shows the dependency scores of the queried genes in a cell line.
+#' Dependency scores less than -1 indicate a gene that is essential within a cell line.
+#' Dependency scores close to 0 mean no changes in fitness when the gene is knocked out.
+#' Dependency scores greater than 1 indicate gene knockouts lead to a gain in fitness.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
-#' @return If no error, then returns a cellbar plot. If an error is thrown, then will return a bomb plot.
+#' @return If no error, then returns a cell dependencies bar plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_cellbar(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_cellbar(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' \dontrun{
 #' make_cellbar(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_cellbar <- function(input = list(),
                          card = FALSE,
                          scale = NULL) {
@@ -2401,23 +2500,28 @@ make_cellbar <- function(input = list(),
 ## DENSITY PLOT ----------------------------------------------------------------
 #' Cell Dependencies Density Plot
 #'
-#' Kernel density estimate of dependency scores. Dependency scores across all cell lines for queried genes, revealing overall influence of a gene on cellular fitness. The interval indicates the 95 percent quantile of the data, the dot indicates the median dependency score. The gray background highlights weak dependency values between -1 and 1.
+#' Kernel density estimate of dependency scores.
+#' Dependency scores across all cell lines for queried genes, revealing overall influence of a gene on cellular fitness.
+#' The interval indicates the 95 percent quantile of the data, the dot indicates the median dependency score.
+#' The gray background highlights weak dependency values between -1 and 1.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
-#' @return If no error, then returns a cellbins plot. If an error is thrown, then will return a bomb plot.
+#' @return If no error, then returns a cell dependencies density plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
-#'
 #' make_cellbins(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_cellbins(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' make_cellbins(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), card = TRUE)
 #' \dontrun{
 #' make_cellbins(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_cellbins <- function(input = list(),
                           card = FALSE) {
   # get cell_expression_names from s3
@@ -2559,18 +2663,17 @@ make_cellbins <- function(input = list(),
              make_bomb_plot()})
 }
 
-## LINEAGE LINERANGE PLOT ------------------------------------------------------
+## LINEAGE LINE RANGE PLOT ------------------------------------------------------
 #' Dependency Lineage Plot
 #'
-#' Each point shows the median dependency score for the gene query within a given cell lineage. The intervals show the 5 percent quantiles centered on the median, the interquartile ranges, and the 95 percent quantiles. The gray background highlights weak dependency values between -1 and 1.
+#' Each point shows the median dependency score for the gene query within a given cell lineage.
+#' The intervals show the 5 percent quantiles centered on the median, the interquartile ranges, and the 95 percent quantiles.
+#' The gray background highlights weak dependency values between -1 and 1.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a lineage plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_lineage(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_lineage(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), highlight = TRUE)
@@ -2578,6 +2681,12 @@ make_cellbins <- function(input = list(),
 #' \dontrun{
 #' make_lineage(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_lineage <- function(input = list(),
                          card = FALSE,
                          highlight = FALSE) {
@@ -2753,15 +2862,14 @@ make_lineage <- function(input = list(),
 ## SUB-LINEAGE LINE RANGE PLOT ------------------------------------------------------
 #' Dependency Sub-lineage Plot
 #'
-#' Each point shows the median dependency score for the gene query within a given cell sub-lineage. The intervals show the 5 percent quantiles centered on the median, the interquartile ranges, and the 95 percent quantiles. The gray background highlights weak dependency values between -1 and 1.
+#' Each point shows the median dependency score for the gene query within a given cell sub-lineage.
+#' The intervals show the 5 percent quantiles centered on the median, the interquartile ranges, and the 95 percent quantiles.
+#' The gray background highlights weak dependency values between -1 and 1.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
-#' @return If no error, then returns a lineage plot. If an error is thrown, then will return a bomb plot.
+#' @return If no error, then returns a sub-lineage lne range plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_sublineage(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_sublineage(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'), highlight = TRUE)
@@ -2769,6 +2877,12 @@ make_lineage <- function(input = list(),
 #' \dontrun{
 #' make_sublineage(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_sublineage <- function(input = list(),
                             card = FALSE,
                             highlight = FALSE) {
@@ -2941,18 +3055,16 @@ make_sublineage <- function(input = list(),
              make_bomb_plot()})
 }
 
-## CORRELATION PLOT FOR CELL DEPS--------------------------------------------------------
+## CORRELATION PLOT FOR CELL DEPENDENCIES --------------------------------------------------------
 #' Co-essentiality Correlation Plot
 #'
-#' Each point shows the ranked correlation value ordered from high to low for each query. Correlation values outside the solid gray lines indicate the gene has a correlation value greater than the mean.
+#' Each point shows the ranked correlation value ordered from high to low for each query.
+#' Correlation values outside the solid gray lines indicate the gene has a correlation value greater than the mean.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
-#' @return If no error, then returns a correlation plot. If an error is thrown, then will return a bomb plot.
+#' @return If no error, then returns a co-essentiality correlation plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_correlation(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_correlation(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
@@ -2960,6 +3072,12 @@ make_sublineage <- function(input = list(),
 #' \dontrun{
 #' make_correlation(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_correlation <- function(input = list(),
                              card = FALSE,
                              scale = NULL) { #no card option, but need this to prevent error
@@ -3085,18 +3203,16 @@ make_correlation <- function(input = list(),
              make_bomb_plot()})
 }
 
-## EXPvDEP PLOT --------------------------------------------------------
+## DEPENDENCY V EXPRESSION PLOT --------------------------------------------------------
 #' Gene Dependency versus Expression
 #'
-#' Each point shows the dependency value compared to the expression value for a gene within a given cell line. Gray area indicates dependency values that are between -1 and 1.
+#' Each point shows the dependency value compared to the expression value for a gene within a given cell line.
+#' Gray area indicates dependency values that are between -1 and 1.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
-#' @return If no error, then returns a expdep plot. If an error is thrown, then will return a bomb plot.
+#' @return If no error, then returns a dependency vs expression plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_expdep(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_expdep(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
@@ -3104,6 +3220,12 @@ make_correlation <- function(input = list(),
 #' \dontrun{
 #' make_expdep(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_expdep <- function(plot_se = TRUE,
                         input = list(),
                         card = FALSE) {
@@ -3239,16 +3361,23 @@ make_expdep <- function(plot_se = TRUE,
              make_bomb_plot()})
 }
 
-#CELL --------------------------------------------------------------------
+# MAKE CELL IMAGE --------------------------------------------------------------------
 #' Cell Images
 #'
 #' Cells image shown at low (top) and high (bottom) growth density.
 #'
+#' @param input Expecting a list containing type and content variable.
+#' @param card A boolean that sets whether the plot should be scaled down to be a card
+#' @return If no error, then returns a cell image plot. If an error is thrown, then will return a bomb plot.
+#'
+#' @examples
+#' make_cell_image(input = list(content = "HEPG2"))
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
 #' @importFrom magrittr %>%
 #'
 #' @export
-#' @examples
-#' make_cell_image(input = list(content = "HEPG2"))
 make_cell_image <- function(input = list(),
                             card = FALSE) {
   make_cell_image_raw <- function(){
@@ -3294,15 +3423,18 @@ make_cell_image <- function(input = list(),
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a cell similarity plot If an error is thrown, then will return a bomb plot.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_cell_similarity(input = list(type = "cell", query = "HEPG2", content = "HEPG2"))
 #' make_cell_similarity(input = list(type = "cell", query = "HEPG2", content = "HEPG2"), similarity = "expression")
 #' \dontrun{
 #' make_cell_similarity(input = list(type = "cell", query = "HEPG2", content = "HEPG2"))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_cell_similarity <- function(data_cell_dependency_sim = cell_dependency_sim,
                                  data_cell_expression_sim = cell_expression_sim,
                                  similarity = "dependency",
@@ -3415,11 +3547,19 @@ make_cell_similarity <- function(data_cell_dependency_sim = cell_dependency_sim,
 # FUNCTIONAL PLOT ------------------------------------------
 #' Differential Pathway Expression Plot
 #'
-#' The colored vertical bars indicate the pathway median expression for the queried cell line/s while the background grey points indicate the pathway median expression of all the other cell lines. If the query includes only one cell line, the difference between the median pathway expression of that cell line and the median pathway expression of all the other cell lines will be computed and the gene_pathways with higher differences will appear first in the plot. Otherwise, the biggest difference between pathway medians of the queried cell lines will be used to rank the gene_pathways in the plot. Those gene_pathways with higher differences will appear first in the plot.
+#' The colored vertical bars indicate the pathway median expression for the queried cell line/s.
+#' The background grey points indicate the pathway median expression of all the other cell lines.
 #'
-#' @importFrom magrittr %>%
+#' If the query includes only one cell line, the difference between the median pathway expression of that cell line
+#' and the median pathway expression of all the other cell lines will be computed and the gene_pathways
+#' with higher differences will appear first in the plot.
 #'
-#' @export
+#' Otherwise, the biggest difference between pathway medians of the queried cell lines will be used to rank the gene_pathways in the plot. Those gene_pathways with higher differences will appear first in the plot.
+#'
+#' @param input Expecting a list containing type and content variable.
+#' @param card A boolean that sets whether the plot should be scaled down to be a card
+#' @return If no error, then returns a differential pathway expression plot. If an error is thrown, then will return a bomb plot.
+#'
 #' @examples
 #' make_functional_cell(input = list(type = "cell", query = "HEPG2", content = "HEPG2"))
 #' make_functional_cell(input = list(type = "cell", query = c("HEPG2", "HEL"), content = c("HEPG2", "HEL")))
@@ -3427,6 +3567,12 @@ make_cell_similarity <- function(data_cell_dependency_sim = cell_dependency_sim,
 #' \dontrun{
 #' make_functional_cell(input = list(type = "cell", query = "HEPG2", content = "HEPG2"))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_functional_cell <- function(data_gene_pathways = gene_pathways,
                                  data_universal_expression_long = universal_expression_long,
                                  data_cell_expression_meta = cell_expression_meta,
@@ -3590,9 +3736,10 @@ make_functional_cell <- function(data_gene_pathways = gene_pathways,
 #'
 #' Similar and dissimilar lineages (and sublineages) associated with the queried cell line/s.
 #'
-#' @importFrom magrittr %>%
+#' @param input Expecting a list containing type and content variable.
+#' @param card A boolean that sets whether the plot should be scaled down to be a card
+#' @return If no error, then returns a lineage similarity plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @export
 #' @examples
 #' make_metadata_cell(input = list(type = "cell", content = c("HEPG2")))
 #' make_metadata_cell(input = list(type = "cell", content = c("HEPG2")), cell_line_similarity = "expression")
@@ -3602,6 +3749,12 @@ make_functional_cell <- function(data_gene_pathways = gene_pathways,
 #' \dontrun{
 #' make_metadata_cell(input = list(type = "cell", content = c("HEPG2")))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_metadata_cell <- function(input = list(),
                                #data_cell_dependency_sim = cell_dependency_sim,
                                #data_cell_expression_sim = cell_expression_sim,
@@ -3716,16 +3869,15 @@ make_metadata_cell <- function(input = list(),
              make_bomb_plot()})
 }
 
-#COMPOUND --------------------------------------------------------------------
+# MAKE MOLECULAR STRUCTURE --------------------------------------------------------------------
 #' Molecule Structure Plot
+#'
+#' Takes a gene name and returns a molecular structure plot.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
 #' @return If no error, then returns a molecule structure plot. If an error is thrown, then will return a bomb plot.
 #'
-#' @importFrom magrittr %>%
-#'
-#' @export
 #' @examples
 #' make_molecule_structure(input = list(content = "aspirin"))
 #' make_molecule_structure(input = list(content = "ibuprofen"))
@@ -3733,6 +3885,12 @@ make_metadata_cell <- function(input = list(),
 #' \dontrun{
 #' make_molecule_structure(input = list(content = "aspirin"))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_molecule_structure <- function(input = list(),
                                     # file_name = NULL,
                                     card = FALSE) {
