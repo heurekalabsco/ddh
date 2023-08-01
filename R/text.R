@@ -1,6 +1,6 @@
 #' MAKE GENE SUMMARY ----------------------------------------------------------------
 #'
-#' The make_gene_summary function takes a gene as an input and returns summary text.
+#' The make_gene_summary function takes a gene as an input and returns a summary of it.
 #'
 #' @param input A list containing a content variable.
 #' @param var Variable that determines which text is returned
@@ -69,7 +69,7 @@ make_summary_pathway <- function(input = list(),
 
 #' MAKE SUMMARY TEXT ---------------------------------------------------------
 #'
-#' This function takes one or many genes as inputs and returns summary list containing key summary information.
+#' This function takes one or many genes as inputs and returns a summary list containing key summary information.
 #' This is a solution for make_summary_gene to make summaries of more than one gene.
 #'
 #' @param input A list containing a content variable.
@@ -222,12 +222,12 @@ make_summary_text <- function(input = list(),
 
 #' MAKE PROTEIN SUMMARY -----------------------------------------------------
 #'
-#' The make_summary_protein function takes a gene as an input and returns summary text about its protein.
+#' The make_summary_protein function takes a gene as an input and returns a summary of its protein.
 #'
 #' @param input A list containing a content variable.
 #' @param var Variable that determines which text is returned
 #'
-#' @return A summary of the queried protein
+#' @return A summary of the queried gene's associated protein
 #'
 #' @examples
 #' make_summary_protein(input = list(type = "gene", content = c("ROCK1")))
@@ -301,7 +301,7 @@ make_summary_protein <- function(input = list(),
   return(valid_summaries)
 }
 
-#' MAKE PROTEIN SEQUENCE
+#' MAKE PROTEIN SEQUENCE ---------------------------------------------------------------
 #'
 #' The make_protein_sequence function takes a gene as an input and returns its protein sequence.
 #'
@@ -337,7 +337,7 @@ make_protein_sequence <- function(input = list(),
 
 #' MAKE CELL SUMMARY ---------------------------------------------------------------
 #'
-#' The make_summary_cell function takes a cell as an input and returns summary text about it.
+#' The make_summary_cell function takes a cell as an input and returns a summary of it.
 #'
 #' @param input A list containing a content variable.
 #' @param var Variable that determines which text is returned
@@ -368,7 +368,7 @@ make_summary_cell <- function(input = list(),
 
 #' MAKE LINEAGE SUMMARY -----------------------------------------------------------------
 #'
-#' The make_summary_lineage function takes a lineage as an input and returns summary text about it.
+#' The make_summary_lineage function takes a lineage as an input and returns a summary of it.
 #'
 #' @param input A list containing a content variable.
 #' @param var Variable that determines which text is returned
@@ -396,9 +396,9 @@ make_summary_lineage <- function(input = list(),
   # return(cell_lineage_var)
 }
 
-#' MAKE CELL_OSAURUS SUMMARY
+#' MAKE CELL_OSAURUS SUMMARY ------------------------------------------------------
 #'
-#' The make_summary_cellosaurus function takes a cell_osaurus var as an input and returns summary text about it.
+#' The make_summary_cellosaurus function takes a cell_osaurus var as an input and returns a summary of it..
 #'
 #' @param input A list containing a content variable.
 #' @param var Variable that determines which text is returned
@@ -428,7 +428,7 @@ make_summary_cellosaurus <- function(input = list(),
   # return(cell_var)
 }
 
-#' GET ESSENTIAL -------------------------------------------------------------
+#' GET ESSENTIAL ----------------------------------------------------------------
 #'
 #' Gets number of cell lines a gene is essential within
 #'
@@ -486,7 +486,7 @@ get_essential <- function(input = list(),
 
 #' MAKE COMPOUND SUMMARY ---------------------------------------------------------
 #'
-#' The make_summary_compound function takes a compound as an input and returns summary text about it.
+#' The make_summary_compound function takes a compound as an input and returns a summary of it..
 #'
 #' @param input A list containing a content variable.
 #' @param var Variable that determines which text is returned
@@ -516,7 +516,7 @@ make_summary_compound <- function(input = list(),
 
 #' MAKE METABOLITE SUMMARY --------------------------------------------------------
 #'
-#' The make_summary_metabolite function takes a compound as an input and returns summary text about it.
+#' The make_summary_metabolite function takes a compound as an input and returns a summary of it..
 #'
 #' @param input A list containing a content variable.
 #' @param var Variable that determines which text is returned
@@ -547,7 +547,7 @@ make_summary_metabolite <- function(input = list(),
 
 #' MAKE MOA SUMMARY -------------------------------------------------------------
 #'
-#' The make_summary_moa function takes a MOA as an input and returns summary text about it.
+#' The make_summary_moa function takes a MOA as an input and returns a summary of it..
 #'
 #' @param input A list containing a content variable.
 #' @param var Variable that determines which text is returned
@@ -581,7 +581,7 @@ make_summary_moa <- function(input = list(),
 
 #' MAKE COMPOUND LIST SUMMARY -----------------------------------------------------
 #'
-#'The make_summary_compound_list function takes a compound list as an input and returns summary text about it.
+#'The make_summary_compound_list function takes a compound list as an input and returns a summary of it..
 #'
 #' @param input A list containing a content variable.
 #' @param ... Additional arguments to pass

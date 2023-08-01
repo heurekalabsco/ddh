@@ -55,7 +55,7 @@ make_barcode <- function(input = list(),
            })
 }
 
-## IDEOGRAM PLOT --------------------------------------------------------
+## IDEOGRAM PLOT ----------------------------------------------------------------
 #' Ideogram Plot
 #'
 #' Returns a plot where each point shows the location of the query gene(s) on human chromosomes.
@@ -183,7 +183,7 @@ make_ideogram <- function(input = list(),
              make_bomb_plot()})
 }
 
-## SIZE PLOT --------------------------------------------------------
+## SIZE PLOT ----------------------------------------------------------------------
 #' Protein Size Plot
 #'
 #' The plot contains a colored strip visualizing the distribution of all protein masses.
@@ -437,7 +437,7 @@ make_sequence <- function(input = list(),
              make_bomb_plot()})
 }
 
-## PROTEIN DOMAIN PLOT --------------------------------------------------------
+## PROTEIN DOMAIN PLOT ----------------------------------------------------------
 #' Protein Domain Plot
 #'
 #' Rectangles represent the locations and size of named protein domains, while black shaped elements represent PTMs.
@@ -595,7 +595,7 @@ make_protein_domain <- function(input = list(),
              make_bomb_plot()})
 }
 
-## AA RADIAL PLOT -------------------------------------------------------------
+## AA RADIAL PLOT ---------------------------------------------------------------
 #' Amino Acid Radial Plot
 #'
 #' Amino acid signature/s (percentage of each amino acid in a protein) of the queried protein/clusters versus the mean amino acid signature of all the other proteins.
@@ -820,7 +820,7 @@ make_radial_bar <- function(input = list(),
              make_bomb_plot()})
 }
 
-## UMAP PLOT --------------------------------------------------------
+## UMAP PLOT --------------------------------------------------------------------
 #' UMAP Embeddings Plot
 #'
 #' Amino acid signature UMAP embeddings colored by the cluster.
@@ -1292,7 +1292,7 @@ make_pubmed <- function(input = list(),
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
-#' @return If no error, then returns a cellanatogram plot. If an error is thrown, then will return a bomb plot.
+#' @return If no error, then returns a cell anatogram plot. If an error is thrown, then will return a bomb plot.
 #'
 #' @examples
 #' make_cellanatogram(input = list(type = "gene", content = c("ROCK2")))
@@ -1371,7 +1371,7 @@ make_cellanatogram <- function(input = list(),
 #' CELL ANATOGRAM FACET ------------------------------------------------------------
 #' Cell Anatogram Facet Plot
 #'
-#' Subcellular expression levels for the queried gene(s)
+#' Subcellular expression levels for the queried gene(s) in facet plot form
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a cellanatogram facet plot. If an error is thrown, then will return a bomb plot.
@@ -1647,14 +1647,14 @@ make_tissue <- function(input = list(),
              make_bomb_plot()})
 }
 
-## EXPRESSION PLOT --------------------------------------------------------
+## EXPRESSION PLOT -------------------------------------------------------------
 #' Cell Line Expression Plot
 #'
 #' Expression levels of the queried gene/s across cell lines.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
-#' @return If no error, then returns a cellexpression plot. If an error is thrown, then will return a bomb plot.
+#' @return If no error, then returns a cell expression plot. If an error is thrown, then will return a bomb plot.
 #'
 #' @examples
 #' make_cellexpression(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
@@ -1786,7 +1786,7 @@ make_cellexpression <- function(input = list(),
              make_bomb_plot()})
 }
 
-# GENE V. PROTEIN EXPRESSION ----------------------------------
+# GENE V. PROTEIN EXPRESSION --------------------------------------------------------
 #' Gene Expression versus Protein Expression
 #'
 #' Each point shows the gene expression value compared to the protein expression value for a gene within a given cell line.
@@ -1908,7 +1908,7 @@ make_cellgeneprotein <- function(input = list(),
 #' Colors indicate the sensitive and resistant cell lines for the queried gene/s knock-out based on a cubic splines model.
 #'
 #' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a scatterplot. If an error is thrown, then will return a bomb plot.
+#' @return If no error, then returns a scatter plot. If an error is thrown, then will return a bomb plot.
 #'
 #' @examples
 #' make_molecular_features_segments(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
@@ -2868,7 +2868,7 @@ make_lineage <- function(input = list(),
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
-#' @return If no error, then returns a sub-lineage lne range plot. If an error is thrown, then will return a bomb plot.
+#' @return If no error, then returns a sub-lineage line range plot. If an error is thrown, then will return a bomb plot.
 #'
 #' @examples
 #' make_sublineage(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

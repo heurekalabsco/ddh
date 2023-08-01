@@ -2,7 +2,7 @@
 #this creates a cache, which funs get objects from AWS and place here
 content_cache <- cachem::cache_mem()
 
-#' GET CONTENT ------------------------------------------------
+#' GET CONTENT ------------------------------------------------------------------
 #'
 #' Function to load data from AWS into environment
 #'
@@ -47,7 +47,7 @@ get_content <- function(object_name,
     caching_get_aws_object()
 }
 
-#' GET DATA OBJECT -----------------------------------------------------
+#' GET DATA OBJECT --------------------------------------------------------------
 #'
 #' Function to get filtered data object from environment
 #'
@@ -123,12 +123,11 @@ get_data_object <- function(object_names,
   return(data_object)
 }
 
-#' GET GENE SYMBOLS FOR PATHWAY ------------------------------------------------
+#' GET GENE SYMBOLS FOR PATHWAY -------------------------------------------------
 #'
 #' Function to return a vector of gene symbols in a queried pathway
 #'
 #' @param pathway_id Establishes pathway for which gene symbols will be pulled
-#'
 #' @return Vector containing gene symbols for selected pathway
 #'
 #' @examples
@@ -137,19 +136,19 @@ get_data_object <- function(object_names,
 #' @author Matthew Hirschey & Pol Castellano
 #'
 #' @export
+#'
 get_gene_symbols_for_pathway <- function(pathway_id) {
   get_data_object(pathway_id, dataset_name = "universal_pathways") %>%
     dplyr::filter(key=="gene_symbol") %>%
     dplyr::pull("value")
 }
 
-#' GET STATS ---------------------------------------------------------------
+#' GET STATS --------------------------------------------------------------------
 #'
 #' Function to extract statistical data for a queried variable
 #'
 #' @param data_set A character indicating data set from which the stats were generated, typically one of achilles, expression_gene, expression_protein, or prism name.
 #' @param var A character indicating the variable to extract from the stats summary dataframe, typically one of threshold, sd, mean, upper, pr lower.
-#'
 #' @return Vector containing statistical information for selected variable
 #'
 #' @examples
@@ -172,13 +171,12 @@ get_stats <- function(data_set,
   return(stat)
 }
 
-#' GET TEMPORARY URL ----------------------------------------------------------
+#' GET TEMPORARY URL ------------------------------------------------------------
 #'
 #' Creates a temporary URL to download a file from a S3 bucket
 #'
 #' @param bucket_name_env A character the name of an environment variable containing the bucket name
 #' @param key A character the file within the bucket
-#'
 #' @return Temporary URL for S3 bucket access
 #'
 #' @examples
@@ -193,7 +191,7 @@ get_temporary_url <- function(bucket_name_env, key) {
   s3$generate_presigned_url(client_method = "get_object", params = list(Bucket = bucket, Key = key))
 }
 
-# LOAD IMAGE------------------------------------------------------------
+# LOAD IMAGE---------------------------------------------------------------------
 #'
 #' Loads an image from a S3 Bucket
 #'
@@ -245,12 +243,11 @@ load_image <- function(input = list(),
            })
 }
 
-#' LOAD PDB FILE -------------------------------------------------------
+#' LOAD PDB FILE ----------------------------------------------------------------
 #'
 #' Loads a PDB file corresponding to queried parameters
 #'
 #' @param input Expecting a list containing type and content variable.
-#'
 #' @return Path to a URL containing a PDB file.
 #'
 #' @examples
@@ -289,12 +286,11 @@ load_pdb <- function(input = list()){
            })
 }
 
-#' FORMAT PATH PART ------------------------------------------------------
+#' FORMAT PATH PART -------------------------------------------------------------
 #'
 #' Formats part of an image path by replacing invalid characters and slashes with "_"
 #'
 #' @param key The original image path
-#'
 #' @return The image path with invalid characters substituted with "_"
 #'
 #' @examples
@@ -303,15 +299,15 @@ load_pdb <- function(input = list()){
 #' @author Matthew Hirschey & Pol Castellano
 #'
 #' @export
+#'
 format_path_part <- function(key) {
 
   gsub("[/]", "_", key)
 }
 
-#' MAKE EMPTY TABLE --------------------------------------------------------
+#' MAKE EMPTY TABLE -------------------------------------------------------------
 #
 #' Function to create an empty table
-#'
 #' @return A data frame
 #'
 #' @examples
@@ -320,15 +316,15 @@ format_path_part <- function(key) {
 #' @author Matthew Hirschey & Pol Castellano
 #'
 #' @export
+#'
 make_empty_table <- function() {
   message("No data available")
   #consider making an "empty" feather to pull the dataframe headers from?
 }
 
-#' MAKE EMPTY PLOT ------------------------------------------------
+#' MAKE EMPTY PLOT --------------------------------------------------------------
 #'
 #' Function to create an empty plot
-#'
 #' @return A ggplot2 object.
 #'
 #' @examples
@@ -337,6 +333,7 @@ make_empty_table <- function() {
 #' @author Matthew Hirschey & Pol Castellano
 #'
 #' @export
+#'
 make_empty_plot <- function() {
   ggplot2::ggplot() +
     ggplot2::labs(title = "Nothing to see here. Try again.")
@@ -347,7 +344,6 @@ make_empty_plot <- function() {
 #' This is a graph function that takes a gene name and returns a empty graph graph
 #'
 #' @param input Expecting a list containing type and content variable.
-#'
 #' @return If no error, then returns a empty graph graph. If an error is thrown, then will return an empty graph.
 #'
 #' @examples
@@ -357,6 +353,7 @@ make_empty_plot <- function() {
 #' @import visNetwork
 #'
 #' @export
+#'
 make_empty_graph <- function(type = "gene") {
   if(type == "gene") {
     queryColor <- color_set_gene_alpha[2]
@@ -385,7 +382,7 @@ make_empty_graph <- function(type = "gene") {
               borderWidth = 2)
 }
 
-#' MAKE BOMB PLOT -----------------------------------
+#' MAKE BOMB PLOT ---------------------------------------------------------------
 #'
 #' Function to create a bomb plot
 #'
@@ -399,6 +396,7 @@ make_empty_graph <- function(type = "gene") {
 #' @importFrom magrittr %>%
 #'
 #' @export
+#'
 make_bomb_plot <- function(){
   #fill background
   background <- data.frame(
@@ -657,7 +655,7 @@ make_bomb_plot <- function(){
   return(plot_complete)
 }
 
-#' FIX NAMES -----------------------------------------------------------
+#' FIX NAMES --------------------------------------------------------------------
 #'
 #' Corrects wrongly specified gene names to their official symbol
 #'
@@ -687,14 +685,14 @@ fix_names <- function(wrong_name,
   #fixes 251, leaves 11
 }
 
-#' CLEAN COLNAMES
+#' CLEAN COLNAMES ---------------------------------------------------------------
 #'
 #' Returns dataset with corrected gene names
 #'
 #' @param dataset A dataset to fix gene names
 #' @param summary_df The gene_summary dataframe with all gene symbols
 #'
-#' @return Corrected dataset
+#' @return The corrected dataset with adjusted gene names
 #'
 #' @examples
 #' clean_colnames("dataset", summary_df = universal_gene_summary)
@@ -704,6 +702,7 @@ fix_names <- function(wrong_name,
 #' @importFrom magrittr %>%
 #'
 #' @export
+#'
 clean_colnames <- function(dataset,
                            summary_df = universal_gene_summary) {
   for (name in names(dataset)) {
@@ -717,12 +716,11 @@ clean_colnames <- function(dataset,
   return(dataset)
 }
 
-#' PLOT SIZE FINDER ------------------------------------------------
+#' PLOT SIZE FINDER -------------------------------------------------------------
 #'
 #' Obtains plot size for a specified function
 #'
 #' @param function_name Function name
-#'
 #' @return A list with the corresponding plot size for the function type
 #'
 #' @examples
@@ -848,14 +846,14 @@ make_roxygen <- function(fun_name,
   writeLines(roxygen, con = output_file)
 }
 
-#' HELP EXTRACT (EXTRACT DOCUMENTATION SECTIONS) ---------------------------
+#' HELP EXTRACT (EXTRACT DOCUMENTATION SECTIONS) ---------------------------------
 #'
 #' Extracts parts of a function to aid in documentation.
 #'
 #' @param fun Function name.
 #' @param section Function section to extract.
 #'
-#' @return The extracted function section
+#' @return The extracted function section for documentation
 #'
 #' @examples
 #' help_extract("make_radial", package = ddh, section = "Description")
@@ -889,12 +887,11 @@ help_extract <- function(fun,
   return(out)
 }
 
-#' EXTRACT TITLE FUNCTION --------------------------------------------
+#' EXTRACT TITLE FUNCTION ---------------------------------------------------------
 #'
 #' Extracts function title from documentation.
 #'
 #' @param fun Function name.
-#'
 #' @return Function title
 #'
 #' @examples
@@ -915,7 +912,7 @@ title_extract <- function(fun,
   return(title)
 }
 
-#' MAKE LEGEND -------------------------------------------------------
+#' MAKE LEGEND --------------------------------------------------------------------
 #'
 #' Creates a legend for a queried function
 #'
@@ -946,12 +943,11 @@ make_legend <- function(fun,
   return(legend)
 }
 
-#' MAKE EXAMPLE --------------------------------------------------------------
+#' MAKE EXAMPLE -----------------------------------------------------------------
 #'
 #' Function to create an HTML string of examples to use on the index page and the start here methods doc
 #'
 #' @param privateMode Boolean indicating if private data is pointed to
-#'
 #' @return An HTML string.
 #'
 #' @examples
@@ -977,12 +973,11 @@ make_example <- function(privateMode = TRUE){
   return(examples)
 }
 
-#' MAKE QUARTO ---------------------------------------------------
+#' MAKE QUARTO -------------------------------------------------------------------
 #'
 #' Generates a Quarto Markdown File for a queried title
 #'
 #' @param title Title header for the Quarto Markdown File
-#'
 #' @return A Quarto Markdown File
 #'
 #' @examples
@@ -1011,13 +1006,12 @@ make_quarto <- function(title){
   return(glue::glue("{file_name}.qmd"))
 }
 
-#' GOOD FILE NAMER
+#' GOOD FILE NAMER --------------------------------------------------------------
 #'
 #' Generates a good file name for a queried object
 #'
 #' @param input Expecting a list that contains a content object
-#'
-#' @return A good file name
+#' @return A good file name for the queried object
 #'
 #' @examples
 #' good_file_namer(input = list(content = c("ROCK1", "ROCK2")))

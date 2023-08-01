@@ -103,7 +103,7 @@ setup_graph <- function(setup_input = list(), #changed name here to prevent var 
 #' @param displayWidth Defaults to 100 percent. The width of the network in pixels ("500px"), as a percentage (100 percent), or as a percentage of the viewport ("70vh", where 70 represents 70 percent of the viewport)
 #' @param tooltipLink Boolean to denote whether or not to include a link in the tooltip for a gene. Defaults to false.
 #'
-#' @return Outputs a complete network graph. If an error is thrown, then an empty graph will be returned.
+#' @return If no error is thrown, outputs a complete network graph. If an error is thrown, then an empty graph will be returned.
 #'
 #' @examples
 #'
@@ -439,7 +439,6 @@ graph_legend_list <- "Each point represents one of the queried genes, and then t
 #' @return If no error, a bipartite graph visualization is returned. If an error is thrown, then an empty graph is returned.
 #'
 #' @examples
-#'
 #' make_bipartite_graph(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_bipartite_graph(input = list(type = "gene", content = "ROCK1"), collapsed = TRUE, threshold = 10, corr_type = "positive")
 #' make_bipartite_graph(input = list(type = "gene", content = c("ROCK1", "ROCK2")), collapsed = TRUE, threshold = 10, corr_type = "positive", censor = c("ADP", "Adenosine triphosphate"))

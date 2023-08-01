@@ -1,4 +1,4 @@
-# LOAD DDH COLORS-----------------------------------------------------
+# LOAD DDH COLORS----------------------------------------------------------------
 #'
 #' Loads and defines colors & palettes for DDH
 #'
@@ -80,7 +80,7 @@ load_ddh_colors <- function() {
 
 }
 
-#' GENERATE COLORS----------------------------------------------
+#' GENERATE COLORS ---------------------------------------------------------------
 #'
 #' Generates color palettes using a specified main color
 #'
@@ -109,7 +109,7 @@ generate_colors <- function(hex, discrete = FALSE) {
 }
 
 
-#' COLOR RAMP PALETTE SHUFFLE ----------------------------------
+#' COLOR RAMP PALETTE SHUFFLE -----------------------------------------------------
 #'
 #' Generates a shuffled color palette based on `colorRampPalette`
 #'
@@ -144,13 +144,12 @@ colorRampPalette_shuffle <- function (colors, seed = NULL, ...)
   }
 }
 
-#' DDH COLORS --------------------------------------------------
+#' DDH COLORS ---------------------------------------------------------------------
 #'
 #' Extracts DDH colors as hex codes
 #'
 #' @param ... Categorical character names of colors - some combination of "gene", "protein",
 #' "gene_protein", "cell", and "compound"
-#'
 #' @return If no arguments provided, DDH's full color set is returned. If parameters provided,
 #' the corresponding categories' color subsets are returned.
 #'
@@ -179,14 +178,13 @@ ddh_colors <- function(...) {
 }
 
 
-#' DDH PAL C
+#' DDH PAL C --------------------------------------------------------------------
 #'
 #' Returns a function that can easily generate and interpolate a continuous DDH color palette
 #'
 #' @param palette Character name of palette in ddh_palettes
 #' @param reverse Boolean indicating whether the palette should be reversed
 #' @param ... Additional arguments to pass to [grDevices::colorRampPalette()]
-#'
 #' @return A color palette function created using `colorRampPalette`
 #'
 #' @examples
@@ -219,7 +217,7 @@ ddh_pal_c <- function(palette = "gene", reverse = FALSE, ...) {
 }
 
 
-#' DDH PAL D
+#' DDH PAL D ---------------------------------------------------------------------
 #'
 #' Returns a function that can interpolate a discrete DDH color palette
 #'
@@ -270,7 +268,7 @@ ddh_pal_d <- function(palette = "gene", reverse = FALSE, shuffle = FALSE, seed =
 }
 
 
-#' SCALE COLOR DDH C -----------------------------------------------------
+#' SCALE COLOR DDH C ------------------------------------------------------------
 #'
 #' Color scale constructor for continuous DDH color palettes
 #'
@@ -303,8 +301,6 @@ scale_color_ddh_c <- function(palette = "gene", reverse = FALSE, ...) {
   ggplot2::scale_color_gradientn(colours = pal(256), ...)
 }
 
-#'
-#'
 #' SCALE COLOR DDH D -------------------------------------------------
 #'
 #' Color scale constructor for discrete DDH colors
@@ -343,9 +339,8 @@ scale_color_ddh_d <- function(palette = "gene", reverse = FALSE, shuffle = FALSE
   ggplot2::discrete_scale("colour", paste0("ddh_", palette), palette = pal, ...)
 }
 
-#'
-#'
-#' SCALE FILL DDH C -----------------------------------------------
+
+#' SCALE FILL DDH C -------------------------------------------------------------
 #'
 #' Fills scale constructor for continuous DDH color palettes
 #'
@@ -382,7 +377,7 @@ scale_fill_ddh_c <- function(palette = "gene", reverse = FALSE, ...) {
 
 #'
 #'
-#' SCALE FILL DDH D ---------------------------------------
+#' SCALE FILL DDH D -------------------------------------------------------------
 #'
 #' Fills scale constructor for discrete DDH color palettes
 #'

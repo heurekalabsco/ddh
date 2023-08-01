@@ -1,11 +1,10 @@
 
-# MAKE PATHWAY LIST TABLE ----------------------------------------------------
+# MAKE PATHWAY LIST TABLE ------------------------------------------------------
 #' Pathway List Table
 #'
-#' This is a table function that takes a gene name and returns a sub-table of gene sets and pathways that contain your gene query
+#' This is a table function that takes a gene name and returns a sub-table of gene sets and pathways that contain the gene query
 #'
 #' @param input Expecting a list containing type and content variable.
-#'
 #' @return If no error, then returns a pathway list table. If an error is thrown, then will return an empty table.
 #'
 #' @examples
@@ -38,11 +37,9 @@ make_pathway_list <- function(input = list()) {
 
 #' MAKE PATHWAY GENES TABLE ---------------------------------------------------------
 #'
-#' This is a table function that takes a gene_set id in the query slot and returns
-#' a sub-table of genes that your gene set contains
+#' This is a table function that takes a gene_set id in the query slot and returns a sub-table of genes that your gene set contains
 #'
 #' @param input Expecting a list containing type and content variable.
-#'
 #' @return If no error, then returns a pathway gene table. If an error is thrown, then will return an empty table.
 #'
 #' @examples
@@ -76,14 +73,13 @@ make_pathway_genes <- function(input = list()){
            })
 }
 
-#' MAKE COMPOUND TABLE --------------------------------------------------------
+#' MAKE COMPOUND TABLE ----------------------------------------------------------
 #'
 #' This is a table function that takes a compound name and returns a table.
 #' It is commented out until we revisit computer as a query feather.
 #'
 #' @param input Expecting a list containing type and content variable.
-#'
-#' @return If no error, then returns a compound Table. If an error is thrown, then will return an empty table.
+#' @return If no error, then returns a compound table. If an error is thrown, then will return an empty table.
 #'
 #' @examples
 #' make_compound_table(input = list(content = "aspirin"), top = TRUE)
@@ -135,7 +131,7 @@ make_compound_table <- function(input = list(),
 # MAKE PUBMED TABLE -------------------------------------------------------------
 #' Pubmed Table
 #'
-#' This is a table function that takes a gene name and returns a pubmed Table
+#' This is a table function that takes a gene name and returns a pubmed table
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a pubmed table. If an error is thrown, then will return an empty table.
@@ -174,10 +170,10 @@ make_pubmed_table <- function(input = list()) {
 # CELL ANATOGRAM TABLES -----------------------------------------------------------
 #' Cellanatogram Table
 #'
-#' This is a table function that takes a gene name and returns a cellanatogram Table
+#' This is a table function that takes a gene name and returns a cellanatogram table
 #'
 #' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a cellanatogram Table. If an error is thrown, then will return an empty table.
+#' @return If no error, then returns a cellanatogram table. If an error is thrown, then will return an empty table.
 #'
 #' @examples
 #' make_cellanatogram_table(input = list(type = 'gene', content = 'ROCK2'))
@@ -210,7 +206,7 @@ make_cellanatogram_table <- function(input = list()) {
            })
 }
 
-# EXPRESSION TABLES ----------------------------------------------------------
+# MAKE EXPRESSION TABLE-------------------------------------------------------------
 #' Expression Table
 #'
 #' This is a table function that takes a gene name and returns an expression table
@@ -291,10 +287,10 @@ make_expression_table <- function(input = list(),
            })
 }
 
-# HUMAN ANATOGRAM TABLES ------------------------------------------------------
+# HUMAN ANATOGRAM TABLES --------------------------------------------------------
 #' Human Anatogram Table
 #'
-#' This is a table function that takes a gene name and returns a humana natogram Ttble
+#' This is a table function that takes a gene name and returns a human anatogram table
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a human anatogram Table. If an error is thrown, then will return an empty table.
@@ -337,10 +333,10 @@ make_humananatogram_table <- function(input = list()) {
 ## GET CLUSTER  -------------------------------------------------------------
 #' Clustering Table
 #'
-#' This is a helper function that takes a gene name and return a vector containing the cluster numbers for input
+#' This is a helper function that takes a gene name and return a vector containing the cluster numbers for the queried gene
 #'
 #' @param input Expecting a list containing a content variable.
-#' @return Returns a vector containing the cluster number.
+#' @return Returns a vector containing the cluster numbers.
 #'
 #' @examples
 #' get_cluster(input = list(type = 'gene', content = 'ROCK1'))
@@ -363,13 +359,13 @@ get_cluster <- function(input = list()){
   return(cluster)
 }
 
-## PROTEIN CLUSTER TABLE -------------------------------------------------------
+## PROTEIN CLUSTER TABLE ---------------------------------------------------------
 #' Clustering Table
 #'
 #' This is a table function that takes a gene name and returns a protein clustering table
 #'
 #' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a clustering Table. If an error is thrown, then will return an empty table.
+#' @return If no error, then returns a clustering table. If an error is thrown, then will return an empty table.
 #'
 #' @examples
 #' make_signature_clusters_table(input = list(type = 'gene', content = 'ROCK1'))
@@ -414,7 +410,7 @@ make_signature_clusters_table <- function(input = list(),
 #' This is a table function that takes a gene name and returns a protein clustering enrichment table
 #'
 #' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a clustering enrichment Table. If an error is thrown, then will return an empty table.
+#' @return If no error, then returns a clustering enrichment table. If an error is thrown, then will return an empty table.
 #'
 #' @examples
 #' make_clustering_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
@@ -603,7 +599,7 @@ make_dep_table <- function(input = list()#,
            })
 }
 
-## CO-ESSENTIALITY -----------------------------------------------------------
+## CO-ESSENTIALITY ---------------------------------------------------------------
 #' Top Table
 #'
 #' This is a table function that takes a gene name and returns a top table
@@ -649,12 +645,12 @@ make_top_table <- function(input = list()) {
            })
 }
 
-#' BOTTOM TABLE
+#' BOTTOM TABLE ------------------------------------------------------------------
 #'
 #' This is a table function that takes a gene name and returns a bottom table
 #'
 #' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a bottom Table. If an error is thrown, then will return an empty table.
+#' @return If no error, then returns a bottom table. If an error is thrown, then will return an empty table.
 #'
 #' @examples
 #' make_bottom_table(input = list(type = 'gene', content = 'ROCK1'))
@@ -713,10 +709,10 @@ make_bottom_table <- function(input = list(),
            })
 }
 
-## CENSOR ---------------------------------------------------------------------
+## CENSOR -----------------------------------------------------------------------
 #' Make Censor Table
 #'
-#' Censor is used to remove genes from similarity table that are garbage (too many associations).
+#' Censor is used to remove genes from a similarity table that are garbage (too many associations).
 #' It does this by filtering out genes above (greater_than) a provided threshold.
 #'
 #' @param input Expecting a list containing type and content variable.
@@ -809,7 +805,7 @@ make_gene_dependency_enrichment_table <- function(input = list()) {
            })
 }
 
-#' Molecular Features Segments Table
+#' MOLECULAR FEATURES SEGMENTS TABLE --------------------------------------------
 #'
 #' This is a table function that takes a gene name and returns a molecular features segments table
 #'
@@ -847,7 +843,7 @@ make_molecular_features_segments_table <- function(input = list(),
            })
 }
 
-#' Molecular Features Table
+#' MOLECULAR FEATURES TABLE ----------------------------------------------------
 #'
 #' This is a table function that takes a gene name and returns a molecular features table
 #'
@@ -886,7 +882,7 @@ make_molecular_features_table <- function(input = list(),
            })
 }
 
-#' Molecular Features Pathways Table
+#' MOLECULAR FEATURES PATHWAYS TABLE --------------------------------------------
 #'
 #' This is a table function that takes a gene name and returns a molecular features pathways table
 #'
@@ -932,7 +928,7 @@ make_molecular_features_pathways_table <- function(input = list(),
            })
 }
 
-#' Gene-Pathway CCA Table
+#' GENE-PATHWAY CCA TABLE --------------------------------------------------------
 #'
 #' This is a table function that takes a gene name and returns a gene-pathway table
 #'
@@ -985,7 +981,7 @@ make_cca_genes_table <- function(input = list(),
            })
 }
 
-#' Pathway-Pathway CCA Table
+#' PATHWAY-PATHWAY CCA TABLE ---------------------------------------------------
 #'
 #' This is a table function that takes a pathway name and returns a pathway-pathway table
 #'
@@ -1038,7 +1034,7 @@ make_cca_pathway_table <- function(input = list(),
            })
 }
 
-# CELL SUMMARY TABLE ------
+# CELL SUMMARY TABLE -----------------------------------------------------------
 #' Cell Summary Table
 #'
 #' This is a table function that takes a gene name and returns a cell summary table
@@ -1173,7 +1169,7 @@ make_cell_sim_table <- function(input = list(),
 #' This is a table function that takes a drug name and returns a correlation table
 #'
 #' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a cell similarity table. If an error is thrown, then will return an empty table.
+#' @return If no error, then returns a CORRELATION table. If an error is thrown, then will return an empty table.
 #'
 #' @examples
 #' make_drug_genes_cor_table(input = list(type = "cell", content = "HEL"))
@@ -1202,18 +1198,24 @@ make_drug_genes_cor_table <- function(input = list()
            })
 }
 
-#' Gene Drugs Cor Table
+#' GENE DRUGS COR TABLE ----------------------------------------------------------
 #'
-#' This is a table function that takes a gene name and returns a gene drugs cor Table
+#' This is a table function that takes a gene name and returns a gene drugs correlation table
 #'
 #' @param input Expecting a list containing type and content variable.
-#' @return If no error, then returns a gene drugs cor Table. If an error is thrown, then will return an empty table.
+#' @return If no error, then returns a gene drugs correlation Table. If an error is thrown, then will return an empty table.
 #'
 #' @examples
 #' make_gene_drugs_cor_table(input = list(type = 'gene', content = 'ACOT4'))
 #' \dontrun{
 #' make_gene_drugs_cor_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
+#'
+#' @author Matthew Hirschey & Pol Castellano
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
 make_gene_drugs_cor_table <- function(input = list(),
                                       ...) {
   make_gene_drugs_cor_table_raw <- function() {
@@ -1238,7 +1240,7 @@ make_gene_drugs_cor_table <- function(input = list(),
            })
 }
 
-#' Drug Genes Table
+#' DRUG GENES TABLE --------------------------------------------------------------
 #'
 #' This is a table function that takes a gene name and returns a drug genes table
 #'
@@ -1279,9 +1281,9 @@ make_drug_genes_table <- function(input = list()
            })
 }
 
-#' Gene Drugs Table
+#' GENE DRUGS TABLE -------------------------------------------------------------
 #'
-#' This is a table function that takes a gene name and returns a gene drugs Table
+#' This is a table function that takes a gene name and returns a gene drugs table
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @return If no error, then returns a gene drugs table. If an error is thrown, then will return an empty table.
@@ -1314,7 +1316,7 @@ make_gene_drugs_table <- function(input = list()) {
            })
 }
 
-#' Cell Drugs Table
+#' CELL DRUGS TABEL ------------------------------------------------------------
 #'
 #' This is a table function that takes a gene name and returns a cell drugs Table
 #'
@@ -1352,7 +1354,7 @@ make_cell_drugs_table <- function(#data_universal_prism_long = universal_prism_l
            })
 }
 
-# METABOLITE TABLES -----
+# METABOLITE TABLES ---------------------------------------------------------------
 #' Metabolite Table
 #'
 #' This is a table function that takes a gene name and returns a metabolite table
