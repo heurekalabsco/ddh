@@ -884,61 +884,33 @@ make_umap_plot <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' make_cluster_enrich(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-#' make_cluster_enrich(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
+#' make_cluster_enrichment(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_cluster_enrichment(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
-#' make_cluster_enrich(input = list(type = 'gene', content = 'ROCK1'))
+#' make_cluster_enrichment(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_cluster_enrich <- function(input = list(),
-                                ontology = "BP"){
-  make_cluster_enrich_plot_raw <- function() {
-    #get clust numbers
-    query_clust <-
-      get_data_object(object_names = input$content,
-                      dataset_name = "gene_signature_clusters") %>%
-      dplyr::filter(key == "member_prob") %>%
-      dplyr::pull(value) %>%
-      as.numeric(.)
+make_cluster_enrichment <- function(input = list(),
+                                    ...) {
 
-    # get gene_signature_cluster_enrichment
-    gene_signature_cluster_enrichment <- get_content("gene_signature_cluster_enrichment", dataset = TRUE)
+  cluster_enrichment_table <- make_cluster_enrichment_table(input = input)
 
-    gene_signature_cluster_enrichment <-
-      gene_signature_cluster_enrichment %>%
-      dplyr::filter(cluster %in% query_clust)
+  make_cluster_enrichment_raw <- function() {
 
     plot_complete <-
-      gene_signature_cluster_enrichment %>%
-      dplyr::arrange(pvalue) %>%
-      dplyr::filter(ont == ontology) %>%
-      dplyr::slice(1:10) %>%
-      ggplot2::ggplot(ggplot2::aes(x = Count,
-                                   y = reorder(substr(paste0(Description, " (", ID, ")"), 1, 40), Count),
-                                   fill = pvalue)) +
-      ggplot2::geom_col() +
-      ggplot2::labs(x = "Gene Count",
-                    y = NULL) +
-      scale_fill_ddh_c(palette = "protein", reverse = TRUE) +
-      ggplot2::guides(fill = ggplot2::guide_colorbar(barheight = ggplot2::unit(6, "lines"),
-                                                     barwidth = ggplot2::unit(.6, "lines"),
-                                                     reverse = TRUE)) +
-      ddh::theme_ddh() +
-      ggplot2::theme(
-        title = ggplot2::element_blank(),
-        text = ggplot2::element_text(family = "Nunito Sans"),
-        legend.position = "right",
-        legend.title = ggplot2::element_text(size = 16),
-        legend.text = ggplot2::element_text(size = 16),
-        axis.text = ggplot2::element_text(family = "Roboto Slab"),
-        axis.ticks.x = ggplot2::element_blank(),
-        axis.line.x = ggplot2::element_blank()
-      ) +
+      cluster_enrichment_table %>%
+      ggplot2::ggplot(ggplot2::aes(-log10(`P-value`), reorder(Pathway, -log10(`P-value`)), fill = Cluster)) +
+      ggplot2::geom_col(position = ggplot2::position_dodge()) +
+      scale_fill_ddh_d() +
+      ggplot2::labs(
+        x = "-log10(P-value)",
+        y = NULL) +
+      ddh::theme_ddh(grid = "y") +
       NULL
 
     return(plot_complete)
   }
   #error handling
-  tryCatch(make_cluster_enrich_plot_raw(),
+  tryCatch(make_cluster_enrichment_raw(),
            error = function(e){
              message(e)
              make_bomb_plot()})

@@ -361,8 +361,6 @@ make_signature_clusters_table <- function(input = list(),
 ## PROTEIN CLUSTER ENRICHMENT TABLE -----------------------------------------------
 #' Clustering Enrichment Table
 #'
-#' \code{make_clustering_enrichment_table} returns an image of ...
-#'
 #' This is a table function that takes a gene name and returns a clustering enrichment Table
 #'
 #' @param input Expecting a list containing type and content variable.
@@ -372,47 +370,45 @@ make_signature_clusters_table <- function(input = list(),
 #'
 #' @export
 #' @examples
-#' make_clustering_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
-#' make_clustering_enrichment_table(input = list(type = 'gene', content = 'ROCK1'), ontology = "MF")
-#' make_clustering_enrichment_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
+#' make_cluster_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
+#' make_cluster_enrichment_table(input = list(type = 'gene', content = 'ROCK1'), ontology = "MF")
+#' make_cluster_enrichment_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
 #' make_clustering_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_clustering_enrichment_table <- function(input = list(),
-                                             ontology = "BP",
-                                             filter_noise = FALSE) {
+make_cluster_enrichment_table <- function(input = list(),
+                                          ...) {
 
-  make_clustering_enrichment_table_raw <- function() {
+  make_cluster_enrichment_table_raw <- function() {
+    # get clust numbers
+    query_clust <-
+      get_data_object(object_names = input$content,
+                      dataset_name = "gene_signature_clusters") %>%
+      dplyr::filter(key == "member_prob") %>%
+      dplyr::pull(value)
 
-    gene_signature_clusters <- ddh::get_content("gene_signature_clusters", dataset = TRUE) #allows all genes, coordinates, and cluster
-    gene_signature_cluster_enrichment <- ddh::get_content("gene_signature_cluster_enrichment", dataset = TRUE)
+    # get gene_signature_cluster_enrichment
+    gene_signature_cluster_enrichment <- get_content("gene_signature_cluster_enrichment", dataset = TRUE)
 
-    if(filter_noise) {
-      gene_signature_clusters <-
-        gene_signature_clusters %>%
-        dplyr::filter(clust != 0)
-    }
-
-    query_clust <- ddh::get_cluster(input = input)
-
-    if(length(query_clust) != 1) {
-      stop("Select only one cluster")
-    }
-
-    enrichment_table <-
+    gene_signature_cluster_enrichment <-
       gene_signature_cluster_enrichment %>%
-      dplyr::filter(clust %in% query_clust) %>%
-      dplyr::filter(ont %in% ontology) %>%
-      dplyr::select(-all_of(c("ont", "clust")))
+      dplyr::filter(cluster %in% paste0("cluster_", query_clust)) %>%
+      dplyr::mutate(dplyr::across(dplyr::contains(c("pval", "adjPval")), as.numeric),
+                    cluster = gsub("cluster_", "Cluster ", cluster)) %>%
+      dplyr::mutate_if(is.numeric, ~ signif(., digits = 3)) %>%
+      dplyr::rename(Cluster = cluster, Pathway = GeneSet, `P-value` = pval, FDR = adjPval, `Pathway Size` = pathway_size) %>%
+      dplyr::mutate(`Gene Set` = gsub("_.*", "", Pathway)) %>%
+      dplyr::rowwise() %>%
+      dplyr::mutate(Pathway = gsub(paste0(`Gene Set`, "_"), "", Pathway)) %>%
+      dplyr::ungroup() %>%
+      dplyr::mutate(Pathway = stringr::str_replace_all(Pathway, "_", " ")) %>%
+      dplyr::mutate(Pathway = stringr::str_to_sentence(Pathway))
 
-    if(nrow(enrichment_table) == 0) {
-      stop("No enriched terms for this cluster and ontology...")
-    }
-    return(enrichment_table)
+    return(gene_signature_cluster_enrichment)
   }
 
   #error handling
-  tryCatch(make_clustering_enrichment_table_raw(),
+  tryCatch(make_cluster_enrichment_table_raw(),
            error = function(e){
              message(e)
            })
