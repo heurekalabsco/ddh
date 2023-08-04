@@ -15,7 +15,7 @@ make_cluster_enrichment(input = list(), ...)
 If no error, then returns a cluster enrich plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Enriched pathways for all proteins in the selected cluster. The x-axis shows the number of proteins in the cluster that belong to each term while the color scale represents the p-values of each enriched term.
+Enriched pathways for the proteins in the selected cluster.
 }
 \examples{
 make_cluster_enrichment(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

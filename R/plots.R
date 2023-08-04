@@ -874,7 +874,7 @@ make_umap_plot <- function(input = list(),
 ## CLUSTER ENRICHMENT PLOT --------------------------------------------------------
 #' Amino Acid Signature Enrichment Plot
 #'
-#' Enriched pathways for all proteins in the selected cluster. The x-axis shows the number of proteins in the cluster that belong to each term while the color scale represents the p-values of each enriched term.
+#' Enriched pathways for the proteins in the selected cluster.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
