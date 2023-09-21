@@ -314,7 +314,7 @@ make_graph <- function(input = list(),
       if(input$type == "gene") {
         nodes_filtered <-
           nodes_filtered %>%
-          dplyr::mutate(title=paste0("<center><p>",name,"<br>",name ,'<br><a target="_blank" href="?show=gene&query=',name,'">Gene Link</a></p>'),
+          dplyr::mutate(title=paste0("<center><p>",name,"<br>",description ,'<br><a target="_blank" href="?show=gene&query=',name,'">Gene Link</a></p>'),
                         label = name )
       } else if(input$type == "cell") {
         nodes_filtered <-
