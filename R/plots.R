@@ -77,6 +77,13 @@ make_ideogram <- function(input = list(),
                       dataset_name = "gene_location",
                       pivotwider = TRUE)
 
+    #filter for cards
+    if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+      data_gene_location <-
+        data_gene_location %>%
+        dplyr::slice_sample(n = 5)
+    }
+
     # get data_gene_chromosome out of object
     gene_chromosome <- get_content("gene_chromosome", dataset = TRUE)
 
@@ -206,6 +213,12 @@ make_proteinsize <- function(input = list(),
       dplyr::rename(gene_name = 1) %>%
       dplyr::mutate(across(contains(c("length", "mass")), as.numeric))
 
+    #filter for cards
+    if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+      data_universal_proteins <-
+        data_universal_proteins %>%
+        dplyr::slice_sample(n = 5)
+    }
     ## sort alphabetically
     #gene_symbol <- sort(gene_symbol)
 
@@ -365,6 +378,13 @@ make_sequence <- function(input = list(),
       dplyr::pull("value") %>%
       stringr::str_sub(start = 1L, end = 100L) %>%
       stringr::str_pad(100, "right")
+
+    #filter for cards
+    if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+      sequence_string <-
+        sequence_string %>%
+        dplyr::slice_sample(n = 5)
+    }
 
     #compose sequence vec
     starting_numbers <- seq(from = 1, to = 100, by=10)
@@ -603,6 +623,13 @@ make_radial <- function(input = list(),
                     dataset_name = "gene_signatures",
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(A:Y, as.numeric))
+
+  #filter for cards
+  if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+    data_gene_signatures <-
+      data_gene_signatures %>%
+      dplyr::slice_sample(n = 5)
+  }
 
   data_gene_signature_clusters <-
     get_data_object(object_names = input$content,
@@ -1086,6 +1113,13 @@ make_pubmed <- function(input = list(),
   data_universal_pubmed <-
     ddh::make_pubmed_table(input = input) #from tables.R
 
+  #filter for cards
+  if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+    data_universal_pubmed <-
+      data_universal_pubmed %>%
+      dplyr::slice_sample(n = 5)
+  }
+
   make_pubmed_raw <- function() {
     plot_data <-
       data_universal_pubmed %>%
@@ -1237,11 +1271,20 @@ make_cellanatogram <- function(input = list(),
     ddh::get_data_object(object_names = input$content,
                          dataset_name = "gene_subcell",
                          pivotwider = TRUE)
+
+  #filter for cards
+  if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+    data_gene_subcell <-
+      data_gene_subcell %>%
+      dplyr::slice_sample(n = 5)
+  }
+
   make_cellanatogram_raw <- function() {
     plot_data <-
       data_gene_subcell %>%
       dplyr::mutate(value = round(as.numeric(value), 1)) %>%
       dplyr::select(organ, type, colour, value) %>%
+      dplyr::filter(!is.na(type)) %>%
       dplyr::group_by(organ) %>%
       dplyr::summarise(type = type[1], value = mean(value)) %>%
       dplyr::ungroup() %>%
@@ -1583,6 +1626,19 @@ make_cellexpression <- function(input = list(),
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("expression")), as.numeric))
 
+  #filter for cards
+  if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+    sampled_ids <-
+      data_universal_expression_long %>%
+      dplyr::distinct(id) %>%
+      dplyr::slice_sample(n = 5) %>%
+      dplyr::pull(id)
+
+    data_universal_expression_long <-
+      data_universal_expression_long %>%
+      dplyr::filter(id %in% sampled_ids)
+  }
+
   cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
 
   make_cellexpression_raw <- function() {
@@ -1709,6 +1765,19 @@ make_cellgeneprotein <- function(input = list(),
                     dataset_name = "universal_expression_long",
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("expression")), as.numeric))
+
+  #filter for cards
+  if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+    sampled_ids <-
+      data_universal_expression_long %>%
+      dplyr::distinct(id) %>%
+      dplyr::slice_sample(n = 5) %>%
+      dplyr::pull(id)
+
+    data_universal_expression_long <-
+      data_universal_expression_long %>%
+      dplyr::filter(id %in% sampled_ids)
+  }
 
   cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
 
@@ -2134,6 +2203,19 @@ make_celldeps <- function(input = list(),
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("score")), as.numeric))
 
+  #filter for cards
+  if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+    sampled_ids <-
+      data_universal_achilles_long %>%
+      dplyr::distinct(id) %>%
+      dplyr::slice_sample(n = 5) %>%
+      dplyr::pull(id)
+
+    data_universal_achilles_long <-
+      data_universal_achilles_long %>%
+      dplyr::filter(id %in% sampled_ids)
+  }
+
   make_celldeps_raw <- function() {
     if(input$type == "gene") {
       var_title <- "Gene"
@@ -2306,6 +2388,19 @@ make_cellbar <- function(input = list(),
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("score")), as.numeric))
 
+  #filter for cards
+  if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+    sampled_ids <-
+      data_universal_achilles_long %>%
+      dplyr::distinct(id) %>%
+      dplyr::slice_sample(n = 5) %>%
+      dplyr::pull(id)
+
+    data_universal_achilles_long <-
+      data_universal_achilles_long %>%
+      dplyr::filter(id %in% sampled_ids)
+  }
+
   make_cellbar_raw <- function() {
     if(input$type == "gene") {
       var_title <- "Gene"
@@ -2469,6 +2564,19 @@ make_cellbins <- function(input = list(),
                     dataset_name = "universal_achilles_long",
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("score")), as.numeric))
+
+  #filter for cards
+  if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+    sampled_ids <-
+      data_universal_achilles_long %>%
+      dplyr::distinct(id) %>%
+      dplyr::slice_sample(n = 5) %>%
+      dplyr::pull(id)
+
+    data_universal_achilles_long <-
+      data_universal_achilles_long %>%
+      dplyr::filter(id %in% sampled_ids)
+  }
 
   make_cellbins_raw <- function() {
     if(input$type == "gene") {
@@ -3156,6 +3264,19 @@ make_expdep <- function(plot_se = TRUE,
                     dataset_name = "universal_expression_long",
                     pivotwider = TRUE) %>%
     dplyr::mutate(across(contains(c("expression")), as.numeric))
+
+  #filter for cards
+  if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+    sampled_ids <-
+      data_universal_expression_long %>%
+      dplyr::distinct(id) %>%
+      dplyr::slice_sample(n = 5) %>%
+      dplyr::pull(id)
+
+    data_universal_expression_long <-
+      data_universal_expression_long %>%
+      dplyr::filter(id %in% sampled_ids)
+  }
 
   data_universal_achilles_long <-
     get_data_object(object_names = input$content,
