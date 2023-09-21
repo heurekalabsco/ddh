@@ -1284,6 +1284,7 @@ make_cellanatogram <- function(input = list(),
       data_gene_subcell %>%
       dplyr::mutate(value = round(as.numeric(value), 1)) %>%
       dplyr::select(organ, type, colour, value) %>%
+      dplyr::filter(!is.na(type)) %>%
       dplyr::group_by(organ) %>%
       dplyr::summarise(type = type[1], value = mean(value)) %>%
       dplyr::ungroup() %>%
