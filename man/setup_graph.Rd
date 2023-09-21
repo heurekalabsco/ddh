@@ -4,7 +4,7 @@
 \alias{setup_graph}
 \title{Setup graph parameters}
 \usage{
-setup_graph(setup_input = list(), setup_threshold, setup_corr_type)
+setup_graph(setup_input = list(), setup_threshold, setup_corr_type, setup_card)
 }
 \description{
 The overall purpose of this function is to create an object that can be used to generate a network graph by filtering the query object. A list is returned that has four elements.
