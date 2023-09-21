@@ -81,7 +81,7 @@ make_ideogram <- function(input = list(),
     if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
       data_gene_location <-
         data_gene_location %>%
-        dplyr::slice_sample(n = 10)
+        dplyr::slice_sample(n = 5)
     }
 
     # get data_gene_chromosome out of object
@@ -217,7 +217,7 @@ make_proteinsize <- function(input = list(),
     if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
       data_universal_proteins <-
         data_universal_proteins %>%
-        dplyr::slice_sample(n = 10)
+        dplyr::slice_sample(n = 5)
     }
     ## sort alphabetically
     #gene_symbol <- sort(gene_symbol)
@@ -383,7 +383,7 @@ make_sequence <- function(input = list(),
     if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
       sequence_string <-
         sequence_string %>%
-        dplyr::slice_sample(n = 10)
+        dplyr::slice_sample(n = 5)
     }
 
     #compose sequence vec
@@ -628,7 +628,7 @@ make_radial <- function(input = list(),
   if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
     data_gene_signatures <-
       data_gene_signatures %>%
-      dplyr::slice_sample(n = 10)
+      dplyr::slice_sample(n = 5)
   }
 
   data_gene_signature_clusters <-
@@ -1117,7 +1117,7 @@ make_pubmed <- function(input = list(),
   if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
     data_universal_pubmed <-
       data_universal_pubmed %>%
-      dplyr::slice_sample(n = 10)
+      dplyr::slice_sample(n = 5)
   }
 
   make_pubmed_raw <- function() {
@@ -1276,7 +1276,7 @@ make_cellanatogram <- function(input = list(),
   if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
     data_gene_subcell <-
       data_gene_subcell %>%
-      dplyr::slice_sample(n = 10)
+      dplyr::slice_sample(n = 5)
   }
 
   make_cellanatogram_raw <- function() {
@@ -1631,7 +1631,7 @@ make_cellexpression <- function(input = list(),
     sampled_ids <-
       data_universal_expression_long %>%
       dplyr::distinct(id) %>%
-      dplyr::slice_sample(n = 10) %>%
+      dplyr::slice_sample(n = 5) %>%
       dplyr::pull(id)
 
     data_universal_expression_long <-
@@ -1771,7 +1771,7 @@ make_cellgeneprotein <- function(input = list(),
     sampled_ids <-
       data_universal_expression_long %>%
       dplyr::distinct(id) %>%
-      dplyr::slice_sample(n = 10) %>%
+      dplyr::slice_sample(n = 5) %>%
       dplyr::pull(id)
 
     data_universal_expression_long <-
@@ -2208,7 +2208,7 @@ make_celldeps <- function(input = list(),
     sampled_ids <-
       data_universal_achilles_long %>%
       dplyr::distinct(id) %>%
-      dplyr::slice_sample(n = 10) %>%
+      dplyr::slice_sample(n = 5) %>%
       dplyr::pull(id)
 
     data_universal_achilles_long <-
@@ -2393,7 +2393,7 @@ make_cellbar <- function(input = list(),
     sampled_ids <-
       data_universal_achilles_long %>%
       dplyr::distinct(id) %>%
-      dplyr::slice_sample(n = 10) %>%
+      dplyr::slice_sample(n = 5) %>%
       dplyr::pull(id)
 
     data_universal_achilles_long <-
@@ -2570,7 +2570,7 @@ make_cellbins <- function(input = list(),
     sampled_ids <-
       data_universal_achilles_long %>%
       dplyr::distinct(id) %>%
-      dplyr::slice_sample(n = 10) %>%
+      dplyr::slice_sample(n = 5) %>%
       dplyr::pull(id)
 
     data_universal_achilles_long <-
@@ -3270,7 +3270,7 @@ make_expdep <- function(plot_se = TRUE,
     sampled_ids <-
       data_universal_expression_long %>%
       dplyr::distinct(id) %>%
-      dplyr::slice_sample(n = 10) %>%
+      dplyr::slice_sample(n = 5) %>%
       dplyr::pull(id)
 
     data_universal_expression_long <-

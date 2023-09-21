@@ -8,9 +8,15 @@
 #' @export
 setup_graph <- function(setup_input = list(), #changed name here to prevent var naming overlap for nested funs()
                         setup_threshold,
-                        setup_corr_type) {
+                        setup_corr_type,
+                        setup_card) {
   #set corr_filter from corr_type
   if(setup_corr_type == "both"){corr_filter = c("positive", "negative")} else {corr_filter = setup_corr_type}
+
+  #filter for cards
+  if(setup_card == TRUE){
+    setup_input$content <- sample(setup_input$content, 5)
+  }
 
   #get master data object, which has all genes + related
   #some redundancy b/c if i'm in your top 10, and you're in mine, I fetch you twice when two feather objects come together
@@ -99,7 +105,7 @@ setup_graph <- function(setup_input = list(), #changed name here to prevent var 
 #' make_graph(input = list(type = "gene", content = "ROCK1"), corr_type = "negative")
 #' make_graph(input = list(type = "gene", content = "ROCK1"), corr_type = "both")
 #' make_graph(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
-#' make_graph(input = list(type = "pathway", query = "1902965", content = c("RDX", "ROCK2", "DTX3L", "MSN", "SORL1", "EZR")), corr_type = "positive")
+#' make_graph(input = list(type = "gene", query = "1902965", content = c("RDX", "ROCK2", "DTX3L", "MSN", "SORL1", "EZR")), corr_type = "positive")
 #' make_graph(input = list(type = "gene", content = "DTX3L"), corr_type = "negative") # disconnected query gene
 #' make_graph(input = list(type = "compound", content = "aspirin"), corr_type = "negative")
 make_graph <- function(input = list(),
@@ -141,7 +147,8 @@ make_graph <- function(input = list(),
     #build graph using setup
     setup_graph_list <- setup_graph(setup_input = input, #changed name here to prevent var naming overlap for nested funs()
                                     setup_threshold = threshold,
-                                    setup_corr_type = corr_type)
+                                    setup_corr_type = corr_type,
+                                    setup_card = card) #adds the filter logic to the data
 
     #make graph
     graph_network <-
