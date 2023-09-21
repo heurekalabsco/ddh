@@ -314,16 +314,19 @@ make_graph <- function(input = list(),
       if(input$type == "gene") {
         nodes_filtered <-
           nodes_filtered %>%
-          dplyr::mutate(title=paste0("<center><p>",name,"<br>",description ,'<br><a target="_blank" href="?show=gene&query=',name,'">Gene Link</a></p>'),
+          dplyr::left_join(gene_names) %>%
+          dplyr::mutate(title=paste0("<center><p>", name,"<br>",description ,'<br><a target="_blank" href="?show=gene&query=',name,'">Gene Link</a></p>'),
                         label = name )
       } else if(input$type == "cell") {
         nodes_filtered <-
           nodes_filtered %>%
+          dplyr::left_join(gene_names) %>%
           dplyr::mutate(title=paste0("<center><p>", name,"<br>",name ,'<br><a target="_blank" href="?show=cell&query=',name,'">Cell Line Link</a></p>'),
                         label = name )
       } else if(input$type == "compound") {
         nodes_filtered <-
           nodes_filtered %>%
+          dplyr::left_join(gene_names) %>%
           dplyr::mutate(title=paste0("<center><p>", name,"<br>",name ,'<br><a target="_blank" href="?show=compound&query=',name,'">Drug Link</a></p>'),
                         label = name )
       } else {
