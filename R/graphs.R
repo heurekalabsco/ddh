@@ -437,7 +437,8 @@ make_bipartite_graph <- function(input = list(),
                                  censor = character(), #removes most common metabolites
                                  collapsed = TRUE,
                                  threshold = 10,
-                                 corr_type = "positive") {
+                                 corr_type = "positive",
+                                 card = FALSE) {
   make_bipartite_graph_raw <- function() {
     #set color schemes
     ddh::load_ddh_colors()
@@ -445,7 +446,8 @@ make_bipartite_graph <- function(input = list(),
       #build graph using setup
       setup_graph_list <- setup_graph(setup_input = input, #changed name here to prevent var naming overlap for nested funs()
                                       setup_threshold = threshold,
-                                      setup_corr_type = corr_type)
+                                      setup_corr_type = corr_type,
+                                      setup_card = card)
       #get gene_names
       genes <- setup_graph_list$threshold_genes
 

@@ -13,7 +13,7 @@ make_cca_pathways(input = list(), n_features = 10, gset = NULL, ...)
 If no error, then returns a barplot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Top 10 pathways associated to the queried pathway/s. The x-axis shows the first canonical correlation between pathways (range 0-1).
+Top pathway associated for the queried pathway/s. The x-axis shows the first canonical correlation between pathways (range 0-1).
 }
 \examples{
 make_cca_pathways(input = list(type = 'pathway', query = 5887))

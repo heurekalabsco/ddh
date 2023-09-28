@@ -19,7 +19,7 @@ make_cca_genes(
 If no error, then returns a barplot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Top 10 pathways associated to the queried gene/s. The x-axis shows the first canonical correlation between the gene and the pathway (range 0-1).
+Top pathway associated for the queried gene/s. The x-axis shows the first canonical correlation between the gene and the pathway (range 0-1).
 }
 \examples{
 make_cca_genes(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

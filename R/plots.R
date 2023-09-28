@@ -1112,10 +1112,10 @@ make_pubmed <- function(input = list(),
     ddh::make_pubmed_table(input = input) #from tables.R
 
   #filter for cards
-  if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+  if(card == TRUE & length(unique(data_universal_pubmed$id)) > 5) { #no need to set logical for big number, b/c slice will return max
     data_universal_pubmed <-
       data_universal_pubmed %>%
-      dplyr::slice_sample(n = 5)
+      dplyr::filter(id %in% unique(id)[1:5])
   }
 
   make_pubmed_raw <- function() {
@@ -2038,7 +2038,7 @@ make_molecular_features_pathways <- function(input = list(),
 ## CCA GENES PLOT ---------------------------------------------------
 #' Co-essentiality Pathway Plot
 #'
-#' Top 10 pathways associated to the queried gene/s. The x-axis shows the first canonical correlation between the gene and the pathway (range 0-1).
+#' Top pathway associated for the queried gene/s. The x-axis shows the first canonical correlation between the gene and the pathway (range 0-1).
 #'
 #' @param input Expecting a list containing type and content variable.
 #'
@@ -2105,7 +2105,7 @@ make_cca_genes <- function(input = list(),
 ## CCA PATHWAYS PLOT ---------------------------------------------------
 #' Co-essentiality Pathway Plot
 #'
-#' Top 10 pathways associated to the queried pathway/s. The x-axis shows the first canonical correlation between pathways (range 0-1).
+#' Top pathway associated for the queried pathway/s. The x-axis shows the first canonical correlation between pathways (range 0-1).
 #'
 #' @param input Expecting a list containing type and content variable.
 #'

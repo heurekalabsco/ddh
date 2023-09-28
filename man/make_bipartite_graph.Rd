@@ -9,7 +9,8 @@ make_bipartite_graph(
   censor = character(),
   collapsed = TRUE,
   threshold = 10,
-  corr_type = "positive"
+  corr_type = "positive",
+  card = FALSE
 )
 }
 \arguments{
