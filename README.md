@@ -11,7 +11,7 @@ This package contains functions for data analysis and graphing, data sets, and s
 
 ```{r, eval = FALSE}
 # install.packages("devtools")
-devtools::install_github("matthewhirschey/ddh")
+devtools::install_github("heurekalabsorg/ddh")
 ```
 
 ## Usage
@@ -33,3 +33,4 @@ Hirschey M. _Making data-driven hypotheses for gene functions by integrating dep
 ## Code of Conduct
 
 Please note that the ddh project is released with a [Contributor Code of Conduct](https://contributor-covenant.org/version/2/1/CODE_OF_CONDUCT.html). By contributing to this project, you agree to abide by its terms.
+
