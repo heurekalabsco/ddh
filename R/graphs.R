@@ -14,7 +14,7 @@ setup_graph <- function(setup_input = list(), #changed name here to prevent var 
   if(setup_corr_type == "both"){corr_filter = c("positive", "negative")} else {corr_filter = setup_corr_type}
 
   #filter for cards
-  if(setup_card == TRUE){
+  if (setup_card == TRUE & length(setup_input$content) > 5) {
     setup_input$content <- sample(setup_input$content, 5)
   }
 
@@ -406,11 +406,6 @@ make_graph <- function(input = list(),
              make_empty_graph()
            })
 }
-
-#figure legend
-graph_title <- "Network Graph."
-graph_legend <- "Each point represents a single gene taken from the top associated genes with the query gene. Genes with only one connection were removed."
-graph_legend_list <- "Each point represents one of the queried genes, and then the top and bottom associated genes with it. Genes with only one connection were removed."
 
 #' Bipartite Graph Graph
 #'
