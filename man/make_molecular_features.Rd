@@ -4,7 +4,7 @@
 \alias{make_molecular_features}
 \title{Molecular Features Bar Plot}
 \usage{
-make_molecular_features(input = list(), n_features = 10, ...)
+make_molecular_features(input = list(), n_features = 5, ...)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -13,7 +13,7 @@ make_molecular_features(input = list(), n_features = 10, ...)
 If no error, then returns a barplot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Top molecular features associated to the queried gene/s knock-out sensitivity. The x-axis shows the log2 fold change (reference group: sensitive).
+Top molecular features associated to the queried gene/s ablation. The x-axis shows the log2 fold change (reference group: sensitive).
 }
 \examples{
 make_molecular_features(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

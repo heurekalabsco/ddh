@@ -4,7 +4,12 @@
 \alias{make_molecular_features_pathways}
 \title{Molecular Features Pathways Bar Plot}
 \usage{
-make_molecular_features_pathways(input = list(), n_pathways = 10, ...)
+make_molecular_features_pathways(
+  input = list(),
+  n_pathways = 5,
+  facet_by_geneset = FALSE,
+  ...
+)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -13,7 +18,7 @@ make_molecular_features_pathways(input = list(), n_pathways = 10, ...)
 If no error, then returns a barplot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Top pathways associated to the queried gene/s knock-out sensitivity. The x-axis shows the -log10 P-value (reference group: sensitive).
+Top pathways associated to the queried gene/s ablation. The x-axis shows the -log10 P-value (reference group: sensitive).
 }
 \examples{
 make_molecular_features_pathways(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

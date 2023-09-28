@@ -828,10 +828,10 @@ make_molecular_features_pathways_table <- function(input = list(),
       ddh::get_data_object(object_names = input$content,
                            dataset_name = "gene_molecular_features_pathways_top",
                            pivotwider = TRUE) %>%
-      dplyr::mutate(dplyr::across(dplyr::contains(c("pval", "adjPval")), as.numeric)) %>%
+      dplyr::mutate(pval = as.numeric(pval), adjPval = as.numeric(adjPval)) %>%
       dplyr::mutate_if(is.numeric, ~ signif(., digits = 3)) %>%
       dplyr::select(-data_set) %>%
-      dplyr::rename(Query = id, Pathway = GeneSet, `P-value` = pval, FDR = adjPval, `Pathway Size` = pathway_size) %>%
+      dplyr::rename(Query = id, Pathway = GeneSet, `P-value` = pval, FDR = adjPval) %>%
       dplyr::mutate(`Gene Set` = gsub("_.*", "", Pathway)) %>%
       dplyr::rowwise() %>%
       dplyr::mutate(Pathway = gsub(paste0(`Gene Set`, "_"), "", Pathway)) %>%

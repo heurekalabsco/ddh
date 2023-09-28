@@ -4,7 +4,13 @@
 \alias{make_cca_genes}
 \title{Co-essentiality Pathway Plot}
 \usage{
-make_cca_genes(input = list(), n_features = 10, gset = NULL, ...)
+make_cca_genes(
+  input = list(),
+  n_features = 5,
+  gset = NULL,
+  facet_by_geneset = FALSE,
+  ...
+)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}

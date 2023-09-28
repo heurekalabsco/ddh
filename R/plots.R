@@ -380,10 +380,8 @@ make_sequence <- function(input = list(),
       stringr::str_pad(100, "right")
 
     #filter for cards
-    if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
-      sequence_string <-
-        sequence_string %>%
-        dplyr::slice_sample(n = 5)
+    if (card == TRUE & length(sequence_string) > 5) { #no need to set logical for big number, b/c slice will return max
+      sequence_string <- sequence_string[sample(1:length(sequence_string), 5)]
     }
 
     #compose sequence vec
@@ -1563,14 +1561,14 @@ make_tissue <- function(input = list(),
     if(length(input$content) == 1){
       plot_complete <-
         plot_draft +
-        ggplot2::geom_col(ggplot2::aes(fill = value), width = .82) +
+        ggplot2::geom_col(ggplot2::aes(fill = value), width = .82, position = ggplot2::position_dodge()) +
         ddh::scale_fill_ddh_c(palette = "gene", guide = "none") +
         ggplot2::labs(x = paste0(stringr::str_c(input$content, collapse = ", "), " Normalized Expression")) +
         ggplot2::theme(plot.margin = ggplot2::margin(0, 15, 0, 0)) # add some space to avoid cutting of labels
     } else {
       plot_complete <-
         plot_draft +
-        ggplot2::geom_col(ggplot2::aes(fill = id), width = .82) +
+        ggplot2::geom_col(ggplot2::aes(fill = id), width = .82, position = ggplot2::position_dodge()) +
         ddh::scale_fill_ddh_d(palette = "gene", shuffle = TRUE, seed = 5L) +
         ggplot2::labs(x = "Sum of Normalized Expression",
                       fill = "Query\nGene") +
@@ -1939,7 +1937,7 @@ make_molecular_features_segments <- function(input = list(),
 ## MOLECULAR FEATURES BAR PLOT ---------------------------------------------------
 #' Molecular Features Bar Plot
 #'
-#' Top molecular features associated to the queried gene/s knock-out sensitivity. The x-axis shows the log2 fold change (reference group: sensitive).
+#' Top molecular features associated to the queried gene/s ablation. The x-axis shows the log2 fold change (reference group: sensitive).
 #'
 #' @param input Expecting a list containing type and content variable.
 #'
@@ -1953,7 +1951,7 @@ make_molecular_features_segments <- function(input = list(),
 #' make_molecular_features(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
 #' make_molecular_features(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')), n_features = 20)
 make_molecular_features <- function(input = list(),
-                                    n_features = 10,
+                                    n_features = 5,
                                     ...) {
 
   gene_molecular_features_hits <- ddh::make_molecular_features_table(input = input)
@@ -1965,20 +1963,14 @@ make_molecular_features <- function(input = list(),
       dplyr::group_by(Query) %>%
       dplyr::slice(1:n_features) %>%
       dplyr::ungroup() %>%
-      ggplot2::ggplot(ggplot2::aes(logFC, reorder(Feature, logFC), fill = `P-value`)) +
-      ggplot2::geom_col() +
-      scale_fill_ddh_c() +
+      ggplot2::ggplot(ggplot2::aes(logFC, reorder(Feature, logFC), fill = Query)) +
+      ggplot2::geom_col(position = ggplot2::position_dodge()) +
+      scale_fill_ddh_d() +
       ggplot2::labs(
         x = "Log2 Fold Change",
         y = NULL) +
       ddh::theme_ddh(grid = "y") +
       NULL
-
-    if (length(input$content) > 1) {
-      plot_complete <-
-        plot_complete +
-        ggplot2::facet_wrap(~ Query)
-    }
 
     return(plot_complete)
   }
@@ -1992,7 +1984,7 @@ make_molecular_features <- function(input = list(),
 ## MOLECULAR FEATURES PATHWAYS BAR PLOT ---------------------------------------------------
 #' Molecular Features Pathways Bar Plot
 #'
-#' Top pathways associated to the queried gene/s knock-out sensitivity. The x-axis shows the -log10 P-value (reference group: sensitive).
+#' Top pathways associated to the queried gene/s ablation. The x-axis shows the -log10 P-value (reference group: sensitive).
 #'
 #' @param input Expecting a list containing type and content variable.
 #'
@@ -2006,7 +1998,8 @@ make_molecular_features <- function(input = list(),
 #' make_molecular_features_pathways(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
 #' make_molecular_features_pathways(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')), n_pathways = 20)
 make_molecular_features_pathways <- function(input = list(),
-                                             n_pathways = 10,
+                                             n_pathways = 5,
+                                             facet_by_geneset = FALSE,
                                              ...) {
 
   gene_molecular_features_hits <- ddh::make_molecular_features_pathways_table(input = input)
@@ -2027,8 +2020,14 @@ make_molecular_features_pathways <- function(input = list(),
       ddh::theme_ddh(grid = "y") +
       NULL
 
+    if (facet_by_geneset) {
+      plot_complete <- plot_complete +
+        ggplot2::facet_grid(~ `Gene Set`, scales = "free_x")
+    }
+
     return(plot_complete)
   }
+
   #error handling
   tryCatch(make_molecular_features_pathways_raw(),
            error = function(e){
@@ -2055,8 +2054,9 @@ make_molecular_features_pathways <- function(input = list(),
 #' make_cca_genes(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
 #' make_cca_genes(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')), n_features = 20)
 make_cca_genes <- function(input = list(),
-                           n_features = 10,
+                           n_features = 5,
                            gset = NULL,
+                           facet_by_geneset = FALSE,
                            ...) {
 
   gene_pathways_hits <- ddh::make_cca_genes_table(input = input, gene_set = gset)
@@ -2071,21 +2071,20 @@ make_cca_genes <- function(input = list(),
       dplyr::mutate(min_cc = min(CC))
 
     plot_complete <- plot_data %>%
-      ggplot2::ggplot(ggplot2::aes(CC, reorder(Pathway, CC), fill = `Gene Set`)) +
-      ggplot2::geom_col() +
+      ggplot2::ggplot(ggplot2::aes(CC, reorder(Pathway, CC), fill = Query)) +
+      ggplot2::geom_col(position = ggplot2::position_dodge()) +
       scale_fill_ddh_d() +
       ggplot2::labs(
         x = "Correlation",
         y = NULL,
-        fill = "Gene Set") +
+        fill = "Query") +
       ddh::theme_ddh(grid = "y") +
       ggplot2::coord_cartesian(xlim = c(plot_data$min_cc[1] - 0.01, plot_data$CC[1] + 0.01)) +
       NULL
 
-    if (length(input$content) > 1) {
-      plot_complete <-
-        plot_complete +
-        ggplot2::facet_wrap(~ Query)
+    if (facet_by_geneset) {
+      plot_complete <- plot_complete +
+        ggplot2::facet_grid(~ `Gene Set`, scales = "free_x")
     }
 
     if (!is.null(gset) & length(gset) == 1) {
@@ -2147,11 +2146,11 @@ make_cca_pathways <- function(input = list(),
       ggplot2::coord_cartesian(xlim = c(plot_data$min_cc[1] - 0.01, plot_data$CC[1] + 0.01)) +
       NULL
 
-    if (length(input$content) > 1) {
-      plot_complete <-
-        plot_complete +
-        ggplot2::facet_wrap(~ Query)
-    }
+    # if (length(input$content) > 1) {
+    #   plot_complete <-
+    #     plot_complete +
+    #     ggplot2::facet_wrap(~ Query)
+    # }
 
     if (!is.null(gset) & length(gset) == 1) {
       plot_complete <-
