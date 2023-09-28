@@ -13,9 +13,6 @@ make_gene_dependency_enrichment_table(input = list())
 If no error, then returns a enrichment top table. If an error is thrown, then will return an empty table.
 }
 \description{
-\code{make_enrichment_top} returns an image of ...
-}
-\details{
 This is a table function that takes a gene name and returns a enrichment top table
 }
 \examples{

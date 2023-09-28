@@ -692,8 +692,6 @@ make_censor_table <- function(input = list(),
 ##enrichments-----
 #' Enrichment Top Table
 #'
-#' \code{make_enrichment_top} returns an image of ...
-#'
 #' This is a table function that takes a gene name and returns a enrichment top table
 #'
 #' @param input Expecting a list containing type and content variable.
@@ -713,16 +711,16 @@ make_gene_dependency_enrichment_table <- function(input = list()) {
       ddh::get_data_object(object_names = input$content,
                            dataset_name = "gene_dependency_enrichment",
                            pivotwider = TRUE) %>%
-      dplyr::mutate(across(contains(c("NES", "Pval", "adjPval")), as.numeric)) %>%
+      dplyr::mutate(NES = as.numeric(NES), Pval = as.numeric(Pval), adjPval = as.numeric(adjPval)) %>%
       dplyr::mutate_if(is.numeric, ~ signif(., digits = 3)) %>%
       dplyr::select(-data_set) %>%
       dplyr::select(Query = id, Pathway = GeneSet, `P-value` = Pval, FDR = adjPval, Direction, `Pathway Size`, Genes) %>%
-      dplyr::mutate(`Gene Set` = gsub("_.*", "", GeneSet)) %>%
+      dplyr::mutate(`Gene Set` = gsub("_.*", "", Pathway)) %>%
       dplyr::rowwise() %>%
-      dplyr::mutate(GeneSet = gsub(paste0(`Gene Set`, "_"), "", GeneSet)) %>%
+      dplyr::mutate(Pathway = gsub(paste0(`Gene Set`, "_"), "", Pathway)) %>%
       dplyr::ungroup() %>%
-      dplyr::mutate(GeneSet = stringr::str_replace_all(GeneSet, "_", " ")) %>%
-      dplyr::mutate(GeneSet = stringr::str_to_sentence(GeneSet))
+      dplyr::mutate(Pathway = stringr::str_replace_all(Pathway, "_", " ")) %>%
+      dplyr::mutate(Pathway = stringr::str_to_sentence(Pathway))
 
     return(gene_dependency_enrichment)
   }
