@@ -2038,7 +2038,7 @@ make_molecular_features_pathways <- function(input = list(),
 ## CCA GENES PLOT ---------------------------------------------------
 #' Co-essentiality Pathway Plot
 #'
-#' Top pathway associated for the queried gene/s. The x-axis shows the first canonical correlation between the gene and the pathway (range 0-1).
+#' Top pathway associations for the queried gene/s. The x-axis shows the first canonical correlation between the gene and the pathway (range 0-1).
 #'
 #' @param input Expecting a list containing type and content variable.
 #'
@@ -2105,7 +2105,7 @@ make_cca_genes <- function(input = list(),
 ## CCA PATHWAYS PLOT ---------------------------------------------------
 #' Co-essentiality Pathway Plot
 #'
-#' Top pathway associated for the queried pathway/s. The x-axis shows the first canonical correlation between pathways (range 0-1).
+#' Top pathway associations for the queried pathway/s. The x-axis shows the first canonical correlation between pathways (range 0-1).
 #'
 #' @param input Expecting a list containing type and content variable.
 #'
@@ -2121,6 +2121,7 @@ make_cca_genes <- function(input = list(),
 make_cca_pathways <- function(input = list(),
                               n_features = 10,
                               gset = NULL,
+                              facet_by_geneset = FALSE,
                               ...) {
 
   pathway_pathways_hits <- ddh::make_cca_pathways_table(input = input, gene_set = gset)
@@ -2146,11 +2147,10 @@ make_cca_pathways <- function(input = list(),
       ggplot2::coord_cartesian(xlim = c(plot_data$min_cc[1] - 0.01, plot_data$CC[1] + 0.01)) +
       NULL
 
-    # if (length(input$content) > 1) {
-    #   plot_complete <-
-    #     plot_complete +
-    #     ggplot2::facet_wrap(~ Query)
-    # }
+    if (facet_by_geneset) {
+      plot_complete <- plot_complete +
+        ggplot2::facet_grid(~ `Gene Set`, scales = "free_x")
+    }
 
     if (!is.null(gset) & length(gset) == 1) {
       plot_complete <-

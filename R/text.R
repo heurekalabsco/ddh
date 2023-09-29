@@ -271,6 +271,7 @@ make_summary_protein <- function(input = list(),
                                   <div><b>Uniprot ID: </b><a href='https://www.uniprot.org/uniprot/{custom_list$uniprot_id}' target='_blank'>{custom_list$uniprot_id}</a></div>
                                   <div><b>Enzyme Commission: </b><a href='https://enzyme.expasy.org/EC/{custom_list$ec}' target='_blank'>{custom_list$ec}</a></div>
                                   <div><b>Protein Mass: </b>{custom_list$mass} kDa</div>
+                                  <div><a href='https://alphafold.ebi.ac.uk/entry/{custom_list$uniprot_id}' target='_blank'><b><u>AlphaFold Structure Prediction</u></b></a></div>
                                   <div><b>Description: </b></div>
                                   <div><p>{custom_list$function_cc}</p></div>
                                   ") %>%
@@ -292,6 +293,7 @@ make_summary_protein <- function(input = list(),
                                           <div><b>Uniprot ID: </b><a href='https://www.uniprot.org/uniprot/{tabledata$uniprot_id}' target='_blank'>{tabledata$uniprot_id}</a></div>
                                           <div><b>Enzyme Commission: </b><a href='https://enzyme.expasy.org/EC/{tabledata$ec}' target='_blank'>{tabledata$ec}</a></div>
                                           <div><b>Protein Mass: </b>{tabledata$mass} kDa</div>
+                                           <div><a href='https://alphafold.ebi.ac.uk/entry/{tabledata$uniprot_id}' target='_blank'><b><u>AlphaFold Structure Prediction</u></b></a></div>
                                           <div><b>Description: </b></div>
                                           <div><p>{tabledata$function_cc}</p></div>
                                           ")

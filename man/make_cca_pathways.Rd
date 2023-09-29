@@ -4,7 +4,13 @@
 \alias{make_cca_pathways}
 \title{Co-essentiality Pathway Plot}
 \usage{
-make_cca_pathways(input = list(), n_features = 10, gset = NULL, ...)
+make_cca_pathways(
+  input = list(),
+  n_features = 10,
+  gset = NULL,
+  facet_by_geneset = FALSE,
+  ...
+)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -13,7 +19,7 @@ make_cca_pathways(input = list(), n_features = 10, gset = NULL, ...)
 If no error, then returns a barplot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Top pathway associated for the queried pathway/s. The x-axis shows the first canonical correlation between pathways (range 0-1).
+Top pathway associations for the queried pathway/s. The x-axis shows the first canonical correlation between pathways (range 0-1).
 }
 \examples{
 make_cca_pathways(input = list(type = 'pathway', query = 5887))
