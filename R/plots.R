@@ -3250,8 +3250,8 @@ make_correlation <- function(input = list(),
 #' \dontrun{
 #' make_expdep(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_expdep <- function(plot_se = TRUE,
-                        input = list(),
+make_expdep <- function(input = list(),
+                        plot_se = FALSE,
                         card = FALSE) {
   # get cell_expression_names from s3
   cell_expression_names <- get_content("cell_expression_names", dataset = TRUE)
@@ -3297,9 +3297,8 @@ make_expdep <- function(plot_se = TRUE,
       combined_data <-
         data_universal_expression_long %>%
         dplyr::inner_join(data_universal_achilles_long, by = c("depmap_id", "id")) %>%
-        dplyr::filter(!is.na(dep_score),
-                      !is.na(gene_expression)) %>%
-        dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
+        dplyr::filter(!is.na(dep_score) & !is.na(gene_expression)) %>%
+        dplyr::mutate(gene_expression = scale(gene_expression)) %>%
         dplyr::mutate(med = median(dep_score, na.rm = TRUE)) %>%
         dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
         dplyr::select(id, gene_expression, dep_score, med, cell_line, lineage)
@@ -3333,10 +3332,10 @@ make_expdep <- function(plot_se = TRUE,
       ## dot plot
       {if(input$type == "gene")ggplot2::geom_point(ggplot2::aes(color = forcats::fct_reorder(id, med),
                                                                 fill = forcats::fct_reorder(id, med)),
-                                                   size = 2, stroke = .1, alpha = 0.4)} +
+                                                   size = 2, stroke = .1, alpha = 0.6)} +
       {if(input$type == "cell")ggplot2::geom_point(ggplot2::aes(color = forcats::fct_reorder(cell_line, med),
                                                                 fill = forcats::fct_reorder(cell_line, med)),
-                                                   size = 2, stroke = .1, alpha = 0.4)} +
+                                                   size = 2, stroke = .1, alpha = 0.6)} +
       # smooth line
       {if(input$type == "gene")ggplot2::geom_smooth(ggplot2::aes(color = forcats::fct_reorder(id, med),
                                                                  fill = forcats::fct_reorder(id, med)),
@@ -3346,6 +3345,8 @@ make_expdep <- function(plot_se = TRUE,
                                                                  fill = forcats::fct_reorder(cell_line, med)),
                                                     method = "lm",
                                                     se = plot_se)} +
+      ggplot2::geom_hline(yintercept = 0, color = "black", linetype = "dashed") +
+      ggplot2::geom_vline(xintercept = 0, color = "black", linetype = "dashed") +
       # R coefs
       {if(card == FALSE & input$type == "gene")ggpubr::stat_cor(ggplot2::aes(color = forcats::fct_reorder(id, med)),
                                                                 digits = 3)} +

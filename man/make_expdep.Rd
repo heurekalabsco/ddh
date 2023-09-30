@@ -4,7 +4,7 @@
 \alias{make_expdep}
 \title{Gene Dependency versus Expression}
 \usage{
-make_expdep(plot_se = TRUE, input = list(), card = FALSE)
+make_expdep(input = list(), plot_se = FALSE, card = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
