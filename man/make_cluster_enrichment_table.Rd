@@ -20,6 +20,6 @@ make_cluster_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
 make_cluster_enrichment_table(input = list(type = 'gene', content = 'ROCK1'), ontology = "MF")
 make_cluster_enrichment_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 \dontrun{
-make_clustering_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
+make_cluster_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
 }
 }

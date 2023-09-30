@@ -78,7 +78,7 @@ make_ideogram <- function(input = list(),
                       pivotwider = TRUE)
 
     #filter for cards
-    if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+    if(card == TRUE & length(input$content) > 5){ #no need to set logical for big number, b/c slice will return max
       data_gene_location <-
         data_gene_location %>%
         dplyr::slice_sample(n = 5)
@@ -214,7 +214,7 @@ make_proteinsize <- function(input = list(),
       dplyr::mutate(across(contains(c("length", "mass")), as.numeric))
 
     #filter for cards
-    if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+    if(card == TRUE & length(input$content) > 5){ #no need to set logical for big number, b/c slice will return max
       data_universal_proteins <-
         data_universal_proteins %>%
         dplyr::slice_sample(n = 5)
@@ -623,7 +623,7 @@ make_radial <- function(input = list(),
     dplyr::mutate(across(A:Y, as.numeric))
 
   #filter for cards
-  if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+  if(card == TRUE & length(input$content) > 5){ #no need to set logical for big number, b/c slice will return max
     data_gene_signatures <-
       data_gene_signatures %>%
       dplyr::slice_sample(n = 5)
@@ -1271,11 +1271,11 @@ make_cellanatogram <- function(input = list(),
                          pivotwider = TRUE)
 
   #filter for cards
-  if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
-    data_gene_subcell <-
-      data_gene_subcell %>%
-      dplyr::slice_sample(n = 5)
-  }
+  # if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+  #   data_gene_subcell <-
+  #     data_gene_subcell %>%
+  #     dplyr::slice_sample(n = 5)
+  # }
 
   make_cellanatogram_raw <- function() {
     plot_data <-
@@ -1625,7 +1625,7 @@ make_cellexpression <- function(input = list(),
     dplyr::mutate(across(contains(c("expression")), as.numeric))
 
   #filter for cards
-  if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+  if(card == TRUE & length(input$content) > 5){ #no need to set logical for big number, b/c slice will return max
     sampled_ids <-
       data_universal_expression_long %>%
       dplyr::distinct(id) %>%
@@ -1765,7 +1765,7 @@ make_cellgeneprotein <- function(input = list(),
     dplyr::mutate(across(contains(c("expression")), as.numeric))
 
   #filter for cards
-  if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+  if(card == TRUE & length(input$content) > 5){ #no need to set logical for big number, b/c slice will return max
     sampled_ids <-
       data_universal_expression_long %>%
       dplyr::distinct(id) %>%
@@ -1783,12 +1783,12 @@ make_cellgeneprotein <- function(input = list(),
     if (input$type == "gene") {
       plot_initial <-
         data_universal_expression_long %>%
-        dplyr::filter(!is.na(gene_expression),
-                      !is.na(protein_expression)) %>%
+        dplyr::filter(!is.na(gene_expression) & !is.na(protein_expression)) %>%
         dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
         dplyr::select(-depmap_id) %>%
         dplyr::select(cell_line, lineage, lineage_subtype, dplyr::everything()) %>%
-        dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
+        dplyr::mutate(gene_expression = scale(gene_expression),
+                      protein_expression = scale(protein_expression)) %>%
         ggplot2::ggplot(ggplot2::aes(x = gene_expression,
                                      y = protein_expression,
                                      text = paste0("Cell Line: ", cell_line),
@@ -1802,9 +1802,9 @@ make_cellgeneprotein <- function(input = list(),
         dplyr::left_join(data_cell_expression_names, by = "depmap_id") %>%
         dplyr::select(-depmap_id) %>%
         dplyr::select(cell_line, lineage, lineage_subtype, dplyr::everything()) %>%
-        dplyr::mutate_if(is.numeric, ~round(., digits = 3)) %>%
-        dplyr::filter(!is.na(gene_expression),
-                      !is.na(protein_expression)) %>%
+        dplyr::filter(!is.na(gene_expression) & !is.na(protein_expression)) %>%
+        dplyr::mutate(gene_expression = scale(gene_expression),
+                      protein_expression = scale(protein_expression)) %>%
         ggplot2::ggplot(ggplot2::aes(x = gene_expression,
                                      y = protein_expression,
                                      text = paste0("Gene: ", gene),
@@ -1815,13 +1815,12 @@ make_cellgeneprotein <- function(input = list(),
 
     plot_complete <-
       plot_initial +
-      ggplot2::geom_point(alpha = 0.4) +
+      ggplot2::geom_point(alpha = 0.6) +
       #add geom to drop linear regression line?
-      ggplot2::geom_hline(yintercept = 0, color = "lightgray") +
-      ggplot2::geom_vline(xintercept = 0, color = "lightgray") +
+      ggplot2::geom_hline(yintercept = 0, color = "black", linetype = "dashed") +
+      ggplot2::geom_vline(xintercept = 0, color = "black", linetype = "dashed") +
       # smooth line
-      ggplot2::geom_smooth(method = "lm",
-                           se = TRUE) +
+      ggplot2::geom_smooth(method = "lm", se = FALSE) +
       # R coefs
       {if(card == FALSE)ggpubr::stat_cor(digits = 3)} +
       scale_color_ddh_d(palette = input$type) +
@@ -2203,7 +2202,7 @@ make_celldeps <- function(input = list(),
     dplyr::mutate(across(contains(c("score")), as.numeric))
 
   #filter for cards
-  if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+  if(card == TRUE & length(input$content) > 5){ #no need to set logical for big number, b/c slice will return max
     sampled_ids <-
       data_universal_achilles_long %>%
       dplyr::distinct(id) %>%
@@ -2388,7 +2387,7 @@ make_cellbar <- function(input = list(),
     dplyr::mutate(across(contains(c("score")), as.numeric))
 
   #filter for cards
-  if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+  if(card == TRUE & length(input$content) > 5){ #no need to set logical for big number, b/c slice will return max
     sampled_ids <-
       data_universal_achilles_long %>%
       dplyr::distinct(id) %>%
@@ -2565,7 +2564,7 @@ make_cellbins <- function(input = list(),
     dplyr::mutate(across(contains(c("score")), as.numeric))
 
   #filter for cards
-  if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+  if(card == TRUE & length(input$content) > 5){ #no need to set logical for big number, b/c slice will return max
     sampled_ids <-
       data_universal_achilles_long %>%
       dplyr::distinct(id) %>%
@@ -3265,7 +3264,7 @@ make_expdep <- function(plot_se = TRUE,
     dplyr::mutate(across(contains(c("expression")), as.numeric))
 
   #filter for cards
-  if(card == TRUE){ #no need to set logical for big number, b/c slice will return max
+  if(card == TRUE & length(input$content) > 5){ #no need to set logical for big number, b/c slice will return max
     sampled_ids <-
       data_universal_expression_long %>%
       dplyr::distinct(id) %>%
