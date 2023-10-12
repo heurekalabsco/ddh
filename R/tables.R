@@ -787,6 +787,7 @@ make_molecular_features_segments_table <- function(input = list(),
 make_molecular_features_table <- function(input = list(),
                                           ...) {
   make_molecular_features_table_raw <- function() {
+    gene_summaries <- ddh::get_content("universal_gene_summary", dataset = TRUE)[,1:2]
     gene_molecular_features_hits <-
       ddh::get_data_object(object_names = input$content,
                            dataset_name = "gene_molecular_features_top",
@@ -794,7 +795,11 @@ make_molecular_features_table <- function(input = list(),
       dplyr::mutate(dplyr::across(dplyr::contains(c("logFC", "pval", "adjPval")), as.numeric)) %>%
       dplyr::mutate_if(is.numeric, ~ signif(., digits = 3)) %>%
       dplyr::select(-data_set) %>%
-      dplyr::rename(Query = id, Feature = feature, `P-value` = pval, FDR = adjPval)
+      dplyr::left_join(gene_summaries, by = c("feature" = "approved_symbol")) %>%
+      dplyr::select(Query = id, Feature = feature, Description = approved_name, `P-value` = pval, FDR = adjPval) %>%
+      dplyr::mutate(Description = dplyr::case_when(grepl("TSS_", Feature) ~ paste0("DNA methylation (promoter 1kb upstream TSS) of ", gsub("TSS_", "", Feature)),
+                                                   is.na(Description) ~ Feature,
+                                                   TRUE ~ Description))
     return(gene_molecular_features_hits)
   }
   #error handling
