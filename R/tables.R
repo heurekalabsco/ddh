@@ -796,7 +796,7 @@ make_molecular_features_table <- function(input = list(),
       dplyr::mutate_if(is.numeric, ~ signif(., digits = 3)) %>%
       dplyr::select(-data_set) %>%
       dplyr::left_join(gene_summaries, by = c("feature" = "approved_symbol")) %>%
-      dplyr::select(Query = id, Feature = feature, Description = approved_name, `P-value` = pval, FDR = adjPval) %>%
+      dplyr::select(Query = id, Feature = feature, Description = approved_name, logFC, `P-value` = pval, FDR = adjPval) %>%
       dplyr::mutate(Description = dplyr::case_when(grepl("TSS_", Feature) ~ paste0("DNA methylation (promoter 1kb upstream TSS) of ", gsub("TSS_", "", Feature)),
                                                    is.na(Description) ~ Feature,
                                                    TRUE ~ Description))
