@@ -10,69 +10,103 @@ setup_graph <- function(setup_input = list(), #changed name here to prevent var 
                         setup_threshold,
                         setup_corr_type,
                         setup_card) {
-  #set corr_filter from corr_type
-  if(setup_corr_type == "both"){corr_filter = c("positive", "negative")} else {corr_filter = setup_corr_type}
 
-  #filter for cards
-  if (setup_card == TRUE & length(setup_input$content) > 5) {
-    setup_input$content <- sample(setup_input$content, 5)
-  }
+  pathway_ids <- ddh::get_content("universal_pathways", dataset = TRUE) %>%
+    dplyr::distinct(gs_id) %>%
+    dplyr::pull(gs_id)
 
-  #get master data object, which has all genes + related
-  #some redundancy b/c if i'm in your top 10, and you're in mine, I fetch you twice when two feather objects come together
-  dep_network_master <-
-    get_data_object(object_name = setup_input$content,
-                    dataset_name = "setup_graph") %>%
-    dplyr::filter(stringr::str_detect(.$key, "negative") | stringr::str_detect(.$key, "positive")) %>% #need this so approved_name doesn't get separated in next step
-    tidyr::separate(col = "key", into = c("type", "rank"), sep = "_") %>%
-    dplyr::mutate(rank = as.numeric(rank)) %>%
-    dplyr::distinct(id, data_set, type, rank, value) #remove redundancy
+  if (setup_input$query %in% pathway_ids) { # pathways
+    # get master data object, which has all pathway + related
+    dep_network_master <-
+      get_data_object(object_name = setup_input$query,
+                      dataset_name = "setup_graph") %>%
+      tidyr::separate(col = "key", into = c("type", "rank"), sep = "_") %>%
+      dplyr::mutate(rank = as.numeric(rank)) %>%
+      dplyr::distinct(id, data_set, rank, value) # remove redundancy
 
-  #this is the master threshold gene vec to use for filtering and factor grouping
-  threshold_genes_pos <- NULL
-  threshold_genes_neg <- NULL
-
-  #set positive and/or negative thresholds
-  if("positive" %in% corr_filter){
-    threshold_genes_pos <-
+    threshold_pathways <-
       dep_network_master %>%
-      dplyr::filter(id %in% setup_input$content,
-                    type == "positive",
+      dplyr::filter(id %in% setup_input$query,
                     rank <= setup_threshold) %>%
       dplyr::pull(., value) %>%
       unique()
-  }
-  #need to also do for negative, in case we need them
-  if("negative" %in% corr_filter){
-    threshold_genes_neg <-
+
+    threshold_pathways <- c(setup_input$query, threshold_pathways)
+
+    #this makes dep_network_table tibble to generate the network graph
+    dep_network_table <-
       dep_network_master %>%
-      dplyr::filter(id %in% setup_input$content,
-                    type == "negative",
-                    rank <= setup_threshold) %>%
-      dplyr::pull(., value) %>%
-      unique()
+      dplyr::filter(id %in% threshold_pathways,
+                    rank <= setup_threshold)
+
+    setup_object <- list(dep_network_table = dep_network_table,
+                         threshold_pathways = threshold_pathways) # pathways used to create graph
+
+  } else { # genes
+    #set corr_filter from corr_type
+    if(setup_corr_type == "both"){corr_filter = c("positive", "negative")} else {corr_filter = setup_corr_type}
+
+    #filter for cards
+    if (setup_card == TRUE & length(setup_input$content) > 5) {
+      setup_input$content <- sample(setup_input$content, 5)
+    }
+
+    #get master data object, which has all genes + related
+    #some redundancy b/c if i'm in your top 10, and you're in mine, I fetch you twice when two feather objects come together
+    dep_network_master <-
+      get_data_object(object_name = setup_input$content,
+                      dataset_name = "setup_graph") %>%
+      dplyr::filter(stringr::str_detect(.$key, "negative") | stringr::str_detect(.$key, "positive")) %>% #need this so approved_name doesn't get separated in next step
+      tidyr::separate(col = "key", into = c("type", "rank"), sep = "_") %>%
+      dplyr::mutate(rank = as.numeric(rank)) %>%
+      dplyr::distinct(id, data_set, type, rank, value) #remove redundancy
+
+    #this is the master threshold gene vec to use for filtering and factor grouping
+    threshold_genes_pos <- NULL
+    threshold_genes_neg <- NULL
+
+    #set positive and/or negative thresholds
+    if("positive" %in% corr_filter){
+      threshold_genes_pos <-
+        dep_network_master %>%
+        dplyr::filter(id %in% setup_input$content,
+                      type == "positive",
+                      rank <= setup_threshold) %>%
+        dplyr::pull(., value) %>%
+        unique()
+    }
+    #need to also do for negative, in case we need them
+    if("negative" %in% corr_filter){
+      threshold_genes_neg <-
+        dep_network_master %>%
+        dplyr::filter(id %in% setup_input$content,
+                      type == "negative",
+                      rank <= setup_threshold) %>%
+        dplyr::pull(., value) %>%
+        unique()
+    }
+
+    #this next step is key: either pull top n genes for single query, or pull query genes from multi-gene query
+    if(length(setup_input$content) == 1){
+      #get single gene threshold vec, so I can use this to filter my id col for the dep_network_table
+      threshold_genes <- c(setup_input$content, threshold_genes_pos, threshold_genes_neg)
+    } else {
+      #this only keeps input$content in id, and drops related
+      threshold_genes <- setup_input$content
+    }
+
+    #this makes dep_network_table tibble to generate the network graph
+    dep_network_table <-
+      dep_network_master %>%
+      dplyr::filter(id %in% threshold_genes,
+                    type %in% corr_filter,
+                    rank <= setup_threshold)
+
+    setup_object <- list(dep_network_table = dep_network_table, #full dataset
+                         threshold_genes_pos = threshold_genes_pos, #req'd for graph factors/labels
+                         threshold_genes_neg = threshold_genes_neg, #req'd for graph factors/labels
+                         threshold_genes = threshold_genes) #genes used to create graph
   }
-
-  #this next step is key: either pull top n genes for single query, or pull query genes from multi-gene query
-  if(length(setup_input$content) == 1){
-    #get single gene threshold vec, so I can use this to filter my id col for the dep_network_table
-    threshold_genes <- c(setup_input$content, threshold_genes_pos, threshold_genes_neg)
-  } else {
-    #this only keeps input$content in id, and drops related
-    threshold_genes <- setup_input$content
-  }
-
-  #this makes dep_network_table tibble to generate the network graph
-  dep_network_table <-
-    dep_network_master %>%
-    dplyr::filter(id %in% threshold_genes,
-                  type %in% corr_filter,
-                  rank <= setup_threshold)
-
-  setup_object = list(dep_network_table = dep_network_table, #full dataset
-                      threshold_genes_pos = threshold_genes_pos, #req'd for graph factors/labels
-                      threshold_genes_neg = threshold_genes_neg, #req'd for graph factors/labels
-                      threshold_genes = threshold_genes) #genes used to create graph
   return(setup_object)
 }
 
@@ -123,7 +157,7 @@ make_graph <- function(input = list(),
   make_graph_raw <- function() {
     #set color schemes
     ddh::load_ddh_colors()
-    if(input$type == "gene") {
+    if (input$type == "gene" | input$type == "pathway") {
       queryColor <- color_set_gene_alpha[2]
     }  else if (input$type == "cell"){
       queryColor <- color_set_cell_alpha[2]
