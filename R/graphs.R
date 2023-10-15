@@ -1,4 +1,4 @@
-## SETUP GRAPH ----------------------------------------------------------------------
+# SETUP GRAPH ----------------------------------------------------------------------
 #' Setup graph parameters
 #'
 #' The overall purpose of this function is to create an object that can be used to generate a network graph by filtering the query object. A list is returned that has four elements.
@@ -12,10 +12,15 @@ setup_graph <- function(setup_input = list(), #changed name here to prevent var 
                         setup_card) {
 
   pathway_ids <- ddh::get_content("universal_pathways", dataset = TRUE) %>%
-    dplyr::distinct(gs_id) %>%
-    dplyr::pull(gs_id)
+    dplyr::distinct(gs_id, gs_name) %>%
+    dplyr::mutate_all(as.character) %>%
+    dplyr::mutate(set = gsub("_.*", "", gs_name)) %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(gs_name = gsub(paste0(set, "_"), "", gs_name)) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(gs_name = gsub("_", " ", gs_name))
 
-  if (setup_input$query %in% pathway_ids) { # pathways
+  if (setup_input$query %in% pathway_ids$gs_id) { # pathways
     # get master data object, which has all pathway + related
     dep_network_master <-
       get_data_object(object_name = setup_input$query,
@@ -40,7 +45,8 @@ setup_graph <- function(setup_input = list(), #changed name here to prevent var 
                     rank <= setup_threshold)
 
     setup_object <- list(dep_network_table = dep_network_table,
-                         threshold_pathways = threshold_pathways) # pathways used to create graph
+                         threshold_pathways = threshold_pathways, # pathways used to create graph
+                         pathway_ids = pathway_ids)
 
   } else { # genes
     #set corr_filter from corr_type
@@ -139,7 +145,7 @@ setup_graph <- function(setup_input = list(), #changed name here to prevent var 
 #' make_graph(input = list(type = "gene", content = "ROCK1"), corr_type = "negative")
 #' make_graph(input = list(type = "gene", content = "ROCK1"), corr_type = "both")
 #' make_graph(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
-#' make_graph(input = list(type = "gene", query = "1902965", content = c("RDX", "ROCK2", "DTX3L", "MSN", "SORL1", "EZR")), corr_type = "positive")
+#' make_graph(input = list(type = "pathway", query = "16769"))
 #' make_graph(input = list(type = "gene", content = "DTX3L"), corr_type = "negative") # disconnected query gene
 #' make_graph(input = list(type = "compound", content = "aspirin"), corr_type = "negative")
 make_graph <- function(input = list(),
@@ -161,17 +167,6 @@ make_graph <- function(input = list(),
       queryColor <- color_set_gene_alpha[2]
     }  else if (input$type == "cell"){
       queryColor <- color_set_cell_alpha[2]
-      #
-      #       # this is the equivalent of master top/bottom table
-      #       if(cell_line_var == "dependency") {
-      #         cell_top_data <-
-      #           data_cell_line_dep_sim %>%
-      #           dplyr::filter(bonferroni < bonferroni_cutoff)
-      #       } else if (cell_line_var == "expression") {
-      #         cell_top_data <-
-      #           data_cell_line_exp_sim %>%
-      #           dplyr::filter(bonferroni < bonferroni_cutoff)
-      #       }
     } else if(input$type == "compound") {
       queryColor <- color_set_compound_alpha[2]
     } else {
@@ -184,253 +179,375 @@ make_graph <- function(input = list(),
                                     setup_corr_type = corr_type,
                                     setup_card = card) #adds the filter logic to the data
 
-    #make graph
-    graph_network <-
-      setup_graph_list$dep_network_table %>%
-      dplyr::rename(from = id, to = value) %>%
-      tidygraph::as_tbl_graph()
+    disconnected <- FALSE
 
-    #make groups for fct_relevel below
-    corr_var <- switch(corr_type,
-                       positive = "Positive",
-                       negative = "Negative",
-                       both = c("Positive", "Negative")
-    )
-    if(length(input$content) == 1){connected_var <- "Connected"} else {connected_var <- NULL}
-    group_var <- c("Query", corr_var, connected_var)
+    if (input$type == "pathway") {
+      corr_type <- "pathway"
+      # make graph
+      graph_network <-
+        setup_graph_list$dep_network_table %>%
+        dplyr::left_join(setup_graph_list$pathway_ids, by = c("id" = "gs_id")) %>%
+        dplyr::left_join(setup_graph_list$pathway_ids, by = c("value" = "gs_id")) %>%
+        dplyr::rename(from = gs_name.x, to = gs_name.y) %>%
+        tidygraph::as_tbl_graph()
 
-    #add data to nodes
-    nodes <- #active by default
-      graph_network %>%
-      tidygraph::as_tibble() %>%
-      tibble::rowid_to_column("id") %>%
-      dplyr::mutate(degree = igraph::degree(graph_network),
-                    #name is the list of nodes
-                    group = dplyr::case_when(name %in% input$content == TRUE ~ "Query",
-                                             name %in% setup_graph_list$threshold_genes_pos == TRUE ~ "Positive",
-                                             name %in% setup_graph_list$threshold_genes_neg == TRUE ~ "Negative",
-                                             TRUE ~ "Connected"),
-                    group = forcats::as_factor(group),
-                    group = forcats::fct_relevel(group, group_var)) %>%
-      dplyr::arrange(group)
+      group_var <- c("Query", "Co-essential", "Connected")
 
-    links <-
-      graph_network %>%
-      tidygraph::activate(edges) %>% # %E>%
-      tidygraph::as_tibble()
+      # add data to nodes
+      nodes <- # active by default
+        graph_network %>%
+        tidygraph::as_tibble() %>%
+        tibble::rowid_to_column("id") %>%
+        dplyr::mutate(degree = igraph::degree(graph_network),
+                      group = dplyr::case_when(name %in% input$query ~ "Query",
+                                               name %in% setup_graph_list$threshold_pathways ~ "Co-essential",
+                                               TRUE ~ "Connected"),
+                      group = forcats::as_factor(group),
+                      group = forcats::fct_relevel(group, group_var)) %>%
+        dplyr::arrange(group)
 
-    # determine the nodes that have at least the minimum degree
-    nodes_filtered <-
-      nodes %>%
-      dplyr::filter(degree >= deg) %>%  #input$degree
-      as.data.frame
+      links <-
+        graph_network %>%
+        tidygraph::activate(edges) %>%
+        tidygraph::as_tibble()
 
-    # filter the edge list to contain only links to or from the nodes that have the minimum or more degree
-    links_filtered <-
-      links %>%
-      dplyr::filter(to %in% nodes_filtered$id & from %in% nodes_filtered$id) %>%
-      as.data.frame
-
-    # re-adjust the from and to values to reflect the new positions of nodes in the filtered nodes list
-    links_filtered$from <- match(links_filtered$from, nodes_filtered$id) - 1
-    links_filtered$to <- match(links_filtered$to, nodes_filtered$id) - 1
-
-    #check to see if setting degree removed all links; if so, then throws error, so this fills a dummy links_filtered df to plot only nodes
-    if(nrow(links_filtered) == 0) {
-      if(corr_type == "Negative"){
-        links_filtered <- dplyr::tibble("from" = -1, "to" = -1, "r2" = 1, "origin" = "neg")
-      }    else{
-        links_filtered <- dplyr::tibble("from" = -1, "to" = -1, "r2" = 1, "origin" = "pos")}
-    }
-
-    # shift id values properly to work with visNetwork
-    nodes_filtered <-
-      nodes_filtered %>%
-      dplyr::mutate(id=0:(nrow(nodes_filtered)-1))
-
-    # recreate the network using filtered edges to use degree function
-    graph_network_filtered <-
-      igraph::graph_from_data_frame(links_filtered, directed = F) %>%
-      igraph::simplify()
-    degVec <- igraph::degree(graph_network_filtered)
-
-    # make node size a function of their degree in the current network
-    if(names(degVec)[1] == "-1"){ # if there are no links remaining then assign degree of each node to 0
+      # determine the nodes that have at least the minimum degree
       nodes_filtered <-
-        nodes_filtered %>%
-        dplyr::mutate(value = 0)
-    } else if(length(input$content > 1) & length(degVec) != dim(nodes_filtered)[1]){ # handle cases where some query genes are disconnected
-      genesWithConnections <-
-        degVec %>%
-        names() %>%
-        as.numeric()
-      nodes_filtered <-
-        nodes_filtered %>%
-        tibble::add_column(value = 0)
-      for(gene in 1:dim(nodes_filtered)[1]){
-        if(nodes_filtered[gene,"id"] %in% genesWithConnections){
-          nodes_filtered[gene,"value"] <- degVec[nodes_filtered[gene,"id"] %>% toString()]
-        }
+        nodes %>%
+        dplyr::filter(degree >= deg) %>%  #input$degree
+        as.data.frame()
+
+      # filter the edge list to contain only links to or from the nodes that have the minimum or more degree
+      links_filtered <-
+        links %>%
+        dplyr::filter(to %in% nodes_filtered$id & from %in% nodes_filtered$id) %>%
+        as.data.frame()
+
+      # re-adjust the from and to values to reflect the new positions of nodes in the filtered nodes list
+      links_filtered$from <- match(links_filtered$from, nodes_filtered$id) - 1
+      links_filtered$to <- match(links_filtered$to, nodes_filtered$id) - 1
+
+      #check to see if setting degree removed all links; if so, then throws error, so this fills a dummy links_filtered df to plot only nodes
+      if(nrow(links_filtered) == 0) {
+        links_filtered <- dplyr::tibble("from" = -1, "to" = -1, "cc" = 1, "origin" = "pos")
       }
-    } else {
+
+      # shift id values properly to work with visNetwork
       nodes_filtered <-
-        nodes_filtered[degVec %>% names() %>% as.numeric() +1,] %>%
-        dplyr::mutate(value = degVec)
+        nodes_filtered %>%
+        dplyr::mutate(id=0:(nrow(nodes_filtered)-1))
+
+      # recreate the network using filtered edges to use degree function
+      graph_network_filtered <-
+        igraph::graph_from_data_frame(links_filtered, directed = F) %>%
+        igraph::simplify()
+      degVec <- igraph::degree(graph_network_filtered)
+
+      # make node size a function of their degree in the current network
+      if(names(degVec)[1] == "-1"){ # if there are no links remaining then assign degree of each node to 0
+        nodes_filtered <-
+          nodes_filtered %>%
+          dplyr::mutate(value = 0)
+      } else if(length(input$content > 1) & length(degVec) != dim(nodes_filtered)[1]){ # handle cases where some query genes are disconnected
+        genesWithConnections <-
+          degVec %>%
+          names() %>%
+          as.numeric()
+        nodes_filtered <-
+          nodes_filtered %>%
+          tibble::add_column(value = 0)
+        for(gene in 1:dim(nodes_filtered)[1]){
+          if(nodes_filtered[gene,"id"] %in% genesWithConnections){
+            nodes_filtered[gene,"value"] <- degVec[nodes_filtered[gene,"id"] %>% toString()]
+          }
+        }
+      } else {
+        nodes_filtered <-
+          nodes_filtered[degVec %>% names() %>% as.numeric() +1,] %>%
+          dplyr::mutate(value = degVec)
+      }
+
+      # make sure query gene is at the start so legend shows proper order
+      nodes_filtered <-
+        nodes_filtered %>%
+        dplyr::arrange(id)
+
+      }
+    else { # genes
+      #make graph
+      graph_network <-
+        setup_graph_list$dep_network_table %>%
+        dplyr::rename(from = id, to = value) %>%
+        tidygraph::as_tbl_graph()
+
+      #make groups for fct_relevel below
+      corr_var <- switch(corr_type,
+                         positive = "Positive",
+                         negative = "Negative",
+                         both = c("Positive", "Negative")
+      )
+
+      if(length(input$content) == 1){connected_var <- "Connected"} else {connected_var <- NULL}
+      group_var <- c("Query", corr_var, connected_var)
+
+      #add data to nodes
+      nodes <- #active by default
+        graph_network %>%
+        tidygraph::as_tibble() %>%
+        tibble::rowid_to_column("id") %>%
+        dplyr::mutate(degree = igraph::degree(graph_network),
+                      #name is the list of nodes
+                      group = dplyr::case_when(name %in% input$content == TRUE ~ "Query",
+                                               name %in% setup_graph_list$threshold_genes_pos == TRUE ~ "Positive",
+                                               name %in% setup_graph_list$threshold_genes_neg == TRUE ~ "Negative",
+                                               TRUE ~ "Connected"),
+                      group = forcats::as_factor(group),
+                      group = forcats::fct_relevel(group, group_var)) %>%
+        dplyr::arrange(group)
+
+      links <-
+        graph_network %>%
+        tidygraph::activate(edges) %>% # %E>%
+        tidygraph::as_tibble()
+
+      # determine the nodes that have at least the minimum degree
+      nodes_filtered <-
+        nodes %>%
+        dplyr::filter(degree >= deg) %>%  #input$degree
+        as.data.frame
+
+      # filter the edge list to contain only links to or from the nodes that have the minimum or more degree
+      links_filtered <-
+        links %>%
+        dplyr::filter(to %in% nodes_filtered$id & from %in% nodes_filtered$id) %>%
+        as.data.frame
+
+      # re-adjust the from and to values to reflect the new positions of nodes in the filtered nodes list
+      links_filtered$from <- match(links_filtered$from, nodes_filtered$id) - 1
+      links_filtered$to <- match(links_filtered$to, nodes_filtered$id) - 1
+
+      #check to see if setting degree removed all links; if so, then throws error, so this fills a dummy links_filtered df to plot only nodes
+      if(nrow(links_filtered) == 0) {
+        if(corr_type == "Negative"){
+          links_filtered <- dplyr::tibble("from" = -1, "to" = -1, "r2" = 1, "origin" = "neg")
+        }    else{
+          links_filtered <- dplyr::tibble("from" = -1, "to" = -1, "r2" = 1, "origin" = "pos")}
+      }
+
+      # shift id values properly to work with visNetwork
+      nodes_filtered <-
+        nodes_filtered %>%
+        dplyr::mutate(id=0:(nrow(nodes_filtered)-1))
+
+      # recreate the network using filtered edges to use degree function
+      graph_network_filtered <-
+        igraph::graph_from_data_frame(links_filtered, directed = F) %>%
+        igraph::simplify()
+      degVec <- igraph::degree(graph_network_filtered)
+
+      # make node size a function of their degree in the current network
+      if(names(degVec)[1] == "-1"){ # if there are no links remaining then assign degree of each node to 0
+        nodes_filtered <-
+          nodes_filtered %>%
+          dplyr::mutate(value = 0)
+      } else if(length(input$content > 1) & length(degVec) != dim(nodes_filtered)[1]){ # handle cases where some query genes are disconnected
+        genesWithConnections <-
+          degVec %>%
+          names() %>%
+          as.numeric()
+        nodes_filtered <-
+          nodes_filtered %>%
+          tibble::add_column(value = 0)
+        for(gene in 1:dim(nodes_filtered)[1]){
+          if(nodes_filtered[gene,"id"] %in% genesWithConnections){
+            nodes_filtered[gene,"value"] <- degVec[nodes_filtered[gene,"id"] %>% toString()]
+          }
+        }
+      } else {
+        nodes_filtered <-
+          nodes_filtered[degVec %>% names() %>% as.numeric() +1,] %>%
+          dplyr::mutate(value = degVec)
+      }
+
+      # make sure query gene is at the start so legend shows proper order
+      nodes_filtered <-
+        nodes_filtered %>%
+        dplyr::arrange(id)
+
+      #check to see if query gene is missing; if so, then adds a dummy so it shows up on graph, but disconnected
+      # disconnected <- FALSE
+      #could simplify this if/else with common input name, b/c only here to get input$content vs. input$content
+      # if(sum(str_detect(nodes_filtered$group, "Query")) == 0){
+      #   dummy <- tibble("id" = max(nodes_filtered$id) + 1, "name" = input$content, "degree" = 1, "group" = "Query", "value" = 0)
+      #   nodes_filtered <- bind_rows(dummy, nodes_filtered)
+      #   disconnected <- T
+      # } else {
+      #   stop("declare your type")
+      # }
+
+      # if(input$type == "cell") {
+      #   for(cell in nodes_filtered$name){
+      #     newVal <-
+      #       cell_top_data %>%
+      #       dplyr::filter(cell1_name == cell | cell2_name == cell)
+      #
+      #     # Swap cols (based on query)
+      #     for(i in 1:nrow(newVal)) {
+      #       if(newVal$cell2_name[i] %in% cell & !(newVal$cell1_name[i] %in% cell)) {
+      #         cell1 <- newVal$cell1_name[i]
+      #         cell2 <- newVal$cell2_name[i]
+      #
+      #         newVal$cell2_name[i] <- cell1
+      #         newVal$cell1_name[i] <- cell2
+      #       }
+      #     }
+      #
+      #     newVal <-
+      #       newVal %>%
+      #       dplyr::pull(cell2_name)
+      #
+      #     if(length(newVal) == 0){
+      #       nameTable <- tibble::add_row(nameTable, name = "No cell line available")# handles cases where the gene is not in the gene data_gene_summary table
+      #     } else{
+      #       nameTable <- tibble::add_row(nameTable, name=newVal)
+      #     }
+      #   }
+      # } else if(input$type == "compound") {
+      #   for(drug in nodes_filtered$name){
+      #     newVal <- prism_meta %>%
+      #       dplyr::filter(name==drug) %>%
+      #       dplyr::pull(moa)
+      #     if(length(newVal)==0){
+      #       nameTable <- tibble::add_row(nameTable, name = "No drug MOA available")# handles cases where the gene is not in the gene data_gene_summary table
+      #     } else{
+      #       nameTable <- tibble::add_row(nameTable, name=newVal)
+      #     }
+      #   }
+      # } else {
+      #   stop("declare your type")
+      # }
+
+      #make df for approved_name & description of each gene nodes tibble tooltips
+      gene_names <-
+        get_data_object(object_name = input$content,
+                        dataset_name = "setup_graph") %>%
+        dplyr::filter(key == "approved_name") %>%
+        dplyr::select(name = id, description = value) %>%
+        dplyr::distinct(name, .keep_all = TRUE)
     }
 
-    # make sure query gene is at the start so legend shows proper order
-    nodes_filtered <-
-      nodes_filtered %>%
-      dplyr::arrange(id)
-
-    #check to see if query gene is missing; if so, then adds a dummy so it shows up on graph, but disconnected
-    disconnected <- F
-    #could simplify this if/else with common input name, b/c only here to get input$content vs. input$content
-    # if(sum(str_detect(nodes_filtered$group, "Query")) == 0){
-    #   dummy <- tibble("id" = max(nodes_filtered$id) + 1, "name" = input$content, "degree" = 1, "group" = "Query", "value" = 0)
-    #   nodes_filtered <- bind_rows(dummy, nodes_filtered)
-    #   disconnected <- T
-    # } else {
-    #   stop("declare your type")
-    # }
-
-    # if(input$type == "cell") {
-    #   for(cell in nodes_filtered$name){
-    #     newVal <-
-    #       cell_top_data %>%
-    #       dplyr::filter(cell1_name == cell | cell2_name == cell)
-    #
-    #     # Swap cols (based on query)
-    #     for(i in 1:nrow(newVal)) {
-    #       if(newVal$cell2_name[i] %in% cell & !(newVal$cell1_name[i] %in% cell)) {
-    #         cell1 <- newVal$cell1_name[i]
-    #         cell2 <- newVal$cell2_name[i]
-    #
-    #         newVal$cell2_name[i] <- cell1
-    #         newVal$cell1_name[i] <- cell2
-    #       }
-    #     }
-    #
-    #     newVal <-
-    #       newVal %>%
-    #       dplyr::pull(cell2_name)
-    #
-    #     if(length(newVal) == 0){
-    #       nameTable <- tibble::add_row(nameTable, name = "No cell line available")# handles cases where the gene is not in the gene data_gene_summary table
-    #     } else{
-    #       nameTable <- tibble::add_row(nameTable, name=newVal)
-    #     }
-    #   }
-    # } else if(input$type == "compound") {
-    #   for(drug in nodes_filtered$name){
-    #     newVal <- prism_meta %>%
-    #       dplyr::filter(name==drug) %>%
-    #       dplyr::pull(moa)
-    #     if(length(newVal)==0){
-    #       nameTable <- tibble::add_row(nameTable, name = "No drug MOA available")# handles cases where the gene is not in the gene data_gene_summary table
-    #     } else{
-    #       nameTable <- tibble::add_row(nameTable, name=newVal)
-    #     }
-    #   }
-    # } else {
-    #   stop("declare your type")
-    # }
-
-    #make df for approved_name & description of each gene nodes tibble tooltips
-    gene_names <-
-      get_data_object(object_name = input$content,
-                      dataset_name = "setup_graph") %>%
-      dplyr::filter(key == "approved_name") %>%
-      dplyr::select(name = id, description = value) %>%
-      dplyr::distinct(name, .keep_all = TRUE)
-
-    # add title information (tooltip that appears on hover)
-    if(!tooltipLink){ # Do not form a url when just making the standalone graph while testing or making reports
+  # COMMON
+  # add title information (tooltip that appears on hover)
+  if(!tooltipLink){ # Do not form a url when just making the standalone graph while testing or making reports
+    if (input$type == "pathway") {
+      nodes_filtered <-
+        nodes_filtered %>%
+        dplyr::left_join(setup_graph_list$pathway_ids, by = c("name" = "gs_name")) %>%
+        dplyr::mutate(title = paste0("<center><p>", name,"<br>", set, '</p>'),
+                      label = name)
+    } else {
       nodes_filtered <-
         nodes_filtered %>%
         dplyr::left_join(gene_names) %>%
-        dplyr::mutate(title=paste0("<center><p>", name,"<br>", description, '</p>'),
+        dplyr::mutate(title = paste0("<center><p>", name,"<br>", description, '</p>'),
+                      label = name)
+    }
+  } else {
+    if(input$type == "gene") {
+      nodes_filtered <-
+        nodes_filtered %>%
+        dplyr::left_join(gene_names) %>%
+        dplyr::mutate(title=paste0("<center><p>", name,"<br>",description ,'<br><a target="_blank" href="?show=gene&query=',name,'">Gene Link</a></p>'),
+                      label = name )
+    } else if(input$type == "pathway") {
+      nodes_filtered <-
+        nodes_filtered %>%
+        dplyr::left_join(setup_graph_list$pathway_ids, by = c("name" = "gs_name")) %>%
+        dplyr::mutate(title = paste0("<center><p>", name,"<br>", set ,'<br><a target="_blank" href="?show=pathway&query=', gs_id, '">Pathway Link</a></p>'),
+                      label = name)
+    } else if(input$type == "cell") {
+      nodes_filtered <-
+        nodes_filtered %>%
+        dplyr::left_join(gene_names) %>%
+        dplyr::mutate(title=paste0("<center><p>", name,"<br>",name ,'<br><a target="_blank" href="?show=cell&query=',name,'">Cell Line Link</a></p>'),
+                      label = name )
+    } else if(input$type == "compound") {
+      nodes_filtered <-
+        nodes_filtered %>%
+        dplyr::left_join(gene_names) %>%
+        dplyr::mutate(title=paste0("<center><p>", name,"<br>",name ,'<br><a target="_blank" href="?show=compound&query=',name,'">Drug Link</a></p>'),
                       label = name )
     } else {
-      if(input$type == "gene") {
-        nodes_filtered <-
-          nodes_filtered %>%
-          dplyr::left_join(gene_names) %>%
-          dplyr::mutate(title=paste0("<center><p>", name,"<br>",description ,'<br><a target="_blank" href="?show=gene&query=',name,'">Gene Link</a></p>'),
-                        label = name )
-      } else if(input$type == "cell") {
-        nodes_filtered <-
-          nodes_filtered %>%
-          dplyr::left_join(gene_names) %>%
-          dplyr::mutate(title=paste0("<center><p>", name,"<br>",name ,'<br><a target="_blank" href="?show=cell&query=',name,'">Cell Line Link</a></p>'),
-                        label = name )
-      } else if(input$type == "compound") {
-        nodes_filtered <-
-          nodes_filtered %>%
-          dplyr::left_join(gene_names) %>%
-          dplyr::mutate(title=paste0("<center><p>", name,"<br>",name ,'<br><a target="_blank" href="?show=compound&query=',name,'">Drug Link</a></p>'),
-                        label = name )
-      } else {
-        stop("declare your type")
-      }
+      stop("declare your type")
     }
+  }
 
-    # colors used within the network
-    #queryColor set above based on query type
-    positiveColor <-"rgba(173, 103, 125, 0.8)"
-    negativeColor <- "rgba(12, 35, 50, 0.8)"
-    connectedColor <- "rgba(255, 255, 255, 0.8)" #formerly purple "rgba(84, 64, 151, 0.8)"
-    borderColor <- "rgba(204, 204, 204, 0.8)" #(gray80), formerly white 255, 255, 255
-    edgeColor <- "rgba(84, 84, 84, 1)"
+  # colors used within the network
+  #queryColor set above based on query type
+  positiveColor <-"rgba(173, 103, 125, 0.8)"
+  negativeColor <- "rgba(12, 35, 50, 0.8)"
+  connectedColor <- "rgba(255, 255, 255, 0.8)" #formerly purple "rgba(84, 64, 151, 0.8)"
+  borderColor <- "rgba(204, 204, 204, 0.8)" #(gray80), formerly white 255, 255, 255
+  edgeColor <- "rgba(84, 84, 84, 1)"
 
-    # Physics parameters defining the visNetwork
-    iter <- 150 # number of iterations to perform of stablization before display
-    gravity <- 0.5
-    damping <- 0.11
-    timestep <- 0.25 # reducing the timestep reduces the jitteriness of the graph and can help stabilize it
-    if(disconnected){ # set up function to be called at the end of stabilization, changes the zoom to handle when query gene is disconnected and flies out of the network
-      stabilizationZoomFn <- "function() {this.moveTo({scale:0.35})}"
-    } else{
-      stabilizationZoomFn <- "function() {}"
-    }
+  # Physics parameters defining the visNetwork
+  iter <- 150 # number of iterations to perform of stablization before display
+  gravity <- 0.5
+  damping <- 0.11
+  timestep <- 0.25 # reducing the timestep reduces the jitteriness of the graph and can help stabilize it
+  if(disconnected){ # set up function to be called at the end of stabilization, changes the zoom to handle when query gene is disconnected and flies out of the network
+    stabilizationZoomFn <- "function() {this.moveTo({scale:0.35})}"
+  } else{
+    stabilizationZoomFn <- "function() {}"
+  }
 
-    if(card == TRUE){
-      displayHeight = "200px"
-      displayWidth = "200px"
-    }
-    # build the network visualization
-    if(corr_type == "both"){
-      visNetwork::visNetwork(nodes = nodes_filtered, edges = links_filtered, width = displayWidth, height = displayHeight) %>%
-        visNetwork::visOptions(highlightNearest = list(enabled = T)) %>%
-        visNetwork::visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visNetwork::visGroups(groupname = "Positive", color = list(background = positiveColor, border = borderColor, highlight = positiveColor, hover = positiveColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visNetwork::visGroups(groupname = "Negative", color = list(background = negativeColor, border = borderColor, highlight = negativeColor, hover = negativeColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visNetwork::visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visNetwork::visEdges(color = edgeColor, smooth = F) %>%
-        visNetwork::visNodes(scaling = list(min = 10, max =20)) %>%
-        visNetwork::visPhysics(barnesHut = list(damping = damping, centralGravity = gravity), timestep = timestep, stabilization = list(iterations = iter)) %>%
-        visNetwork::visEvents(stabilizationIterationsDone = stabilizationZoomFn)
-      # visConfigure(enabled=TRUE) # use to test out new features to add from visNetwork
-    }  else if(corr_type == "positive"){
-      visNetwork::visNetwork(nodes = nodes_filtered, edges = links_filtered, width = displayWidth, height = displayHeight) %>%
-        visNetwork::visOptions(highlightNearest = list(enabled = T)) %>%
-        visNetwork::visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visNetwork::visGroups(groupname = "Positive", color = list(background = positiveColor, border = borderColor, highlight = positiveColor, hover = positiveColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visNetwork::visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visNetwork::visEdges(color = edgeColor, smooth = F) %>%
-        visNetwork::visNodes(scaling = list(min = 10, max =20)) %>%
-        visNetwork::visPhysics(barnesHut = list(damping = damping, centralGravity = gravity), timestep = timestep, stabilization = list(iterations = iter)) %>%
-        visNetwork::visEvents(stabilizationIterationsDone = stabilizationZoomFn)
-    }  else if(corr_type == "negative"){
-      visNetwork::visNetwork(nodes = nodes_filtered, edges = links_filtered, width = displayWidth, height = displayHeight) %>%
-        visNetwork::visOptions(highlightNearest = list(enabled = T)) %>%
-        visNetwork::visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visNetwork::visGroups(groupname = "Negative", color = list(background = negativeColor, border = borderColor, highlight = negativeColor, hover = negativeColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visNetwork::visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-        visNetwork::visEdges(color = edgeColor, smooth = F) %>%
-        visNetwork::visNodes(scaling = list(min = 10, max = 20)) %>%
-        visNetwork::visPhysics(barnesHut = list(damping = damping, centralGravity = gravity), timestep = timestep, stabilization = list(iterations = iter)) %>%
-        visNetwork::visEvents(stabilizationIterationsDone = stabilizationZoomFn)
+  if(card == TRUE){
+    displayHeight = "200px"
+    displayWidth = "200px"
+  }
+  # build the network visualization
+  if(corr_type == "both"){
+    visNetwork::visNetwork(nodes = nodes_filtered, edges = links_filtered, width = displayWidth, height = displayHeight) %>%
+      visNetwork::visOptions(highlightNearest = list(enabled = T)) %>%
+      visNetwork::visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+      visNetwork::visGroups(groupname = "Positive", color = list(background = positiveColor, border = borderColor, highlight = positiveColor, hover = positiveColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+      visNetwork::visGroups(groupname = "Negative", color = list(background = negativeColor, border = borderColor, highlight = negativeColor, hover = negativeColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+      visNetwork::visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+      visNetwork::visEdges(color = edgeColor, smooth = F) %>%
+      visNetwork::visNodes(scaling = list(min = 10, max =20)) %>%
+      visNetwork::visPhysics(barnesHut = list(damping = damping, centralGravity = gravity), timestep = timestep, stabilization = list(iterations = iter)) %>%
+      visNetwork::visEvents(stabilizationIterationsDone = stabilizationZoomFn)
+    # visConfigure(enabled=TRUE) # use to test out new features to add from visNetwork
+  }  else if(corr_type == "positive"){
+    visNetwork::visNetwork(nodes = nodes_filtered, edges = links_filtered, width = displayWidth, height = displayHeight) %>%
+      visNetwork::visOptions(highlightNearest = list(enabled = T)) %>%
+      visNetwork::visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+      visNetwork::visGroups(groupname = "Positive", color = list(background = positiveColor, border = borderColor, highlight = positiveColor, hover = positiveColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+      visNetwork::visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+      visNetwork::visEdges(color = edgeColor, smooth = F) %>%
+      visNetwork::visNodes(scaling = list(min = 10, max =20)) %>%
+      visNetwork::visPhysics(barnesHut = list(damping = damping, centralGravity = gravity), timestep = timestep, stabilization = list(iterations = iter)) %>%
+      visNetwork::visEvents(stabilizationIterationsDone = stabilizationZoomFn)
+  }  else if(corr_type == "negative"){
+    visNetwork::visNetwork(nodes = nodes_filtered, edges = links_filtered, width = displayWidth, height = displayHeight) %>%
+      visNetwork::visOptions(highlightNearest = list(enabled = T)) %>%
+      visNetwork::visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+      visNetwork::visGroups(groupname = "Negative", color = list(background = negativeColor, border = borderColor, highlight = negativeColor, hover = negativeColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+      visNetwork::visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+      visNetwork::visEdges(color = edgeColor, smooth = F) %>%
+      visNetwork::visNodes(scaling = list(min = 10, max = 20)) %>%
+      visNetwork::visPhysics(barnesHut = list(damping = damping, centralGravity = gravity), timestep = timestep, stabilization = list(iterations = iter)) %>%
+      visNetwork::visEvents(stabilizationIterationsDone = stabilizationZoomFn)
+  } else if (corr_type == "pathway") {
+    visNetwork::visNetwork(nodes = nodes_filtered, edges = links_filtered, width = displayWidth, height = displayHeight) #%>%
+      # visNetwork::visOptions(highlightNearest = list(enabled = T)) %>%
+      # visNetwork::visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+      # visNetwork::visGroups(groupname = "Co-essential", color = list(background = positiveColor, border = borderColor, highlight = positiveColor, hover = positiveColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+      # visNetwork::visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+      # visNetwork::visEdges(color = edgeColor, smooth = F) %>%
+      # visNetwork::visNodes(scaling = list(min = 10, max =20)) %>%
+      # visNetwork::visPhysics(barnesHut = list(damping = damping, centralGravity = gravity), timestep = timestep, stabilization = list(iterations = iter)) %>%
+      # visNetwork::visEvents(stabilizationIterationsDone = stabilizationZoomFn)
     }
   }
   #error handling
