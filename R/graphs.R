@@ -139,15 +139,14 @@ setup_graph <- function(setup_input = list(), #changed name here to prevent var 
 #' @export
 #' @examples
 #' make_graph(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-#' make_graph(input = list(type = "gene", content = "ROCK1"))
-#' make_graph(input = list(type = "gene", content = "ROCK1"), threshold = 15)
-#' make_graph(input = list(type = "gene", content = "ROCK1"), card = TRUE)
-#' make_graph(input = list(type = "gene", content = "ROCK1"), corr_type = "negative")
-#' make_graph(input = list(type = "gene", content = "ROCK1"), corr_type = "both")
-#' make_graph(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
+#' make_graph(input = list(type = "gene", query = 'ROCK1', content = "ROCK1"), card = TRUE)
+#' make_graph(input = list(type = "gene", query = 'ROCK1', content = "ROCK1"), corr_type = "negative")
+#' make_graph(input = list(type = "gene", query = 'ROCK1', content = "ROCK1"), corr_type = "both")
+#' make_graph(input = list(type = "gene", query = 'ROCK1', content = c("ROCK1", "ROCK2")))
 #' make_graph(input = list(type = "pathway", query = "16769"))
-#' make_graph(input = list(type = "gene", content = "DTX3L"), corr_type = "negative") # disconnected query gene
-#' make_graph(input = list(type = "compound", content = "aspirin"), corr_type = "negative")
+#' make_graph(input = list(type = "pathway", query = "16769"), tooltipLink = TRUE)
+#' make_graph(input = list(type = "gene", query = 'DTX3L', content = "DTX3L"), corr_type = "negative") # disconnected query gene
+#' make_graph(input = list(type = "compound", query = 'aspirin', content = "aspirin"), corr_type = "negative")
 make_graph <- function(input = list(),
                        threshold = 10,
                        deg = 2,
@@ -186,14 +185,15 @@ make_graph <- function(input = list(),
       # make graph
       graph_network <-
         setup_graph_list$dep_network_table %>%
-        dplyr::left_join(setup_graph_list$pathway_ids, by = c("id" = "gs_id")) %>%
-        dplyr::left_join(setup_graph_list$pathway_ids, by = c("value" = "gs_id")) %>%
-        dplyr::rename(from = gs_name.x, to = gs_name.y) %>%
+        dplyr::rename(from = id, to = value) %>%
         tidygraph::as_tbl_graph()
 
       group_var <- c("Query", "Co-essential", "Connected")
 
       # add data to nodes
+      # query_name <- setup_graph_list$pathway_ids[which(setup_graph_list$pathway_ids$gs_id == input$query), 2]$gs_name
+      # threshold_pathways_name <- setup_graph_list$pathway_ids[which(setup_graph_list$pathway_ids$gs_id %in% setup_graph_list$threshold_pathways), 2]$gs_name
+
       nodes <- # active by default
         graph_network %>%
         tidygraph::as_tibble() %>%
@@ -229,7 +229,7 @@ make_graph <- function(input = list(),
 
       #check to see if setting degree removed all links; if so, then throws error, so this fills a dummy links_filtered df to plot only nodes
       if(nrow(links_filtered) == 0) {
-        links_filtered <- dplyr::tibble("from" = -1, "to" = -1, "cc" = 1, "origin" = "pos")
+        links_filtered <- dplyr::tibble("from" = -1, "to" = -1, "cc" = 1, "origin" = "coessential")
       }
 
       # shift id values properly to work with visNetwork
@@ -436,15 +436,14 @@ make_graph <- function(input = list(),
         dplyr::distinct(name, .keep_all = TRUE)
     }
 
-  # COMMON
   # add title information (tooltip that appears on hover)
   if(!tooltipLink){ # Do not form a url when just making the standalone graph while testing or making reports
     if (input$type == "pathway") {
       nodes_filtered <-
         nodes_filtered %>%
-        dplyr::left_join(setup_graph_list$pathway_ids, by = c("name" = "gs_name")) %>%
-        dplyr::mutate(title = paste0("<center><p>", name,"<br>", set, '</p>'),
-                      label = name)
+        dplyr::left_join(setup_graph_list$pathway_ids, by = c("name" = "gs_id")) %>%
+        dplyr::mutate(title = paste0("<center><p>", gs_name,"<br>", set, '</p>'),
+                      label = name) # this is the node name on the network
     } else {
       nodes_filtered <-
         nodes_filtered %>%
@@ -462,9 +461,9 @@ make_graph <- function(input = list(),
     } else if(input$type == "pathway") {
       nodes_filtered <-
         nodes_filtered %>%
-        dplyr::left_join(setup_graph_list$pathway_ids, by = c("name" = "gs_name")) %>%
-        dplyr::mutate(title = paste0("<center><p>", name,"<br>", set ,'<br><a target="_blank" href="?show=pathway&query=', gs_id, '">Pathway Link</a></p>'),
-                      label = name)
+        dplyr::left_join(setup_graph_list$pathway_ids, by = c("name" = "gs_id")) %>%
+        dplyr::mutate(title = paste0("<center><p>", gs_name,"<br>", set, '<br><a target="_blank" href="?show=pathway&query=', name, '">Pathway Link</a></p>'),
+                      label = name) # this is the node name on the network
     } else if(input$type == "cell") {
       nodes_filtered <-
         nodes_filtered %>%
@@ -539,15 +538,15 @@ make_graph <- function(input = list(),
       visNetwork::visPhysics(barnesHut = list(damping = damping, centralGravity = gravity), timestep = timestep, stabilization = list(iterations = iter)) %>%
       visNetwork::visEvents(stabilizationIterationsDone = stabilizationZoomFn)
   } else if (corr_type == "pathway") {
-    visNetwork::visNetwork(nodes = nodes_filtered, edges = links_filtered, width = displayWidth, height = displayHeight) #%>%
-      # visNetwork::visOptions(highlightNearest = list(enabled = T)) %>%
-      # visNetwork::visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-      # visNetwork::visGroups(groupname = "Co-essential", color = list(background = positiveColor, border = borderColor, highlight = positiveColor, hover = positiveColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-      # visNetwork::visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
-      # visNetwork::visEdges(color = edgeColor, smooth = F) %>%
-      # visNetwork::visNodes(scaling = list(min = 10, max =20)) %>%
-      # visNetwork::visPhysics(barnesHut = list(damping = damping, centralGravity = gravity), timestep = timestep, stabilization = list(iterations = iter)) %>%
-      # visNetwork::visEvents(stabilizationIterationsDone = stabilizationZoomFn)
+    visNetwork::visNetwork(nodes = nodes_filtered, edges = links_filtered, width = displayWidth, height = displayHeight) %>%
+      visNetwork::visOptions(highlightNearest = list(enabled = T)) %>%
+      visNetwork::visGroups(groupname = "Query", color = list(background = queryColor, border =borderColor, highlight = queryColor, hover = queryColor ), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+      visNetwork::visGroups(groupname = "Co-essential", color = list(background = positiveColor, border = borderColor, highlight = positiveColor, hover = positiveColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+      visNetwork::visGroups(groupname = "Connected", color = list(background = connectedColor, border = borderColor, highlight = connectedColor, hover = connectedColor), shape=ifelse(cell_line_var == "dependency", "dot", "diamond"), borderWidth = 2) %>%
+      visNetwork::visEdges(color = edgeColor, smooth = F) %>%
+      visNetwork::visNodes(scaling = list(min = 10, max =20)) %>%
+      visNetwork::visPhysics(barnesHut = list(damping = damping, centralGravity = gravity), timestep = timestep, stabilization = list(iterations = iter)) %>%
+      visNetwork::visEvents(stabilizationIterationsDone = stabilizationZoomFn)
     }
   }
   #error handling
