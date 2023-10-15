@@ -42,13 +42,12 @@ using visNetwork.
 }
 \examples{
 make_graph(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
-make_graph(input = list(type = "gene", content = "ROCK1"))
-make_graph(input = list(type = "gene", content = "ROCK1"), threshold = 15)
-make_graph(input = list(type = "gene", content = "ROCK1"), card = TRUE)
-make_graph(input = list(type = "gene", content = "ROCK1"), corr_type = "negative")
-make_graph(input = list(type = "gene", content = "ROCK1"), corr_type = "both")
-make_graph(input = list(type = "gene", content = c("ROCK1", "ROCK2")))
-make_graph(input = list(type = "gene", query = "1902965", content = c("RDX", "ROCK2", "DTX3L", "MSN", "SORL1", "EZR")), corr_type = "positive")
-make_graph(input = list(type = "gene", content = "DTX3L"), corr_type = "negative") # disconnected query gene
-make_graph(input = list(type = "compound", content = "aspirin"), corr_type = "negative")
+make_graph(input = list(type = "gene", query = 'ROCK1', content = "ROCK1"), card = TRUE)
+make_graph(input = list(type = "gene", query = 'ROCK1', content = "ROCK1"), corr_type = "negative")
+make_graph(input = list(type = "gene", query = 'ROCK1', content = "ROCK1"), corr_type = "both")
+make_graph(input = list(type = "gene", query = 'ROCK1', content = c("ROCK1", "ROCK2")))
+make_graph(input = list(type = "pathway", query = "16769"))
+make_graph(input = list(type = "pathway", query = "16769"), tooltipLink = TRUE)
+make_graph(input = list(type = "gene", query = 'DTX3L', content = "DTX3L"), corr_type = "negative") # disconnected query gene
+make_graph(input = list(type = "compound", query = 'aspirin', content = "aspirin"), corr_type = "negative")
 }
