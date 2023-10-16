@@ -143,8 +143,8 @@ setup_graph <- function(setup_input = list(), #changed name here to prevent var 
 #' make_graph(input = list(type = "gene", query = 'ROCK1', content = "ROCK1"), corr_type = "negative")
 #' make_graph(input = list(type = "gene", query = 'ROCK1', content = "ROCK1"), corr_type = "both")
 #' make_graph(input = list(type = "gene", query = 'ROCK1', content = c("ROCK1", "ROCK2")))
-#' make_graph(input = list(type = "pathway", query = "16769"))
-#' make_graph(input = list(type = "pathway", query = "16769"), tooltipLink = TRUE)
+#' make_graph(input = list(type = "gene", subtype = "pathway", query = "16769"))
+#' make_graph(input = list(type = "gene", subtype = "pathway", query = "16769"), tooltipLink = TRUE)
 #' make_graph(input = list(type = "gene", query = 'DTX3L', content = "DTX3L"), corr_type = "negative") # disconnected query gene
 #' make_graph(input = list(type = "compound", query = 'aspirin', content = "aspirin"), corr_type = "negative")
 make_graph <- function(input = list(),
@@ -161,6 +161,11 @@ make_graph <- function(input = list(),
                        nchar_pathways = 20,
                        card = FALSE) {
   make_graph_raw <- function() {
+    if (!is.null(input$subtype)) {
+      if (input$subtype == "pathway") {
+        input$type <- "pathway"
+      }
+    }
     #set color schemes
     ddh::load_ddh_colors()
     if (input$type == "gene" | input$type == "pathway") {

@@ -47,8 +47,8 @@ make_graph(input = list(type = "gene", query = 'ROCK1', content = "ROCK1"), card
 make_graph(input = list(type = "gene", query = 'ROCK1', content = "ROCK1"), corr_type = "negative")
 make_graph(input = list(type = "gene", query = 'ROCK1', content = "ROCK1"), corr_type = "both")
 make_graph(input = list(type = "gene", query = 'ROCK1', content = c("ROCK1", "ROCK2")))
-make_graph(input = list(type = "pathway", query = "16769"))
-make_graph(input = list(type = "pathway", query = "16769"), tooltipLink = TRUE)
+make_graph(input = list(type = "gene", subtype = "pathway", query = "16769"))
+make_graph(input = list(type = "gene", subtype = "pathway", query = "16769"), tooltipLink = TRUE)
 make_graph(input = list(type = "gene", query = 'DTX3L', content = "DTX3L"), corr_type = "negative") # disconnected query gene
 make_graph(input = list(type = "compound", query = 'aspirin', content = "aspirin"), corr_type = "negative")
 }
