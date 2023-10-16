@@ -14,6 +14,7 @@ make_graph(
   displayHeight = "90vh",
   displayWidth = "100\%",
   tooltipLink = FALSE,
+  nchar_pathways = 20,
   card = FALSE
 )
 }

@@ -158,6 +158,7 @@ make_graph <- function(input = list(),
                        displayHeight = '90vh',
                        displayWidth = '100%',
                        tooltipLink = FALSE,
+                       nchar_pathways = 20,
                        card = FALSE) {
   make_graph_raw <- function() {
     #set color schemes
@@ -442,7 +443,7 @@ make_graph <- function(input = list(),
       nodes_filtered <-
         nodes_filtered %>%
         dplyr::left_join(setup_graph_list$pathway_ids, by = c("name" = "gs_id")) %>%
-        dplyr::mutate(gs_name2 = paste0(stringr::str_sub(gs_name, start = 1, end = 10), "...")) %>%
+        dplyr::mutate(gs_name2 = paste0(stringr::str_sub(gs_name, start = 1, end = nchar_pathways), "...")) %>%
         dplyr::mutate(title = paste0("<center><p>", gs_name,"<br>", set, '</p>'),
                       label = gs_name2) # this is the node name on the network
     } else {
