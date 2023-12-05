@@ -1787,8 +1787,9 @@ make_cellgeneprotein <- function(input = list(),
         dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
         dplyr::select(-depmap_id) %>%
         dplyr::select(cell_line, lineage, lineage_subtype, dplyr::everything()) %>%
-        dplyr::mutate(gene_expression = scale(gene_expression),
-                      protein_expression = scale(protein_expression)) %>%
+        dplyr::mutate(gene_expression = (gene_expression - min(gene_expression)) / (max(gene_expression) - min(gene_expression)),
+                      protein_expression = (protein_expression - min(protein_expression)) / (max(protein_expression) - min(protein_expression))
+                      ) %>%
         ggplot2::ggplot(ggplot2::aes(x = gene_expression,
                                      y = protein_expression,
                                      text = paste0("Cell Line: ", cell_line),
@@ -1803,8 +1804,9 @@ make_cellgeneprotein <- function(input = list(),
         dplyr::select(-depmap_id) %>%
         dplyr::select(cell_line, lineage, lineage_subtype, dplyr::everything()) %>%
         dplyr::filter(!is.na(gene_expression) & !is.na(protein_expression)) %>%
-        dplyr::mutate(gene_expression = scale(gene_expression),
-                      protein_expression = scale(protein_expression)) %>%
+        dplyr::mutate(gene_expression = (gene_expression - min(gene_expression)) / (max(gene_expression) - min(gene_expression)),
+                      protein_expression = (protein_expression - min(protein_expression)) / (max(protein_expression) - min(protein_expression))
+                      ) %>%
         ggplot2::ggplot(ggplot2::aes(x = gene_expression,
                                      y = protein_expression,
                                      text = paste0("Gene: ", gene),
@@ -1817,8 +1819,8 @@ make_cellgeneprotein <- function(input = list(),
       plot_initial +
       ggplot2::geom_point(alpha = 0.6) +
       #add geom to drop linear regression line?
-      ggplot2::geom_hline(yintercept = 0, color = "black", linetype = "dashed") +
-      ggplot2::geom_vline(xintercept = 0, color = "black", linetype = "dashed") +
+      ggplot2::geom_hline(yintercept = 0.5, color = "black", linetype = "dashed") +
+      ggplot2::geom_vline(xintercept = 0.5, color = "black", linetype = "dashed") +
       # smooth line
       ggplot2::geom_smooth(method = "lm", se = FALSE) +
       # R coefs
@@ -3298,10 +3300,11 @@ make_expdep <- function(input = list(),
         data_universal_expression_long %>%
         dplyr::inner_join(data_universal_achilles_long, by = c("depmap_id", "id")) %>%
         dplyr::filter(!is.na(dep_score) & !is.na(gene_expression)) %>%
-        dplyr::mutate(gene_expression = scale(gene_expression)) %>%
         dplyr::mutate(med = median(dep_score, na.rm = TRUE)) %>%
         dplyr::left_join(cell_expression_names, by = "depmap_id") %>%
+        dplyr::mutate(gene_expression = (gene_expression - min(gene_expression)) / (max(gene_expression) - min(gene_expression))) %>%
         dplyr::select(id, gene_expression, dep_score, med, cell_line, lineage)
+
     } else if (input$type == "cell") {
       # REVISIT WITH CELL DATA
       # exp_data <-
@@ -3345,7 +3348,7 @@ make_expdep <- function(input = list(),
                                                                  fill = forcats::fct_reorder(cell_line, med)),
                                                     method = "lm",
                                                     se = plot_se)} +
-      ggplot2::geom_hline(yintercept = 0, color = "black", linetype = "dashed") +
+      ggplot2::geom_hline(yintercept = 0.5, color = "black", linetype = "dashed") +
       ggplot2::geom_vline(xintercept = 0, color = "black", linetype = "dashed") +
       # R coefs
       {if(card == FALSE & input$type == "gene")ggpubr::stat_cor(ggplot2::aes(color = forcats::fct_reorder(id, med)),
