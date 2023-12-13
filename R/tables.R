@@ -290,6 +290,30 @@ make_humananatogram_table <- function(input = list()) {
              message(e)
            })
 }
+
+# CAMPBELL MODEL PREDICTIONS -----------------------------------------------
+#' Predicted Protein Functions
+#'
+#' @param input Expecting a list containing a content variable.
+#' @return Returns a table with the predicted protein functions.
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' make_protein_function_predictions_table(input = list(content = 'ROCK1'))
+#' make_protein_function_predictions_table(input = list(content = c('ROCK1', 'ROCK2')))
+make_protein_function_predictions_table <- function(input = list()) {
+  predicted_functions <- get_data_object(object_names = input$content,
+                             dataset_name = "protein_function_predictions",
+                             pivotwider = TRUE) %>%
+    dplyr::mutate(Pval = as.numeric(Pvalue), FDR = as.numeric(AdjPvalue)) %>%
+    dplyr::mutate_if(is.numeric, ~ signif(., digits = 3)) %>%
+    dplyr::select(Query = id, `Predicted Function` = Function, Pval, FDR)
+
+  return(predicted_functions)
+}
+
 ## GET CLUSTER  -----------------------------------------------
 #' Clustering Table
 #'

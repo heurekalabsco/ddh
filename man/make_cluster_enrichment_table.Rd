@@ -17,7 +17,6 @@ This is a table function that takes a gene name and returns a clustering enrichm
 }
 \examples{
 make_cluster_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
-make_cluster_enrichment_table(input = list(type = 'gene', content = 'ROCK1'), ontology = "MF")
 make_cluster_enrichment_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 \dontrun{
 make_cluster_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
