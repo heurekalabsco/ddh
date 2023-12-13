@@ -371,7 +371,6 @@ make_signature_clusters_table <- function(input = list(),
 #' @export
 #' @examples
 #' make_cluster_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
-#' make_cluster_enrichment_table(input = list(type = 'gene', content = 'ROCK1'), ontology = "MF")
 #' make_cluster_enrichment_table(input = list(type = 'gene', content = c('ROCK1', 'ROCK2')))
 #' \dontrun{
 #' make_cluster_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
@@ -384,7 +383,7 @@ make_cluster_enrichment_table <- function(input = list(),
     query_clust <-
       get_data_object(object_names = input$content,
                       dataset_name = "gene_signature_clusters") %>%
-      dplyr::filter(key == "member_prob") %>%
+      dplyr::filter(key == "clust") %>%
       dplyr::pull(value)
 
     # get gene_signature_cluster_enrichment

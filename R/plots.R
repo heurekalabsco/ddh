@@ -858,14 +858,20 @@ make_umap_plot <- function(input = list(),
     plot_complete <-
       ggplot2::ggplot() +
       ggplot2::geom_point(data = gene_cluster_position,
-                          ggplot2::aes(X1, X2), size = 0.8, color = "grey80") +
+                          ggplot2::aes(X1, X2), size = 0.8, color = "grey90") +
       {if(show_subset)ggplot2::geom_point(data = gene_cluster_position %>%
                                             dplyr::filter(clust %in% query_clust),
                                           ggplot2::aes(X1, X2, color = clust), size = 0.8)} +
-      {if(labels)ggplot2::geom_point(data = data_gene_signature_clusters,
-                                     ggplot2::aes(X1, X2), color = "navy")} +
-      {if(labels)ggrepel::geom_label_repel(data = data_gene_signature_clusters,
-                                           ggplot2::aes(X1, X2, label = id))} +
+      {if(!show_subset)ggplot2::geom_point(data = data_gene_signature_clusters,
+                                           ggplot2::aes(X1, X2, color = id))} +
+      {if(labels & show_subset)ggrepel::geom_label_repel(data = data_gene_signature_clusters %>%
+                                                           dplyr::group_by(clust) %>%
+                                                           dplyr::mutate(X1_center = median(X1),
+                                                                         X2_center = median(X2)) %>%
+                                                           dplyr::ungroup(),
+                                                         ggplot2::aes(X1_center, X2_center, label = clust))} +
+      {if(labels & !show_subset)ggrepel::geom_label_repel(data = data_gene_signature_clusters,
+                                                          ggplot2::aes(X1, X2, label = id))} +
       ggplot2::labs(x = "UMAP 1",
                     y = "UMAP 2") +
       ggplot2::scale_color_manual(
