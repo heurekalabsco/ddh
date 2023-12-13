@@ -711,10 +711,10 @@ make_gene_dependency_enrichment_table <- function(input = list()) {
       ddh::get_data_object(object_names = input$content,
                            dataset_name = "gene_dependency_enrichment",
                            pivotwider = TRUE) %>%
-      dplyr::mutate(NES = as.numeric(NES), Pval = as.numeric(Pval), adjPval = as.numeric(adjPval)) %>%
+      dplyr::mutate(Pval = as.numeric(Pval), adjPval = as.numeric(adjPval)) %>%
       dplyr::mutate_if(is.numeric, ~ signif(., digits = 3)) %>%
       dplyr::select(-data_set) %>%
-      dplyr::select(Query = id, Pathway = GeneSet, `P-value` = Pval, FDR = adjPval, Direction, `Pathway Size`, Genes) %>%
+      dplyr::select(Query = id, Pathway = GeneSet, `P-value` = Pval, FDR = adjPval, `Pathway Size`, Genes) %>%
       dplyr::mutate(`Gene Set` = gsub("_.*", "", Pathway)) %>%
       dplyr::rowwise() %>%
       dplyr::mutate(Pathway = gsub(paste0(`Gene Set`, "_"), "", Pathway)) %>%
