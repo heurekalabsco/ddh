@@ -839,7 +839,7 @@ make_umap_plot <- function(input = list(),
                            show_subset = FALSE,
                            labels = FALSE) {
   make_umap_plot_raw <- function() {
-    gene_cluster_position <- get_content("gene_cluster_position", dataset = TRUE)
+    gene_signature_clusters <- get_content("gene_signature_clusters", dataset = TRUE)
 
     data_gene_signature_clusters <-
       get_data_object(object_names = input$content,
@@ -857,9 +857,9 @@ make_umap_plot <- function(input = list(),
     # UMAP PLOT
     plot_complete <-
       ggplot2::ggplot() +
-      ggplot2::geom_point(data = gene_cluster_position,
+      ggplot2::geom_point(data = gene_signature_clusters,
                           ggplot2::aes(X1, X2), size = 0.8, color = "grey90") +
-      {if(show_subset)ggplot2::geom_point(data = gene_cluster_position %>%
+      {if(show_subset)ggplot2::geom_point(data = gene_signature_clusters %>%
                                             dplyr::filter(clust %in% query_clust),
                                           ggplot2::aes(X1, X2, color = clust), size = 0.8)} +
       {if(!show_subset)ggplot2::geom_point(data = data_gene_signature_clusters,
@@ -876,7 +876,8 @@ make_umap_plot <- function(input = list(),
                     y = "UMAP 2") +
       ggplot2::scale_color_manual(
         values = rep(colors, length.out =
-                       nrow(gene_cluster_position %>% dplyr::filter(clust %in% query_clust)))
+                       nrow(gene_signature_clusters %>%
+                              dplyr::filter(clust %in% query_clust)))
       ) +
       ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 3))) +
       ## theme changes
