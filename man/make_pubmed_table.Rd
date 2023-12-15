@@ -4,7 +4,7 @@
 \alias{make_pubmed_table}
 \title{Pubmed Table}
 \usage{
-make_pubmed_table(input = list(), n_papers = 10, title = FALSE)
+make_pubmed_table(input = list(), n_papers = NULL, title = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}

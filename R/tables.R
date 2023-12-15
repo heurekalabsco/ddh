@@ -112,12 +112,16 @@ make_compound_table <- function(input = list(),
 #' \dontrun{
 #' make_pubmed_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_pubmed_table <- function(input = list(), n_papers = 10, title = FALSE) {
+make_pubmed_table <- function(input = list(), n_papers = NULL, title = FALSE) {
   make_pubmed_table_raw <- function() {
     pubmed_table <-
       get_data_object(object_name = input$content,
                       dataset_name = "universal_pubmed",
-                      pivotwider = TRUE) %>%
+                      pivotwider = TRUE)
+
+    if (is.null(n_papers)) {n_papers <- nrow(pubmed_table)}
+
+    pubmed_table <- pubmed_table %>%
       dplyr::mutate(year = as.numeric(year),
                     pmid = as.numeric(pmid)) %>%
       dplyr::arrange(dplyr::desc(year)) %>%
