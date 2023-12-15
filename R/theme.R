@@ -50,7 +50,7 @@ theme_ddh <- function(style = "default", base_size = 15,
   if(!is.logical(panelbackground)) stop('panelbackground must be a logical variable')
   if(!is.numeric(margin)) stop('margin must be a numeric value')
 
-  fontfamily_sans <- "Nunito Sans"
+  fontfamily_sans <- "Roboto Slab" # "Nunito Sans"
   fontfamily_slab <- "Roboto Slab"
   fontfamily_mono <- "Roboto Mono"
 
