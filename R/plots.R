@@ -309,7 +309,7 @@ make_proteinsize <- function(input = list(),
             base_plot +
             ggplot2::labs(x = "Protein Size") +
             ggplot2::theme(axis.text.x = ggplot2::element_text(family = "Roboto Slab", size = 14),
-                           axis.title.x = ggplot2::element_text(family = "Nunito Sans", size = 18,
+                           axis.title.x = ggplot2::element_text(family = "Roboto Slab", size = 18,
                                                                 margin = ggplot2::margin(t = 12, b = 12)))
         }
       }
@@ -567,7 +567,7 @@ make_protein_domain <- function(input = list(),
         legend.title = ggplot2::element_blank(),
         strip.text = ggplot2::element_text(family = "Chivo", hjust = 0.5, size = 15),
         plot.title = ggplot2::element_text(family = "Chivo", hjust = 0.5, size = 15),
-        text = ggplot2::element_text(family = "Nunito Sans"),
+        text = ggplot2::element_text(family = "Roboto Slab"),
         legend.text = ggplot2::element_text(size = 15),
         axis.text = ggplot2::element_blank(),
         axis.ticks = ggplot2::element_blank()
@@ -577,7 +577,7 @@ make_protein_domain <- function(input = list(),
     plot_complete <-
       base_plot +
       ggplot2::theme(axis.text.x = ggplot2::element_text(family = "Roboto Slab", size = 14),
-                     axis.title.x = ggplot2::element_text(family = "Nunito Sans", size = 18,
+                     axis.title.x = ggplot2::element_text(family = "Roboto Slab", size = 18,
                                                           margin = ggplot2::margin(t = 12, b = 12)),
                      legend.position = "right") +
       scale_fill_ddh_d(palette = "protein")
@@ -732,7 +732,7 @@ make_radial <- function(input = list(),
       ddh::theme_ddh(base_size = 16) +
       {if(!barplot)ggplot2::theme_minimal()} +
       {if(!barplot)ggplot2::theme(
-        text = ggplot2::element_text(family = "Nunito Sans"),
+        text = ggplot2::element_text(family = "Roboto Slab"),
         legend.position = "top",
         legend.title = ggplot2::element_blank(),
         legend.text = ggplot2::element_text(size = 15),
@@ -743,7 +743,7 @@ make_radial <- function(input = list(),
         axis.title = ggplot2::element_text(size = 16)
       )} +
       {if(barplot)ggplot2::theme(
-        text = ggplot2::element_text(family = "Nunito Sans"),
+        text = ggplot2::element_text(family = "Roboto Slab"),
         legend.position = "top",
         legend.title = ggplot2::element_blank(),
         legend.text = ggplot2::element_text(size = 15),
@@ -758,7 +758,7 @@ make_radial <- function(input = list(),
         plot_complete +
         ggplot2::labs(x = "", y = "") + #, title = "Signature Information", caption = "more ...") +
         ggplot2::theme(
-          text = ggplot2::element_text(family = "Nunito Sans"),
+          text = ggplot2::element_text(family = "Roboto Slab"),
           legend.position = "none",
           legend.title = ggplot2::element_blank(),
           legend.text = ggplot2::element_blank(),
@@ -883,7 +883,7 @@ make_umap_plot <- function(input = list(),
       ## theme changes
       ddh::theme_ddh() +
       ggplot2::theme(
-        text = ggplot2::element_text(family = "Nunito Sans"),
+        text = ggplot2::element_text(family = "Roboto Slab"),
         legend.position = "top",
         legend.title = ggplot2::element_blank(),
         legend.text = ggplot2::element_text(size = 15),
@@ -1157,7 +1157,7 @@ make_pubmed <- function(input = list(),
       ddh::theme_ddh(base_size = 16,
                      margin = 20) +
       ggplot2::theme(
-        #text = element_text(family = "Nunito Sans"),
+        #text = element_text(family = "Roboto Slab"),
         #axis.text.y = element_text(family = "Roboto Slab"),
         panel.grid.major.y = ggplot2::element_line(color = "grey75", size = .5, linetype = "15")
       ) +
@@ -1303,7 +1303,7 @@ make_cellanatogram <- function(input = list(),
                                fill = "value") +
       ggplot2::theme_void(base_size = 14) +
       ggplot2::theme(
-        text = ggplot2::element_text(family = "Nunito Sans"),
+        text = ggplot2::element_text(family = "Roboto Slab"),
         plot.margin = ggplot2::margin(5, 10, 5, 5)
       ) +
       ggplot2::coord_fixed() +
@@ -1369,7 +1369,7 @@ make_cellanatogramfacet <- function(input = list()) {
                                fill = "value") +
       ggplot2::theme_void(base_size = 14) +
       ggplot2::theme(
-        text = ggplot2::element_text(family = "Nunito Sans"),
+        text = ggplot2::element_text(family = "Roboto Slab"),
         plot.margin = ggplot2::margin(5, 10, 5, 5)
       ) +
       ggplot2::coord_fixed() +
@@ -1714,7 +1714,7 @@ make_cellexpression <- function(input = list(),
       ddh::scale_color_ddh_d(palette = color_type) + #req'd to get protein color
       ddh::theme_ddh() +
       ggplot2::theme(
-        text = ggplot2::element_text(family = "Nunito Sans"),
+        text = ggplot2::element_text(family = "Roboto Slab"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
         axis.text.y = ggplot2::element_text(size = 18),
         axis.ticks.y = ggplot2::element_blank(),
@@ -1835,7 +1835,7 @@ make_cellgeneprotein <- function(input = list(),
       scale_color_ddh_d(palette = input$type) +
       ddh::theme_ddh() +
       ggplot2::theme(
-        text = ggplot2::element_text(family = "Nunito Sans"),
+        text = ggplot2::element_text(family = "Roboto Slab"),
         axis.text = ggplot2::element_text(family = "Roboto Slab")
       ) +
       NULL
@@ -1919,7 +1919,7 @@ make_molecular_features_segments <- function(input = list(),
       ## theme changes
       ddh::theme_ddh(grid = "y") +
       ggplot2::theme(
-        text = ggplot2::element_text(family = "Nunito Sans"),
+        text = ggplot2::element_text(family = "Roboto Slab"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
         axis.text.x = ggplot2::element_blank(),
         axis.ticks.x = ggplot2::element_blank(),
@@ -2328,7 +2328,7 @@ make_celldeps <- function(input = list(),
       ## theme changes
       ddh::theme_ddh() +
       ggplot2::theme(
-        text = ggplot2::element_text(family = "Nunito Sans"),
+        text = ggplot2::element_text(family = "Roboto Slab"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
         axis.text.x = ggplot2::element_blank(),
         axis.ticks.x = ggplot2::element_blank(),
@@ -2510,7 +2510,7 @@ make_cellbar <- function(input = list(),
       ## theme changes
       ddh::theme_ddh() + #base_size = 15 default
       ggplot2::theme(
-        text = ggplot2::element_text(family = "Nunito Sans"),
+        text = ggplot2::element_text(family = "Roboto Slab"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
         axis.text.x = ggplot2::element_blank(),
         axis.ticks.x = ggplot2::element_blank(),
@@ -2689,7 +2689,7 @@ make_cellbins <- function(input = list(),
       ## theme changes
       ddh::theme_ddh() +
       ggplot2::theme(
-        text = ggplot2::element_text(family = "Nunito Sans"),
+        text = ggplot2::element_text(family = "Roboto Slab"),
         legend.position = "none",
         axis.line.y = ggplot2::element_blank(),
         axis.ticks.y = ggplot2::element_blank(),
@@ -3215,7 +3215,7 @@ make_correlation <- function(input = list(),
       ## theme changes
       ddh::theme_ddh() +
       ggplot2::theme(
-        text = ggplot2::element_text(family = "Nunito Sans"),
+        text = ggplot2::element_text(family = "Roboto Slab"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
         axis.text.x = ggplot2::element_blank(),
         axis.ticks.x = ggplot2::element_blank(),
@@ -3379,7 +3379,7 @@ make_expdep <- function(input = list(),
       ## theme changes
       ddh::theme_ddh() +
       ggplot2::theme(
-        text = ggplot2::element_text(family = "Nunito Sans"),
+        text = ggplot2::element_text(family = "Roboto Slab"),
         axis.text = ggplot2::element_text(family = "Roboto Slab")
       ) +
       NULL
@@ -3557,7 +3557,7 @@ make_cell_similarity <- function(data_cell_dependency_sim = cell_dependency_sim,
       ## theme changes
       ddh::theme_ddh() +
       ggplot2::theme(
-        text = ggplot2::element_text(family = "Nunito Sans"),
+        text = ggplot2::element_text(family = "Roboto Slab"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
         axis.text.x = ggplot2::element_blank(),
         axis.ticks.x = ggplot2::element_blank(),
@@ -3715,7 +3715,7 @@ make_functional_cell <- function(data_gene_pathways = gene_pathways,
       ## theme changes
       ddh::theme_ddh() +
       ggplot2::theme(
-        text = ggplot2::element_text(family = "Nunito Sans"),
+        text = ggplot2::element_text(family = "Roboto Slab"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
         legend.title = ggplot2::element_blank()
       ) +
@@ -3859,7 +3859,7 @@ make_metadata_cell <- function(input = list(),
       ## theme changes
       ddh::theme_ddh() +
       ggplot2::theme(
-        text = ggplot2::element_text(family = "Nunito Sans"),
+        text = ggplot2::element_text(family = "Roboto Slab"),
         axis.text = ggplot2::element_text(family = "Roboto Slab"),
         legend.title = ggplot2::element_blank(),
         legend.position = "top"
