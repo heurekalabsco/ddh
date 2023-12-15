@@ -4,7 +4,7 @@
 \alias{make_pubmed_table}
 \title{Pubmed Table}
 \usage{
-make_pubmed_table(input = list())
+make_pubmed_table(input = list(), n_papers = 10, title = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
@@ -20,6 +20,7 @@ This is a table function that takes a gene name and returns a pubmed Table
 }
 \examples{
 make_pubmed_table(input = list(type = 'gene', content = 'ROCK1'))
+make_pubmed_table(input = list(type = 'gene', content = 'ROCK1'), title = TRUE)
 \dontrun{
 make_pubmed_table(input = list(type = 'gene', content = 'ROCK1'))
 }

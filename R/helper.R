@@ -889,3 +889,21 @@ good_file_namer <- function(input = list){
   }
   return(good_file_name)
 }
+
+#' Extract PubMed Title from PubMed ID
+#'
+#' @param pmid PubMed ID
+#'
+#' @export
+pubmed_title <- function(pmid) {
+  paper_url <- glue::glue("https://pubmed.ncbi.nlm.nih.gov/{pmid}/")
+
+  paper_title <- rvest::read_html(paper_url) %>%
+    rvest::html_nodes("title") %>%
+    rvest::html_text()
+
+  paper_title <- gsub(" - PubMed", "", paper_title[1])
+
+  return(paper_title)
+}
+

@@ -1,7 +1,7 @@
 Package: ddh
 Type: Package
 Title: Utility Functions and Data Sets for Data-driven Hypothesis
-Version: 0.3.19
+Version: 0.3.20
 Authors@R: c(
     person(given = "Matthew",
            family = "Hirschey",
@@ -58,6 +58,7 @@ Imports:
     rayvertex,
     remotes,
     rlang,
+    rvest,
     scales,
     stringr,
     tibble,

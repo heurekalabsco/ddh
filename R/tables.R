@@ -108,10 +108,11 @@ make_compound_table <- function(input = list(),
 #' @export
 #' @examples
 #' make_pubmed_table(input = list(type = 'gene', content = 'ROCK1'))
+#' make_pubmed_table(input = list(type = 'gene', content = 'ROCK1'), title = TRUE)
 #' \dontrun{
 #' make_pubmed_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_pubmed_table <- function(input = list()) {
+make_pubmed_table <- function(input = list(), n_papers = 10, title = FALSE) {
   make_pubmed_table_raw <- function() {
     pubmed_table <-
       get_data_object(object_name = input$content,
@@ -119,8 +120,18 @@ make_pubmed_table <- function(input = list()) {
                       pivotwider = TRUE) %>%
       dplyr::mutate(year = as.numeric(year),
                     pmid = as.numeric(pmid)) %>%
-      dplyr::arrange(as.numeric(pmid)) %>%
+      dplyr::arrange(dplyr::desc(year)) %>%
+      dplyr::slice(1:n_papers) %>%
       dplyr::select(id, pmid, year, pmcid)
+
+    if (title) {
+      pubmed_table <- pubmed_table %>%
+        dplyr::rowwise() %>%
+        dplyr::mutate(Title = pubmed_title(pmid)) %>%
+        dplyr::ungroup() %>%
+        dplyr::relocate(Title, .after = pmid)
+    }
+
     return(pubmed_table)
   }
   #error handling
