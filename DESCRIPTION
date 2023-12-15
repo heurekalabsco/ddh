@@ -1,7 +1,7 @@
 Package: ddh
 Type: Package
 Title: Utility Functions and Data Sets for Data-driven Hypothesis
-Version: 0.3.15
+Version: 0.3.16
 Authors@R: c(
     person(given = "Matthew",
            family = "Hirschey",
@@ -10,7 +10,7 @@ Authors@R: c(
            comment = c(ORCID = "0000-0003-4541-5376")),
     person(given = "Pol",
            family = "Castellano-Escuder",
-           role = c("aut", "ctb"),
+           role = c("aut", "cre"),
            email = "pol.castellano.escuder@duke.edu",
            comment = c(ORCID = "0000-0001-6466-877X"))
            )
