@@ -565,9 +565,9 @@ make_protein_domain <- function(input = list(),
       ggplot2::theme_void() +
       ggplot2::theme(
         legend.title = ggplot2::element_blank(),
-        strip.text = ggplot2::element_text(family = "Chivo", hjust = 0.5, size = 15),
-        plot.title = ggplot2::element_text(family = "Chivo", hjust = 0.5, size = 15),
-        text = ggplot2::element_text(family = "Nunito Sans"),
+        strip.text = ggplot2::element_text(family = "Roboto Slab", hjust = 0.5, size = 15),
+        plot.title = ggplot2::element_text(family = "Roboto Slab", hjust = 0.5, size = 15),
+        text = ggplot2::element_text(family = "Roboto Slab"),
         legend.text = ggplot2::element_text(size = 15),
         axis.text = ggplot2::element_blank(),
         axis.ticks = ggplot2::element_blank()
@@ -577,7 +577,7 @@ make_protein_domain <- function(input = list(),
     plot_complete <-
       base_plot +
       ggplot2::theme(axis.text.x = ggplot2::element_text(family = "Roboto Slab", size = 14),
-                     axis.title.x = ggplot2::element_text(family = "Nunito Sans", size = 18,
+                     axis.title.x = ggplot2::element_text(family = "Roboto Slab", size = 18,
                                                           margin = ggplot2::margin(t = 12, b = 12)),
                      legend.position = "right") +
       scale_fill_ddh_d(palette = "protein")
