@@ -2057,6 +2057,7 @@ make_molecular_features_pathways <- function(input = list(),
 #' @export
 #' @examples
 #' make_molecular_features_boxplots(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+#' make_molecular_features_boxplots(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
 make_molecular_features_boxplots <- function(input = list(),
                                              target_genes = NULL,
                                              sex_select = NULL,
@@ -2085,7 +2086,7 @@ make_molecular_features_boxplots <- function(input = list(),
 
     plot_data <- data_universal_expression_long %>%
       dplyr::left_join(gene_molecular_features_segments %>%
-                         dplyr::select(depmap_id, group, cell_name, sex, lineage, lineage_subtype),
+                         dplyr::select(depmap_id, Query, group, cell_name, sex, lineage, lineage_subtype),
                        by = "depmap_id") %>%
       dplyr::mutate(group = stringr::str_to_title(group)) %>%
       dplyr::mutate(group = factor(group, levels = c("Resistant", "Sensitive")))
@@ -2114,6 +2115,11 @@ make_molecular_features_boxplots <- function(input = list(),
       theme_ddh() +
       scale_fill_ddh_d(palette = input$type) +
       ggplot2::theme(axis.text.x = ggplot2::element_text(size = 15))
+
+    if (length(input$content) > 1) {
+      plot_complete <- plot_complete +
+        ggplot2::facet_wrap(~ Query, scales = "free")
+    }
 
     return(plot_complete)
   }
