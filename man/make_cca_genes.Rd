@@ -8,8 +8,7 @@ make_cca_genes(
   input = list(),
   n_features = 5,
   gset = NULL,
-  facet_by_geneset = FALSE,
-  ...
+  facet_by_geneset = FALSE
 )
 }
 \arguments{

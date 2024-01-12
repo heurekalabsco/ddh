@@ -925,7 +925,8 @@ make_cca_genes_table <- function(input = list(),
       dplyr::mutate(Pathway = stringr::str_replace_all(Pathway, "_", " ")) %>%
       dplyr::mutate(Pathway = stringr::str_to_sentence(Pathway)) %>%
       dplyr::select(Query = id, Pathway, "# Genes" = PathwaySize,
-                    "Explained Variance" = PathwayVarExp, CC = CC1, "Gene Set")
+                    "Explained Variance" = PathwayVarExp, CC = CC1, "Gene Set") %>%
+      dplyr::slice(1:20)
 
     if(!is.null(gene_set)) {
       if (!any(gene_set %in% gene_pathway_hits$`Gene Set`)) stop ("Gene set not found.")
@@ -983,7 +984,8 @@ make_cca_pathways_table <- function(input = list(),
                     "Explained Variance Query" = QueryVarExp,
                     "Explained Variance Pathway" = PathwayVarExp,
                     CC = CC1, "Query Gene Set" = Query_geneset) %>%
-      dplyr::select(-CCS)
+      dplyr::select(-CCS) %>%
+      dplyr::slice(1:20)
 
     if(!is.null(gene_set)) {
       if (!any(gene_set %in% pathway_pathway_hits$`Gene Set`)) stop ("Gene set not found.")

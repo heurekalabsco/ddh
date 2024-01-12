@@ -2043,6 +2043,88 @@ make_molecular_features_pathways <- function(input = list(),
              make_bomb_plot()})
 }
 
+## MOLECULAR FEATURES BOXPLOT ---------------------------------------------------
+#' Molecular Features Boxplot
+#'
+#' Gene expression boxplot for the genes associated with the query ablation.
+#'
+#' @param input Expecting a list containing type and content variable.
+#'
+#' @return If no error, then returns a boxplot. If an error is thrown, then will return a bomb plot.
+#'
+#' @importFrom magrittr %>%
+#'
+#' @export
+#' @examples
+#' make_molecular_features_boxplots(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_molecular_features_boxplots <- function(input = list(),
+                                             target_genes = NULL,
+                                             sex_select = NULL,
+                                             lineage_select = NULL,
+                                             lineage_subtype_select = NULL) {
+
+  gene_molecular_features_hits <- ddh::make_molecular_features_table(input = input)
+  gene_molecular_features_segments <- ddh::make_molecular_features_segments_table(input = input) %>%
+    dplyr::filter(group %in% c("sensitive", "resistant"))
+
+  make_molecular_features_boxplots_raw <- function() {
+
+    if (is.null(target_genes)) {
+      known_genes <- get_content("universal_proteins", dataset = TRUE)
+      target_genes <- gene_molecular_features_hits$Feature[gene_molecular_features_hits$Feature %in% known_genes$gene_name][1]
+
+      if (is.na(target_genes)) {stop("Provide a valid gene target")}
+    }
+
+    data_universal_expression_long <-
+      get_data_object(object_names = target_genes,
+                      dataset_name = "universal_expression_long",
+                      pivotwider = TRUE) %>%
+      dplyr::mutate(across(contains(c("gene_expression", "protein_expression")), as.numeric)) %>%
+      dplyr::filter(depmap_id %in% gene_molecular_features_segments$depmap_id)
+
+    plot_data <- data_universal_expression_long %>%
+      dplyr::left_join(gene_molecular_features_segments %>%
+                         dplyr::select(depmap_id, group, cell_name, sex, lineage, lineage_subtype),
+                       by = "depmap_id") %>%
+      dplyr::mutate(group = stringr::str_to_title(group)) %>%
+      dplyr::mutate(group = factor(group, levels = c("Resistant", "Sensitive")))
+
+    if (!is.null(sex_select)) {
+      plot_data <- plot_data %>%
+        dplyr::filter(sex %in% sex_select)
+    }
+    if (!is.null(lineage_select)) {
+      plot_data <- plot_data %>%
+        dplyr::filter(lineage %in% lineage_select)
+    }
+    if (!is.null(lineage_subtype_select)) {
+      plot_data <- plot_data %>%
+        dplyr::filter(lineage_subtype %in% lineage_subtype_select)
+    }
+
+    if (nrow(plot_data) < 1) {stop("No data for this query")}
+
+    plot_complete <- ggplot2::ggplot(plot_data, ggplot2::aes(id, gene_expression)) +
+      ggplot2::geom_boxplot(ggplot2::aes(fill = group), alpha = 0.8) +
+      ggplot2::labs(
+        x = NULL,
+        y = "Gene Expression",
+        fill = "Segment") +
+      theme_ddh() +
+      scale_fill_ddh_d(palette = input$type) +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(size = 15))
+
+    return(plot_complete)
+  }
+
+  # error handling
+  tryCatch(make_molecular_features_boxplots_raw(),
+           error = function(e){
+             message(e)
+             make_bomb_plot()})
+}
+
 ## CCA GENES PLOT ---------------------------------------------------
 #' Co-essentiality Pathway Plot
 #'
@@ -2064,8 +2146,7 @@ make_molecular_features_pathways <- function(input = list(),
 make_cca_genes <- function(input = list(),
                            n_features = 5,
                            gset = NULL,
-                           facet_by_geneset = FALSE,
-                           ...) {
+                           facet_by_geneset = FALSE) {
 
   gene_pathways_hits <- ddh::make_cca_genes_table(input = input, gene_set = gset)
 
@@ -2129,8 +2210,7 @@ make_cca_genes <- function(input = list(),
 make_cca_pathways <- function(input = list(),
                               n_features = 10,
                               gset = NULL,
-                              facet_by_geneset = FALSE,
-                              ...) {
+                              facet_by_geneset = FALSE) {
 
   pathway_pathways_hits <- ddh::make_cca_pathways_table(input = input, gene_set = gset)
 

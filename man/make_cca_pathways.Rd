@@ -8,8 +8,7 @@ make_cca_pathways(
   input = list(),
   n_features = 10,
   gset = NULL,
-  facet_by_geneset = FALSE,
-  ...
+  facet_by_geneset = FALSE
 )
 }
 \arguments{
