@@ -2062,33 +2062,52 @@ make_molecular_features_boxplots <- function(input = list(),
                                              target_genes = NULL,
                                              sex_select = NULL,
                                              lineage_select = NULL,
-                                             lineage_subtype_select = NULL) {
-
-  gene_molecular_features_hits <- ddh::make_molecular_features_table(input = input)
-  gene_molecular_features_segments <- ddh::make_molecular_features_segments_table(input = input) %>%
-    dplyr::filter(group %in% c("sensitive", "resistant"))
+                                             lineage_subtype_select = NULL,
+                                             card = FALSE) {
 
   make_molecular_features_boxplots_raw <- function() {
 
-    if (is.null(target_genes)) { # defaults to the first gene
-      target_genes_all <- gene_molecular_features_hits$Feature
-      filtered_vector <- grep("TSS_|MIMAT|[a-z]", target_genes_all, value = TRUE, invert = TRUE)
-      target_genes <- filtered_vector[1]
+    if (card == TRUE & length(input$content) > 1) {
+      input$content <- input$content[1]
     }
 
-    data_universal_expression_long <-
-      get_data_object(object_names = target_genes,
-                      dataset_name = "universal_expression_long",
-                      pivotwider = TRUE) %>%
-      dplyr::mutate(across(contains(c("gene_expression", "protein_expression")), as.numeric)) %>%
-      dplyr::filter(depmap_id %in% gene_molecular_features_segments$depmap_id)
+    gene_molecular_features_hits <- ddh::make_molecular_features_table(input = input)
+    gene_molecular_features_segments <- ddh::make_molecular_features_segments_table(input = input) %>%
+      dplyr::filter(group %in% c("sensitive", "resistant"))
 
-    plot_data <- data_universal_expression_long %>%
+    # Load and subset omics datasets
+    data_expression <- get_content("gene_expression_multiomics", dataset = TRUE) %>%
+      dplyr::filter(depmap_id %in% gene_molecular_features_segments$depmap_id) %>%
+      dplyr::select(dplyr::any_of(c("depmap_id", gene_molecular_features_hits$Feature)))
+
+    data_methylation <- get_content("gene_expression_multiomics", dataset = TRUE) %>%
+      dplyr::filter(depmap_id %in% gene_molecular_features_segments$depmap_id) %>%
+      dplyr::select(dplyr::any_of(gene_molecular_features_hits$Feature)) %>%
+      dplyr::rename_all(., ~ paste0("TSS_", .))
+
+    data_metabolomics <- get_content("metabolites_multiomics", dataset = TRUE) %>%
+      dplyr::filter(depmap_id %in% gene_molecular_features_segments$depmap_id) %>%
+      dplyr::select(dplyr::any_of(gene_molecular_features_hits$Feature))
+
+    data_mirna <- get_content("mirna_multiomics", dataset = TRUE) %>%
+      dplyr::filter(depmap_id %in% gene_molecular_features_segments$depmap_id) %>%
+      dplyr::select(dplyr::any_of(gene_molecular_features_hits$Feature))
+
+    # Plot data
+    plot_data <- dplyr::bind_cols(data_expression, data_methylation, data_metabolomics, data_mirna) %>%
       dplyr::left_join(gene_molecular_features_segments %>%
                          dplyr::select(depmap_id, Query, group, cell_name, sex, lineage, lineage_subtype),
                        by = "depmap_id") %>%
       dplyr::mutate(group = stringr::str_to_title(group)) %>%
-      dplyr::mutate(group = factor(group, levels = c("Resistant", "Sensitive")))
+      dplyr::mutate(group = factor(group, levels = c("Resistant", "Sensitive"))) %>%
+      tidyr::pivot_longer(cols = -c(depmap_id, Query, group, cell_name, sex, lineage, lineage_subtype))
+
+    if (is.null(target_genes) | card == TRUE) { # defaults to the first molecular feature
+        target_genes <- gene_molecular_features_hits$Feature[1]
+    }
+
+    plot_data <- plot_data %>%
+      dplyr::filter(name %in% target_genes)
 
     if (!is.null(sex_select)) {
       plot_data <- plot_data %>%
@@ -2105,7 +2124,7 @@ make_molecular_features_boxplots <- function(input = list(),
 
     if (nrow(plot_data) < 1) {stop("No data for this query")}
 
-    plot_complete <- ggplot2::ggplot(plot_data, ggplot2::aes(id, gene_expression)) +
+    plot_complete <- ggplot2::ggplot(plot_data, ggplot2::aes(name, value)) +
       ggplot2::geom_boxplot(ggplot2::aes(fill = group), alpha = 0.8) +
       ggplot2::labs(
         x = NULL,
@@ -2118,6 +2137,14 @@ make_molecular_features_boxplots <- function(input = list(),
     if (length(input$content) > 1) {
       plot_complete <- plot_complete +
         ggplot2::facet_wrap(~ Query, scales = "free")
+    }
+
+    if(card == TRUE){
+      plot_complete <-
+        plot_complete +
+        ggplot2::labs(x = "",
+                      y = "") +
+        ggplot2::theme(legend.position = "none")
     }
 
     return(plot_complete)

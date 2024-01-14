@@ -9,7 +9,8 @@ make_molecular_features_boxplots(
   target_genes = NULL,
   sex_select = NULL,
   lineage_select = NULL,
-  lineage_subtype_select = NULL
+  lineage_subtype_select = NULL,
+  card = FALSE
 )
 }
 \arguments{
