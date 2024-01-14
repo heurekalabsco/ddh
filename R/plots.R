@@ -2082,7 +2082,7 @@ make_molecular_features_boxplots <- function(input = list(),
       dplyr::select(dplyr::any_of(c("depmap_id", gene_molecular_features_hits$Feature)))
 
     ## Methylation
-    data_methylation <- get_content("gene_expression_multiomics", dataset = TRUE) %>%
+    data_methylation <- get_content("methylation_multiomics", dataset = TRUE) %>%
       dplyr::filter(depmap_id %in% gene_molecular_features_segments$depmap_id)
 
     colnames(data_methylation) <- paste0("TSS_", colnames(data_methylation))
@@ -2107,6 +2107,16 @@ make_molecular_features_boxplots <- function(input = list(),
                        by = "depmap_id") %>%
       dplyr::mutate(group = stringr::str_to_title(group)) %>%
       dplyr::mutate(group = factor(group, levels = c("Resistant", "Sensitive"))) %>%
+      dplyr::mutate_at("lineage", function(str) {
+        str <- stringr::str_replace_all(str, "\\_", " ")
+        str <- stringr::str_to_title(str)
+        return(str)
+      }) %>%
+      dplyr::mutate_at("lineage_subtype", function(str) {
+        str <- stringr::str_replace_all(str, "\\_", " ")
+        str <- dplyr::if_else(stringr::str_detect(str, "^[:lower:]"), stringr::str_to_title(str), str)
+        return(str)
+      }) %>%
       tidyr::pivot_longer(cols = -c(depmap_id, Query, group, cell_name, sex, lineage, lineage_subtype))
 
     if (is.null(target_genes) | card == TRUE) { # defaults to the first molecular feature
