@@ -2076,19 +2076,26 @@ make_molecular_features_boxplots <- function(input = list(),
       dplyr::filter(group %in% c("sensitive", "resistant"))
 
     # Load and subset omics datasets
+    ## Expression
     data_expression <- get_content("gene_expression_multiomics", dataset = TRUE) %>%
       dplyr::filter(depmap_id %in% gene_molecular_features_segments$depmap_id) %>%
       dplyr::select(dplyr::any_of(c("depmap_id", gene_molecular_features_hits$Feature)))
 
+    ## Methylation
     data_methylation <- get_content("gene_expression_multiomics", dataset = TRUE) %>%
-      dplyr::filter(depmap_id %in% gene_molecular_features_segments$depmap_id) %>%
-      dplyr::select(dplyr::any_of(gene_molecular_features_hits$Feature)) %>%
-      dplyr::rename_all(., ~ paste0("TSS_", .))
+      dplyr::filter(depmap_id %in% gene_molecular_features_segments$depmap_id)
 
+    colnames(data_methylation) <- paste0("TSS_", colnames(data_methylation))
+
+    data_methylation <- data_methylation %>%
+      dplyr::select(dplyr::any_of(gene_molecular_features_hits$Feature))
+
+    ## Metabolomics
     data_metabolomics <- get_content("metabolites_multiomics", dataset = TRUE) %>%
       dplyr::filter(depmap_id %in% gene_molecular_features_segments$depmap_id) %>%
       dplyr::select(dplyr::any_of(gene_molecular_features_hits$Feature))
 
+    ## miRNA
     data_mirna <- get_content("mirna_multiomics", dataset = TRUE) %>%
       dplyr::filter(depmap_id %in% gene_molecular_features_segments$depmap_id) %>%
       dplyr::select(dplyr::any_of(gene_molecular_features_hits$Feature))
