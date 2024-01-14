@@ -19,8 +19,9 @@ make_molecular_features_boxplots(
 If no error, then returns a boxplot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Gene expression boxplot for the genes associated with the query ablation.
+Molecular features associated with the query ablation.
 }
 \examples{
 make_molecular_features_boxplots(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
+make_molecular_features_boxplots(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
 }

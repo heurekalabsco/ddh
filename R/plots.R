@@ -2046,7 +2046,7 @@ make_molecular_features_pathways <- function(input = list(),
 ## MOLECULAR FEATURES BOXPLOT ---------------------------------------------------
 #' Molecular Features Boxplot
 #'
-#' Gene expression boxplot for the genes associated with the query ablation.
+#' Molecular features associated with the query ablation.
 #'
 #' @param input Expecting a list containing type and content variable.
 #'
