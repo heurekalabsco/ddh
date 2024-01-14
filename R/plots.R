@@ -2070,11 +2070,10 @@ make_molecular_features_boxplots <- function(input = list(),
 
   make_molecular_features_boxplots_raw <- function() {
 
-    if (is.null(target_genes)) {
-      known_genes <- get_content("universal_proteins", dataset = TRUE)
-      target_genes <- gene_molecular_features_hits$Feature[gene_molecular_features_hits$Feature %in% known_genes$gene_name][1]
-
-      if (is.na(target_genes)) {stop("Provide a valid gene target")}
+    if (is.null(target_genes)) { # defaults to the first gene
+      target_genes_all <- gene_molecular_features_hits$Feature
+      filtered_vector <- grep("TSS_|MIMAT|[a-z]", target_genes_all, value = TRUE, invert = TRUE)
+      target_genes <- filtered_vector[1]
     }
 
     data_universal_expression_long <-
@@ -2110,7 +2109,7 @@ make_molecular_features_boxplots <- function(input = list(),
       ggplot2::geom_boxplot(ggplot2::aes(fill = group), alpha = 0.8) +
       ggplot2::labs(
         x = NULL,
-        y = "Gene Expression",
+        y = "Value",
         fill = "Segment") +
       theme_ddh() +
       scale_fill_ddh_d(palette = input$type) +
