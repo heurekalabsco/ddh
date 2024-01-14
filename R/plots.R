@@ -2156,6 +2156,12 @@ make_molecular_features_boxplots <- function(input = list(),
         ggplot2::facet_wrap(~ Query, scales = "free")
     }
 
+    if (card == FALSE & length(target_genes) > 4) {
+      plot_complete <-
+        plot_complete +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
+    }
+
     if(card == TRUE){
       plot_complete <-
         plot_complete +
