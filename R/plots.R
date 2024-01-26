@@ -351,7 +351,7 @@ make_proteinsize <- function(input = list(),
 ## SEQUENCE PLOT --------------------------------------------------------------------
 #' Protein Sequence Plot
 #'
-#' This is a plot function that takes a gene name and returns a sequence plot
+#' First 100 amino acids of the protein.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
