@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{make_cellbins}
 \alias{make_cellbins}
-\title{Cell Dependencies Density Plot}
+\title{Dependencies Density Plot}
 \usage{
 make_cellbins(input = list(), card = FALSE)
 }

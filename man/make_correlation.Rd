@@ -15,7 +15,7 @@ make_correlation(input = list(), card = FALSE, scale = NULL)
 If no error, then returns a correlation plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Each point shows the ranked correlation value ordered from high to low for each query. Correlation values outside the solid gray lines indicate the gene has a correlation value greater than the mean.
+Each point shows the ranked correlation value ordered from high to low for each query. Correlation values above or below the dashed gray lines indicate the gene has a correlation value greater than the mean.
 }
 \examples{
 make_correlation(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

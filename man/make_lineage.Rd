@@ -15,7 +15,7 @@ make_lineage(input = list(), card = FALSE, highlight = FALSE)
 If no error, then returns a lineage plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Each point shows the median dependency score for the gene query within a given cell lineage. The intervals show the 5 percent quantiles centered on the median, the interquartile ranges, and the 95 percent quantiles. The gray background highlights weak dependency values between -1 and 1.
+Each point shows the median dependency score for the queried genes within a given cell lineage. The intervals show the 5 percent quantiles centered on the median, the interquartile ranges, and the 95 percent quantiles.
 }
 \examples{
 make_lineage(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

@@ -2676,7 +2676,7 @@ make_cellbar <- function(input = list(),
 }
 
 ## DENSITY PLOT ----------------------------------------------------------------
-#' Cell Dependencies Density Plot
+#' Dependencies Density Plot
 #'
 #' Kernel density estimate of dependency scores. Dependency scores across all cell lines for queried genes, revealing overall influence of a gene on cellular fitness. The interval indicates the 95 percent quantile of the data, the dot indicates the median dependency score. The gray background highlights weak dependency values between -1 and 1.
 #'
@@ -2852,7 +2852,7 @@ make_cellbins <- function(input = list(),
 ## LINEAGE LINERANGE PLOT ------------------------------------------------------
 #' Dependency Lineage Plot
 #'
-#' Each point shows the median dependency score for the gene query within a given cell lineage. The intervals show the 5 percent quantiles centered on the median, the interquartile ranges, and the 95 percent quantiles. The gray background highlights weak dependency values between -1 and 1.
+#' Each point shows the median dependency score for the queried genes within a given cell lineage. The intervals show the 5 percent quantiles centered on the median, the interquartile ranges, and the 95 percent quantiles.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -3043,7 +3043,7 @@ make_lineage <- function(input = list(),
 ## SUB-LINEAGE LINE RANGE PLOT ------------------------------------------------------
 #' Dependency Sub-lineage Plot
 #'
-#' Each point shows the median dependency score for the gene query within a given cell sub-lineage. The intervals show the 5 percent quantiles centered on the median, the interquartile ranges, and the 95 percent quantiles. The gray background highlights weak dependency values between -1 and 1.
+#' Each point shows the median dependency score for the queried genes within a given cell sub-lineage. The intervals show the 5 percent quantiles centered on the median, the interquartile ranges, and the 95 percent quantiles.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -3234,7 +3234,7 @@ make_sublineage <- function(input = list(),
 ## CORRELATION PLOT FOR CELL DEPS--------------------------------------------------------
 #' Co-essentiality Correlation Plot
 #'
-#' Each point shows the ranked correlation value ordered from high to low for each query. Correlation values outside the solid gray lines indicate the gene has a correlation value greater than the mean.
+#' Each point shows the ranked correlation value ordered from high to low for each query. Correlation values above or below the dashed gray lines indicate the gene has a correlation value greater than the mean.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -3376,9 +3376,9 @@ make_correlation <- function(input = list(),
 }
 
 ## EXPvDEP PLOT --------------------------------------------------------
-#' Gene Dependency versus Expression
+#' Gene Dependency vs Expression Plot
 #'
-#' Each point shows the dependency value compared to the expression value for a gene within a given cell line. Gray area indicates dependency values that are between -1 and 1.
+#' Each point shows the dependency value compared to the gene expression value for a gene within a given cell line. The Pearson correlation coefficient and the p-values are provided in the top-left corner of the plot.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card

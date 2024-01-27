@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{make_expdep}
 \alias{make_expdep}
-\title{Gene Dependency versus Expression}
+\title{Gene Dependency vs Expression Plot}
 \usage{
 make_expdep(input = list(), plot_se = FALSE, card = FALSE)
 }
@@ -15,7 +15,7 @@ make_expdep(input = list(), plot_se = FALSE, card = FALSE)
 If no error, then returns a expdep plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Each point shows the dependency value compared to the expression value for a gene within a given cell line. Gray area indicates dependency values that are between -1 and 1.
+Each point shows the dependency value compared to the gene expression value for a gene within a given cell line. The Pearson correlation coefficient and the p-values are provided in the top-left corner of the plot.
 }
 \examples{
 make_expdep(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
