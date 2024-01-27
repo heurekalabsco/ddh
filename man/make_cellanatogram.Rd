@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{make_cellanatogram}
 \alias{make_cellanatogram}
-\title{Subcellular Expression Plot}
+\title{Sub-cellular Expression Plot}
 \usage{
 make_cellanatogram(input = list(), card = FALSE)
 }
@@ -15,7 +15,7 @@ make_cellanatogram(input = list(), card = FALSE)
 If no error, then returns a cellanatogram plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Subcellular expression levels for the queried gene/s.
+Sub-cellular expression levels for the queried gene/s as reported by the human protein atlas (HPA) project.
 }
 \examples{
 make_cellanatogram(input = list(type = "gene", content = c("ROCK2")))

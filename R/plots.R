@@ -1250,9 +1250,9 @@ make_pubmed <- function(input = list(),
 }
 
 ## CELL ANATOGRAM -------------------------------------------------------------------
-#' Subcellular Expression Plot
+#' Sub-cellular Expression Plot
 #'
-#' Subcellular expression levels for the queried gene/s.
+#' Sub-cellular expression levels for the queried gene/s as reported by the human protein atlas (HPA) project.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -1603,7 +1603,7 @@ make_tissue <- function(input = list(),
 ## EXPRESSION PLOT --------------------------------------------------------
 #' Cell Line Expression Plot
 #'
-#' Expression levels of the queried gene/s across cell lines.
+#' Expression levels of the queried gene (or protein) across cell lines from the cancer cell line encyclopedia (CCLE) project.
 #'
 #' @param input Expecting a list containing type and content variable.
 #' @param card A boolean that sets whether the plot should be scaled down to be a card
@@ -1750,7 +1750,7 @@ make_cellexpression <- function(input = list(),
 }
 
 # GENE V. PROTEIN EXPRESSION ----------------------------------
-#' Gene Expression versus Protein Expression
+#' Gene vs Protein Expression Plot
 #'
 #' Each point shows the gene expression value compared to the protein expression value for a gene within a given cell line. The Pearson correlation coefficient and the p-values are provided in the top-left corner of the plot.
 #'

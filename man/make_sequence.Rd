@@ -15,7 +15,7 @@ make_sequence(input = list(), card = FALSE)
 If no error, then returns a sequence plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-This is a plot function that takes a gene name and returns a sequence plot
+First 100 amino acids of the protein.
 }
 \examples{
 make_sequence(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))

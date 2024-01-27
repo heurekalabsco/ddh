@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{make_cellgeneprotein}
 \alias{make_cellgeneprotein}
-\title{Gene Expression versus Protein Expression}
+\title{Gene vs Protein Expression Plot}
 \usage{
 make_cellgeneprotein(input = list(), card = FALSE)
 }

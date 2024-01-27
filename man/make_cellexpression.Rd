@@ -15,7 +15,7 @@ make_cellexpression(input = list(), var = "gene", card = FALSE)
 If no error, then returns a cellexpression plot. If an error is thrown, then will return a bomb plot.
 }
 \description{
-Expression levels of the queried gene/s across cell lines.
+Expression levels of the queried gene (or protein) across cell lines from the cancer cell line encyclopedia (CCLE) project.
 }
 \examples{
 make_cellexpression(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
