@@ -1251,7 +1251,7 @@ make_gene_drugs_table <- function(input = list()) {
       ddh::get_data_object(object_names = input$content,
                            dataset_name = "gene_drugs_table",
                            pivotwider = TRUE) %>%
-      dplyr::select(all_of(c("id", "fav_drug", "moa"))) %>%
+      dplyr::select(dplyr::all_of(c("id", "fav_drug", "moa"))) %>%
       dplyr::arrange(fav_drug)
     return(gene_drugs_table)
   }
