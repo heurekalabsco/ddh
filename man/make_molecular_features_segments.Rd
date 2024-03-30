@@ -4,7 +4,7 @@
 \alias{make_molecular_features_segments}
 \title{Molecular Features Segments Plot}
 \usage{
-make_molecular_features_segments(input = list(), ...)
+make_molecular_features_segments(input = list(), boxplot = FALSE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}

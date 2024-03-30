@@ -1939,12 +1939,15 @@ make_molecular_features_segments <- function(input = list(),
         dplyr::filter(group != "Neutral") %>%
         ggplot2::ggplot(ggplot2::aes(group, `Dep Score`)) +
         ggplot2::geom_boxplot(ggplot2::aes(fill = group), alpha = 0.8) +
+        ## colors
+        ggplot2::scale_fill_manual(values = c("Sensitive" = ddh_pal_d(palette = "gene")(2)[1],
+                                              "Resistant" = ddh_pal_d(palette = "gene")(2)[2])) +
         ggplot2::labs(
           x = NULL,
           y = "Dependency Score",
           fill = "Segment") +
-        theme_ddh() +
-        scale_fill_ddh_d(palette = input$type) +
+        theme_ddh(grid = "y") +
+        # scale_fill_ddh_d(palette = input$type) +
         ggplot2::theme(axis.text.x = ggplot2::element_text(size = 15),
                        legend.position = "none")
     }
