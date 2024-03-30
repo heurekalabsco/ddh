@@ -1886,7 +1886,7 @@ make_cellgeneprotein <- function(input = list(),
 #' make_molecular_features_segments(input = list(type = 'gene', query = 'ROCK1', content = 'ROCK1'))
 #' make_molecular_features_segments(input = list(type = 'gene', query = 'ROCK1', content = c('ROCK1', 'ROCK2')))
 make_molecular_features_segments <- function(input = list(),
-                                             ...) {
+                                             boxplot = FALSE) {
 
   gene_molecular_features_hits <- ddh::make_molecular_features_segments_table(input = input) %>%
     dplyr::group_by(Query) %>%
@@ -1901,37 +1901,53 @@ make_molecular_features_segments <- function(input = list(),
 
   make_molecular_features_segments_raw <- function() {
 
-    plot_complete <-
-      gene_molecular_features_hits %>%
-      ggplot2::ggplot(ggplot2::aes(Rank, `Dep Score`, group = Query, color = group, label = `Cell Line`)) +
-      ggplot2::geom_point(size = 2, alpha = 0.6) +
-      ## colors
-      ggplot2::scale_color_manual(values = c("Sensitive" = ddh_pal_d(palette = "gene")(2)[1],
-                                             "Neutral" = "grey90",
-                                             "Resistant" = ddh_pal_d(palette = "gene")(2)[2])) +
-      ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = c(0.01, 0.01))) +
-      ## titles
-      ggplot2::labs(
-        x = NULL,
-        y = "Dependency Score",
-        color = "Segment"
-      ) +
-      ## theme changes
-      ddh::theme_ddh(grid = "y") +
-      ggplot2::theme(
-        text = ggplot2::element_text(family = "Roboto Slab"),
-        axis.text = ggplot2::element_text(family = "Roboto Slab"),
-        axis.text.x = ggplot2::element_blank(),
-        axis.ticks.x = ggplot2::element_blank(),
-        axis.line.x = ggplot2::element_blank()
-      ) +
-      {if(length(input$content) > 1) ggrepel::geom_label_repel(data = gene_molecular_features_hits %>%
-                                                                 dplyr::group_by(Query) %>%
-                                                                 dplyr::filter(Rank == floor(max(Rank)/2)) %>%
-                                                                 dplyr::ungroup(),
-                                                               ggplot2::aes(Rank, `Dep Score`, label = Query),
-                                                               color = "black", show.legend = FALSE)} +
-      NULL
+    if (!boxplot) {
+      plot_complete <-
+        gene_molecular_features_hits %>%
+        ggplot2::ggplot(ggplot2::aes(Rank, `Dep Score`, group = Query, color = group, label = `Cell Line`)) +
+        ggplot2::geom_point(size = 2, alpha = 0.6) +
+        ## colors
+        ggplot2::scale_color_manual(values = c("Sensitive" = ddh_pal_d(palette = "gene")(2)[1],
+                                               "Neutral" = "grey90",
+                                               "Resistant" = ddh_pal_d(palette = "gene")(2)[2])) +
+        ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = c(0.01, 0.01))) +
+        ## titles
+        ggplot2::labs(
+          x = NULL,
+          y = "Dependency Score",
+          color = "Segment"
+        ) +
+        ## theme changes
+        ddh::theme_ddh(grid = "y") +
+        ggplot2::theme(
+          text = ggplot2::element_text(family = "Roboto Slab"),
+          axis.text = ggplot2::element_text(family = "Roboto Slab"),
+          axis.text.x = ggplot2::element_blank(),
+          axis.ticks.x = ggplot2::element_blank(),
+          axis.line.x = ggplot2::element_blank()
+        ) +
+        {if(length(input$content) > 1) ggrepel::geom_label_repel(data = gene_molecular_features_hits %>%
+                                                                   dplyr::group_by(Query) %>%
+                                                                   dplyr::filter(Rank == floor(max(Rank)/2)) %>%
+                                                                   dplyr::ungroup(),
+                                                                 ggplot2::aes(Rank, `Dep Score`, label = Query),
+                                                                 color = "black", show.legend = FALSE)} +
+        NULL
+    } else {
+      plot_complete <-
+        gene_molecular_features_hits %>%
+        dplyr::filter(group != "Neutral") %>%
+        ggplot2::ggplot(ggplot2::aes(group, `Dep Score`)) +
+        ggplot2::geom_boxplot(ggplot2::aes(fill = group), alpha = 0.8) +
+        ggplot2::labs(
+          x = NULL,
+          y = "Dependency Score",
+          fill = "Segment") +
+        theme_ddh() +
+        scale_fill_ddh_d(palette = input$type) +
+        ggplot2::theme(axis.text.x = ggplot2::element_text(size = 15),
+                       legend.position = "none")
+    }
 
     return(plot_complete)
   }
