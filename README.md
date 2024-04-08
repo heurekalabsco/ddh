@@ -11,7 +11,7 @@ This package contains functions for data analysis and graphing, data sets, and s
 
 ```{r, eval = FALSE}
 # install.packages("devtools")
-devtools::install_github("heurekalabsorg/ddh")
+devtools::install_github("heurekalabsco/ddh")
 ```
 
 ## Usage
