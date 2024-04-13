@@ -743,12 +743,22 @@ make_censor_table <- function(input = list(),
 #' \dontrun{
 #' make_gene_dependency_enrichment_table(input = list(type = 'gene', content = 'ROCK1'))
 #' }
-make_gene_dependency_enrichment_table <- function(input = list()) {
+make_gene_dependency_enrichment_table <- function(input = list(), top = TRUE) {
   make_gene_dependency_enrichment_table_raw <- function() {
+    if (top) {
+      gene_dependency_enrichment <-
+        ddh::get_data_object(object_names = input$content,
+                             dataset_name = "gene_dependency_enrichment_top",
+                             pivotwider = TRUE)
+    } else {
+      gene_dependency_enrichment <-
+        ddh::get_data_object(object_names = input$content,
+                             dataset_name = "gene_dependency_enrichment_bottom",
+                             pivotwider = TRUE)
+    }
+
     gene_dependency_enrichment <-
-      ddh::get_data_object(object_names = input$content,
-                           dataset_name = "gene_dependency_enrichment",
-                           pivotwider = TRUE) %>%
+      gene_dependency_enrichment %>%
       dplyr::mutate(Pval = as.numeric(Pval), adjPval = as.numeric(adjPval)) %>%
       dplyr::mutate_if(is.numeric, ~ signif(., digits = 3)) %>%
       dplyr::select(-data_set) %>%
@@ -828,7 +838,7 @@ make_molecular_features_table <- function(input = list(),
     gene_summaries <- ddh::get_content("universal_gene_summary", dataset = TRUE)[,1:2]
     gene_molecular_features_hits <-
       ddh::get_data_object(object_names = input$content,
-                           dataset_name = "gene_molecular_features_top",
+                           dataset_name = "gene_molecular_features",
                            pivotwider = TRUE) %>%
       dplyr::mutate(dplyr::across(dplyr::contains(c("logFC", "pval", "adjPval")), as.numeric)) %>%
       dplyr::mutate_if(is.numeric, ~ signif(., digits = 3)) %>%
@@ -869,7 +879,7 @@ make_molecular_features_pathways_table <- function(input = list(),
   make_molecular_features_pathways_table_raw <- function() {
     gene_molecular_features_hits <-
       ddh::get_data_object(object_names = input$content,
-                           dataset_name = "gene_molecular_features_pathways_top",
+                           dataset_name = "gene_molecular_features_pathways",
                            pivotwider = TRUE) %>%
       dplyr::mutate(pval = as.numeric(pval), adjPval = as.numeric(adjPval)) %>%
       dplyr::mutate_if(is.numeric, ~ signif(., digits = 3)) %>%

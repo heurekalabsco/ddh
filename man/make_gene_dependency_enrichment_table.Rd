@@ -4,7 +4,7 @@
 \alias{make_gene_dependency_enrichment_table}
 \title{Enrichment Top Table}
 \usage{
-make_gene_dependency_enrichment_table(input = list())
+make_gene_dependency_enrichment_table(input = list(), top = TRUE)
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
