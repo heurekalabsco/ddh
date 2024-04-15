@@ -4,7 +4,7 @@
 \alias{make_molecular_features_table}
 \title{Molecular Features Table}
 \usage{
-make_molecular_features_table(input = list(), ...)
+make_molecular_features_table(input = list())
 }
 \arguments{
 \item{input}{Expecting a list containing type and content variable.}
